@@ -976,7 +976,7 @@ def create_app():
                 
             genai.configure(api_key=api_key)
             
-            selected_model = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
+            selected_model = os.environ.get('GEMINI_MODEL', 'gemini-pro')
             model = genai.GenerativeModel(selected_model)
             
             safety_settings = [
