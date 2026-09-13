@@ -5,7 +5,10 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'default-secret-key-change-in-production'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:////tmp/school.db' if os.environ.get('VERCEL') else 'sqlite:///school.db'
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+        DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL or ('sqlite:////tmp/school.db' if os.environ.get('VERCEL') else 'sqlite:///school.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Session Security
