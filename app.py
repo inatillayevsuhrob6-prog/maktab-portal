@@ -972,11 +972,13 @@ def create_app():
         try:
             api_key = os.environ.get('GEMINI_API_KEY')
             if not api_key:
-                return jsonify({"reply": "️ Gemini API kaliti .env faylida sozlanmagan."})
+                return jsonify({"reply": "⚠️ API kaliti topilmadi."})
                 
             genai.configure(api_key=api_key)
             
-            selected_model = os.environ.get('GEMINI_MODEL', 'gemini-pro')
+            # ENG BARQAROR MODELNI TANLASH (Tuzatilgan qism)
+            selected_model = 'gemini-pro' 
+            
             model = genai.GenerativeModel(selected_model)
             
             safety_settings = [
