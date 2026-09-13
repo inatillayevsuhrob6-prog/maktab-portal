@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Mening Jadvalim</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .days-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .day-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .day-header { background: #3498db; color: white; padding: 10px 15px; font-weight: bold; }
+        .lesson-item { padding: 12px 15px; border-bottom: 1px solid #eee; }
+        .lesson-item:last-child { border-bottom: none; }
+        .lesson-time { font-size: 12px; color: #7f8c8d; margin-bottom: 4px; }
+        .lesson-subject { font-weight: bold; color: #2c3e50; }
+        .lesson-details { font-size: 12px; color: #95a5a6; margin-top: 4px; }
+        .teacher-info { display: inline-flex; align-items: center; gap: 6px; }
+        .teacher-info img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; }
+    </style>
+</head>
+<body style="background:#f4f6f9">
+    <div class="dashboard-container" style="max-width:1200px; margin:0 auto; padding:20px">
+        <nav class="navbar" style="border-radius:8px; margin-bottom:20px">
+            <h3>{{ student.student_class.name }} Sinf Jadvali</h3>
+            <a href="/student_dashboard" style="color:white; text-decoration:none">← Kabinetga</a>
+        </nav>
+        
+        <div class="days-grid">
+            {% for day, lessons in schedule.items() %}
+            {% if lessons %}
+            <div class="day-card">
+                <div class="day-header">{{ day }}</div>
+                {% for l in lessons %}
+                <div class="lesson-item">
+                    <div class="lesson-time">{{ l.start_time }} - {{ l.end_time }}</div>
+                    <div class="lesson-subject">{{ l.subject.name }}</div>
+                    <div class="lesson-details">
+                        {% if l.teacher %}
+                            <span class="teacher-info">
+                                {% if l.teacher.profile_pic %}<img src="{{ l.teacher.profile_pic }}" alt="O'qituvchi rasmi">{% endif %}
+                                {{ l.teacher.first_name }} {{ l.teacher.last_name }}
+                            </span> |
+                        {% endif %}
+                        {{ l.room_number or 'Xona yo\'q' }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

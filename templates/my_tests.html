@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Mening Testlarim</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .back-btn { display: inline-flex; align-items: center; gap: 5px; color: #555; text-decoration: none; margin-bottom: 20px; font-weight: 500; }
+        .back-btn:hover { color: #3498db; }
+        .test-card { transition: transform 0.2s; border-left: 4px solid #3498db; }
+        .test-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .subject-tag { background: #ecf0f1; color: #2c3e50; padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
+        .btn-disabled { background: #bdc3c7 !important; cursor: not-allowed !important; }
+    </style>
+</head>
+<body style="background: #f4f6f9;">
+    <div class="dashboard-container" style="max-width: 800px; margin: 40px auto; padding: 20px;">
+        
+        <!-- Orqaga tugmasi -->
+        <a href="/student_dashboard" class="back-btn">
+            ← Mening Kabinetimga qaytish
+        </a>
+
+        <h1 style="margin-bottom: 30px; color: #2c3e50;">Mavjud Testlar</h1>
+        
+        <div class="stats-grid" style="grid-template-columns: 1fr;"> <!-- Bitta ustun qilib ro'yxat shaklida -->
+            {% for t in tests %}
+            <div class="card test-card" style="display: flex; justify-content: space-between; align-items: center; padding: 20px;">
+                <div>
+                    <!-- Fan nomi -->
+                    <div class="subject-tag">
+                        {{ t.subject.name if t.subject else 'Fansiz' }}
+                    </div>
+                    
+                    <h3 style="margin: 10px 0 5px; color: #2c3e50;">{{ t.title }}</h3>
+                    <p style="margin: 0; color: #7f8c8d; font-size: 14px;">
+                        Savollar soni: <strong>{{ t.questions|length }}</strong> ta
+                    </p>
+                </div>
+                
+                <div>
+                    {% if t.id in done_ids %}
+                        <button class="btn-primary btn-disabled" disabled>✅ Ishlangan</button>
+                    {% else %}
+                        <a href="/take_test/{{ t.id }}" class="btn-primary" style="text-decoration:none; display:inline-block;">Boshlash →</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            
+            {% if tests|length == 0 %}
+            <div class="card" style="text-align:center; padding: 40px;">
+                <p style="font-size: 18px; color: #7f8c8d;">Hozircha sizning sinfingiz uchun testlar mavjud emas.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

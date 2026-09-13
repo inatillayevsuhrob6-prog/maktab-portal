@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Chat - Maktab Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .chat-container { max-width: 800px; margin: 40px auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 80vh; }
+        .chat-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h2 { margin: 0; font-size: 20px; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; background: #f9f9f9; display: flex; flex-direction: column; gap: 15px; }
+        .message { max-width: 70%; padding: 12px 16px; border-radius: 12px; line-height: 1.5; font-size: 15px; word-wrap: break-word; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .message.user { align-self: flex-end; background: #667eea; color: white; border-bottom-right-radius: 2px; }
+        .message.ai { align-self: flex-start; background: white; border: 1px solid #eee; color: #333; border-bottom-left-radius: 2px; }
+        .chat-input-area { padding: 20px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px; }
+        .chat-input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 24px; outline: none; font-size: 15px; }
+        .chat-send { background: #667eea; color: white; border: none; padding: 0 24px; border-radius: 24px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .chat-send:hover { background: #5a6fd6; }
+        .chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+        .typing-indicator { font-style: italic; color: #888; font-size: 13px; margin-left: 10px; display: none; padding: 0 20px; margin-bottom: 10px; }
+        .clear-btn { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 12px; border-radius: 15px; cursor: pointer; font-size: 12px; margin-left: 10px; }
+        .clear-btn:hover { background: rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body style="background: #f4f6f9;">
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>🤖 AI O'qituvchi</h2>
+            <div style="display:flex; align-items:center;">
+                <button onclick="clearChat()" class="clear-btn">🗑 Tozalash</button>
+                <a href="/dashboard" style="color:white; text-decoration:none; font-size:14px; opacity:0.9; margin-left:10px;">← Dashboard</a>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message ai">Salom! Men sizning AI o'qituvchingizman. Darslar, testlar yoki boshqa savollaringiz bo'lsa, bemalol so'rang! 😊</div>
+        </div>
+        
+        <span class="typing-indicator" id="typingIndicator">AI yozmoqda...</span>
+
+        <div class="chat-input-area">
+            <input type="text" id="userInput" class="chat-input" placeholder="Savolingizni yozing..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()" id="sendBtn" class="chat-send">Yuborish</button>
+        </div>
+    </div>
+
+    <script>
+    let isProcessing = false;
+
+    async function sendMessage() {
+        if (isProcessing) return;
+        
+        const input = document.getElementById('userInput');
+        const messagesDiv = document.getElementById('chatMessages');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const sendBtn = document.getElementById('sendBtn');
+        const text = input.value.trim();
+        
+        if (!text) return;
+        
+        isProcessing = true;
+        sendBtn.disabled = true;
+        
+        // Foydalanuvchi xabarini qo'shish
+        messagesDiv.innerHTML += `<div class="message user">${escapeHtml(text)}</div>`;
+        input.value = '';
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        
+        // Yozmoqda indikatori
+        typingIndicator.style.display = 'block';
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        
+        try {
+            const res = await fetch('/ask_ai_chat_stream', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: text})
+            });
+            const data = await res.json();
+            
+            typingIndicator.style.display = 'none';
+            
+            if (data.reply) {
+                messagesDiv.innerHTML += `<div class="message ai">${escapeHtml(data.reply)}</div>`;
+            } else {
+                messagesDiv.innerHTML += `<div class="message ai" style="color:red;">Xatolik: ${data.error || 'Javob olinmadi'}</div>`;
+            }
+            
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            isProcessing = false;
+            sendBtn.disabled = false;
+            
+        } catch (err) {
+            typingIndicator.style.display = 'none';
+            messagesDiv.innerHTML += `<div class="message ai" style="color:red;">Internet bilan bog'lanishda xatolik.</div>`;
+            isProcessing = false;
+            sendBtn.disabled = false;
+        }
+    }
+    
+    async function clearChat() {
+        if (confirm("Chat tarixini tozalashni xohlaysizmi?")) {
+            document.getElementById('chatMessages').innerHTML = 
+                '<div class="message ai">Chat tozalandi! Yangi savolingiz bormi? 😊</div>';
+        }
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    </script>
+</body>
+</html>

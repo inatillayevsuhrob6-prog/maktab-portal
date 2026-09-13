@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Maktab Portal{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if session.get('school_id') %}
+    <div class="app-shell">
+        <aside class="app-sidebar" id="appSidebar">
+            <a href="{% if session.get('user_role') == 'admin' %}/dashboard{% elif session.get('user_role') == 'teacher' %}/teacher_dashboard{% else %}/student_dashboard{% endif %}" class="sidebar-brand">
+                <span class="brand-mark">▦</span>
+                <span>{{ session.get('school_name', 'Maktab Portal') }}</span>
+            </a>
+            <div class="sidebar-user">
+                <span class="sidebar-user-dot"></span>
+                <span>{{ session.get('student_name') or session.get('teacher_name') or 'Administrator' }}</span>
+            </div>
+            <nav class="sidebar-nav">
+                {% if session.get('user_role') == 'admin' %}
+                    <a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}"><span>⌂</span>Bosh sahifa</a>
+                    <a href="/classes" class="{% if request.path.startswith('/classes') %}active{% endif %}"><span>▤</span>Sinflar</a>
+                    <a href="/students" class="{% if request.path.startswith('/students') %}active{% endif %}"><span>♙</span>O‘quvchilar</a>
+                    <a href="/teachers" class="{% if request.path.startswith('/teachers') %}active{% endif %}"><span>♟</span>O‘qituvchilar</a>
+                    <a href="/tests" class="{% if request.path.startswith('/tests') %}active{% endif %}"><span>▣</span>Testlar</a>
+                    <a href="/schedule/manage" class="{% if request.path.startswith('/schedule') %}active{% endif %}"><span>◫</span>Dars jadvali</a>
+                    <a href="/library/manage" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kutubxona</a>
+                    <a href="/news/manage" class="{% if request.path.startswith('/news') %}active{% endif %}"><span>▰</span>Yangiliklar</a>
+                    <a href="/ai_chat" class="{% if request.path.startswith('/ai_chat') %}active{% endif %}"><span>✦</span>AI Chat</a>
+                    <a href="/admin_profile" class="{% if request.path.startswith('/admin_profile') %}active{% endif %}"><span>◉</span>Admin profil</a>
+                {% elif session.get('user_role') == 'teacher' %}
+                    <a href="/teacher_dashboard" class="{% if request.path == '/teacher_dashboard' %}active{% endif %}"><span>⌂</span>Kabinet</a>
+                    <a href="/teacher_profile" class="{% if request.path.startswith('/teacher_profile') %}active{% endif %}"><span>◉</span>Profil sozlamalari</a>
+                    <a href="/schedule/view"><span>◫</span>Dars jadvali</a>
+                    <a href="/library"><span>▥</span>Kutubxona</a>
+                    <a href="/ai_chat"><span>✦</span>AI yordamchi</a>
+                {% else %}
+                    <a href="/student_dashboard" class="{% if request.path == '/student_dashboard' %}active{% endif %}"><span>⌂</span>Kabinet</a>
+                    <a href="/student_profile" class="{% if request.path.startswith('/student_profile') %}active{% endif %}"><span>◉</span>Mening profilim</a>
+                    <a href="/schedule/view" class="{% if request.path.startswith('/schedule') %}active{% endif %}"><span>◫</span>Dars jadvali</a>
+                    <a href="/my_tests" class="{% if request.path.startswith('/my_tests') %}active{% endif %}"><span>▣</span>Testlarim</a>
+                    <a href="/library" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kitobxona</a>
+                    <a href="/news" class="{% if request.path.startswith('/news') %}active{% endif %}"><span>▰</span>Yangiliklar</a>
+                    <a href="/ai_chat"><span>✦</span>AI yordamchi</a>
+                {% endif %}
+            </nav>
+            <a href="/logout" class="sidebar-logout"><span>↪</span>Chiqish</a>
+        </aside>
+        <main class="app-main">
+            <header class="topbar">
+                <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Menyuni ochish">☰</button>
+                <form action="/search" method="GET" class="topbar-search">
+                    <span>⌕</span><input type="text" name="q" placeholder="Qidirish..." value="{{ request.args.get('q', '') }}">
+                </form>
+                <div class="topbar-status"><span></span> Tizim faol</div>
+            </header>
+            <div class="content-wrapper">
+    {% else %}
+            <div class="content-wrapper">
+    {% endif %}
+                {% block content %}{% endblock %}
+            </div>
+    {% if session.get('school_id') %}
+        </main>
+    </div>
+    {% endif %}
+    <script>
+        function toggleSidebar() {
+            document.getElementById('appSidebar').classList.toggle('open');
+        }
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('appSidebar');
+            const toggle = document.querySelector('.menu-toggle');
+            if (sidebar && toggle && !sidebar.contains(event.target) && !toggle.contains(event.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

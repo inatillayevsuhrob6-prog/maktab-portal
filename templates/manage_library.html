@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Kutubxona Boshqaruvi</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .page-navbar { background-color: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .page-navbar h3 { margin: 0; font-size: 18px; font-weight: 600; }
+        .nav-actions { display: flex; gap: 15px; align-items: center; }
+        .nav-link { color: white !important; text-decoration: none; font-weight: 500; transition: opacity 0.3s; }
+        .nav-link:hover { opacity: 0.8; text-decoration: underline; }
+        .btn-logout-nav { background-color: #e74c3c; color: white !important; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; transition: background 0.3s; }
+        .btn-logout-nav:hover { background-color: #c0392b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f9fa; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .form-row input, .form-row select, .form-row textarea { padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex: 1; }
+        .btn-edit { background: #f39c12; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; }
+        .btn-delete { background: #e74c3c; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; }
+    </style>
+</head>
+<body class="legacy-admin-page" style="background:#f4f6f9; padding:20px;">
+    {% include "admin_sidebar.html" %}
+    
+    <!-- NAVBAR -->
+    <div class="page-navbar">
+        <h3>Kutubxona Boshqaruvi</h3>
+        <div class="nav-actions">
+            <a href="/dashboard" class="nav-link">← Bosh sahifa</a>
+            <a href="/logout" class="btn-logout-nav">Chiqish</a>
+        </div>
+    </div>
+
+    <div style="max-width:1200px; margin:0 auto;">
+        <div class="card" style="margin-bottom: 30px; padding:20px;">
+            <h4 style="margin-top:0;">Yangi Kitob Qo‘shish</h4>
+            <form action="/library/add" method="POST" class="form-row">
+                <!-- CSRF TOKEN QO'SHILDI -->
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <input type="text" name="title" placeholder="Kitob nomi" required>
+                <input type="text" name="author" placeholder="Muallif" required>
+                <select name="genre">
+                    <option value="Darslik">Darslik</option>
+                    <option value="Badiiy">Badiiy</option>
+                    <option value="Ilmiy">Ilmiy</option>
+                    <option value="Tarix">Tarix</option>
+                </select>
+                <input type="url" name="cover_url" placeholder="Rasm URL (ixtiyoriy)">
+                <input type="url" name="file_url" placeholder="PDF Havola (ixtiyoriy)">
+                <textarea name="description" placeholder="Tavsif" rows="1"></textarea>
+                <button type="submit" class="btn-primary" style="width:auto">Saqlash</button>
+            </form>
+        </div>
+
+        <div class="card" style="padding:20px;">
+            <h3 style="margin-top:0;">Mavjud Kitoblar</h3>
+            <table>
+                <thead><tr><th>Nomi</th><th>Muallif</th><th>Janr</th><th>Havola</th><th>Amallar</th></tr></thead>
+                <tbody>
+                    {% for b in books %}
+                    <tr>
+                        <td><strong>{{ b.title }}</strong></td>
+                        <td>{{ b.author }}</td>
+                        <td><span style="background:#ecf0f1; padding:2px 8px; border-radius:10px; font-size:12px">{{ b.genre }}</span></td>
+                        <td>{% if b.file_url %}<a href="{{ b.file_url }}" target="_blank" style="color:#3498db;">Ochish</a>{% else %}-{% endif %}</td>
+                        <td>
+                            <a href="/edit_book/{{ b.id }}" class="btn-edit">✏️ Tahrirlash</a>
+                            <a href="/delete_book/{{ b.id }}" class="btn-delete" onclick="return confirm('Rostdan ham o\'chirmoqchimisiz?')"> O'chirish</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not books %}
+                    <tr><td colspan="5" style="text-align:center; padding:20px; color:#777;">Hozircha kitoblar yo'q.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

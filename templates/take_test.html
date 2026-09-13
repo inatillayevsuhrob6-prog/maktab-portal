@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ test.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .question-box { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .options label { display: block; padding: 10px; margin: 5px 0; background: #f9f9f9; border-radius: 4px; cursor: pointer; }
+        .options input[type="radio"] { margin-right: 10px; }
+        .options label:hover { background: #eef; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="navbar">
+            <h3>{{ test.title }}</h3>
+            <a href="/my_tests" style="color:white; text-decoration:none;">Ortga</a>
+        </nav>
+        <div class="content">
+            <form action="/submit_test/{{ test.id }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% for q in test.questions %}
+                <div class="question-box">
+                    <h4>{{ loop.index }}. {{ q.question_text }}</h4>
+                    <div class="options">
+                        <label><input type="radio" name="q_{{ q.id }}" value="a" required> A) {{ q.option_a }}</label>
+                        <label><input type="radio" name="q_{{ q.id }}" value="b"> B) {{ q.option_b }}</label>
+                        <label><input type="radio" name="q_{{ q.id }}" value="c"> C) {{ q.option_c }}</label>
+                        <label><input type="radio" name="q_{{ q.id }}" value="d"> D) {{ q.option_d }}</label>
+                    </div>
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn-primary" style="width:100%; padding:15px; font-size:18px;">Testni Yakunlash</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Natijalar - {{ test.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f8f9fa; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; color: white; }
+        .bg-danger { background-color: #e74c3c; }
+        .bg-warning { background-color: #f39c12; }
+        .bg-success { background-color: #27ae60; }
+        .topic-bar { height: 8px; background: #eee; border-radius: 4px; margin-top: 5px; overflow: hidden; }
+        .topic-fill { height: 100%; transition: width 0.5s; }
+        
+        /* YANGI: O'quvchi profili stili */
+        .student-profile { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .avatar { width: 50px; height: 50px; background: #3498db; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; }
+        .info h4 { margin: 0; color: #2c3e50; }
+        .info p { margin: 5px 0 0; color: #7f8c8d; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="navbar">
+            <h3>{{ test.title }} - Natijalar</h3>
+            <a href="/tests" style="color:white; text-decoration:none;">Testlarga</a>
+        </nav>
+        <div class="content">
+            
+            <!-- YANGI: O'quvchi Ma'lumotlari (Agar bitta natija bo'lsa) -->
+            {% if results|length == 1 %}
+            <div class="student-profile">
+                <div class="avatar">{{ results[0].student.first_name[0] }}{{ results[0].student.last_name[0] }}</div>
+                <div class="info">
+                    <h4>{{ results[0].student.first_name }} {{ results[0].student.last_name }}</h4>
+                    <p>Sinf: {{ results[0].student.student_class.name }} | Level: {{ results[0].student.level }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- MUAMMOLI MAVZULAR TAHLILI -->
+            <div class="card" style="margin-bottom: 30px; text-align: left;">
+                <h3>📊 Sinf Bo‘yicha Mavzu Tahlili</h3>
+                <p style="color:#777; font-size:14px;">Jami ishtirokchilar: {{ total_students }}</p>
+                
+                {% for t in analyzed_topics %}
+                <div style="margin-bottom: 15px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong>{{ t.name }}</strong>
+                        <span class="badge bg-{{ t.status }}">{{ t.percentage }}%</span>
+                    </div>
+                    <div class="topic-bar">
+                        <div class="topic-fill bg-{{ t.status }}" style="width: {{ t.percentage }}%;"></div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                {% if analyzed_topics|length == 0 %}
+                <p>Hozircha ma'lumot yo'q.</p>
+                {% endif %}
+            </div>
+
+            <!-- O'QUVCHILAR NATIJALARI JADVALI -->
+            <div class="card" style="text-align: left;">
+                <h3>O‘quvchilar Natijalari</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>O‘quvchi</th>
+                            <th>Ball</th>
+                            <th>Foiz</th>
+                            <th>Sana</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in results %}
+                        <tr>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <div style="width:30px; height:30px; background:#ecf0f1; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold;">{{ r.student.first_name[0] }}</div>
+                                    {{ r.student.first_name }} {{ r.student.last_name }}
+                                </div>
+                            </td>
+                            <td>{{ r.score }} / {{ r.total_questions }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'danger' if r.percentage < 60 else ('warning' if r.percentage < 80 else 'success') }}">
+                                    {{ r.percentage|round(1) }}%
+                                </span>
+                            </td>
+                            <td>{{ r.submitted_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if results|length == 0 %}
+                        <tr><td colspan="4" style="text-align:center;">Hozircha natijalar yo‘q.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Sinflar</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .page-navbar { background-color: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .page-navbar h3 { margin: 0; font-size: 18px; font-weight: 600; }
+        .nav-actions { display: flex; gap: 15px; align-items: center; }
+        .nav-link { color: white !important; text-decoration: none; font-weight: 500; transition: opacity 0.3s; }
+        .nav-link:hover { opacity: 0.8; text-decoration: underline; }
+        .btn-logout-nav { background-color: #e74c3c; color: white !important; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; transition: background 0.3s; }
+        .btn-logout-nav:hover { background-color: #c0392b; }
+        .class-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #3498db; }
+        .class-info h4 { margin: 0 0 5px; color: #2c3e50; }
+        .class-info p { margin: 0; color: #7f8c8d; font-size: 14px; }
+        .action-btns { display: flex; gap: 10px; }
+        .btn-edit { background: #f39c12; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; }
+        .btn-delete { background: #e74c3c; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; }
+    </style>
+</head>
+<body class="legacy-admin-page" style="background-color: #f4f6f9; padding: 20px;">
+    {% include "admin_sidebar.html" %}
+    
+    <!-- Yagona Navbar -->
+    <div class="page-navbar">
+        <h3>Sinflar Bo‘limi</h3>
+        <div class="nav-actions">
+            <a href="/dashboard" class="nav-link">← Bosh sahifa</a>
+            <a href="/logout" class="btn-logout-nav">Chiqish</a>
+        </div>
+    </div>
+
+    <div style="max-width: 800px; margin: 0 auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h1 style="color: #2c3e50; margin: 0;">Sinflar Ro‘yxati</h1>
+        </div>
+
+        <!-- Sinf qo'shish formasi -->
+        <div class="card" style="margin-bottom: 30px; padding: 20px;">
+            <h4 style="margin-top:0;">Yangi Sinf Qo‘shish</h4>
+            <form action="/add_class" method="POST" style="display:flex; gap:10px;">
+                <!-- CSRF TOKEN QO'SHILDI -->
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <input type="text" name="class_name" placeholder="Masalan: 1-A" required style="flex:1; padding:10px; border:1px solid #ddd; border-radius:4px;">
+                <button type="submit" class="btn-primary" style="width:auto;">Qo‘shish</button>
+            </form>
+        </div>
+
+        <!-- Sinflar ro'yxati -->
+        {% for c in classes %}
+        <div class="class-card">
+            <div class="class-info">
+                <h4>{{ c.name }}-sinf</h4>
+                <p>O‘quvchilar soni: {{ c.student_count }}</p>
+            </div>
+            <div class="action-btns">
+                <a href="/edit_class/{{ c.id }}" class="btn-edit">✏️ Tahrirlash</a>
+                <a href="/delete_class/{{ c.id }}" class="btn-delete" onclick="return confirm('Rostdan ham o\'chirmoqchimisiz?')">🗑 O'chirish</a>
+                <a href="/students?class_id={{ c.id }}" style="color:#3498db; text-decoration:none; font-weight:bold; margin-left:10px;">O'quvchilarni ko'rish →</a>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if classes|length == 0 %}
+        <div style="text-align:center; padding:40px; color:#777; background:white; border-radius:8px;">
+            Hozircha sinflar yo‘q. Yuqoridagi forma orqali qo‘shing.
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>O'qituvchini Tahrirlash</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .form-container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn-submit { width: 100%; padding: 14px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #555; text-decoration: none; }
+    </style>
+</head>
+<body class="legacy-admin-page" style="background: #f4f6f9; padding: 40px;">
+    {% include "admin_sidebar.html" %}
+    <a href="/teachers" class="back-link">← O'qituvchilar ro'yxatiga</a>
+    <div class="form-container">
+        <h2 style="margin-top:0; color:#2c3e50;">O'qituvchini Tahrirlash: {{ teacher.first_name }} {{ teacher.last_name }}</h2>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="input-group">
+                <label>Ism</label>
+                <input type="text" name="first_name" value="{{ teacher.first_name }}" required>
+            </div>
+            <div class="input-group">
+                <label>Familiya</label>
+                <input type="text" name="last_name" value="{{ teacher.last_name }}" required>
+            </div>
+            <div class="input-group">
+                <label>Login</label>
+                <input type="text" name="login" value="{{ teacher.login }}" required>
+            </div>
+            <div class="input-group">
+                <label>Telefon</label>
+                <input type="text" name="phone" value="{{ teacher.phone or '' }}">
+            </div>
+            <div class="input-group">
+                <label>Rasm fayli</label>
+                <input type="file" name="profile_image" accept="image/jpeg,image/png,image/gif,image/webp">
+            </div>
+            <div class="input-group">
+                <label>Yoki rasm URL</label>
+                <input type="url" name="profile_pic" value="{{ teacher.profile_pic or '' }}">
+            </div>
+            <div class="input-group">
+                <label>Fan</label>
+                <select name="subject_id">
+                    {% for s in subjects %}
+                        <option value="{{ s.id }}" {% if teacher.subject_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Yangi Parol (bo'sh qoldirsangiz o'zgarmaydi)</label>
+                <input type="password" name="password" placeholder="Yangi parol">
+            </div>
+            <button type="submit" class="btn-submit">Saqlash</button>
+        </form>
+    </div>
+</body>
+</html>

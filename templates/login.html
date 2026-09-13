@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maktab Portal - Kirish</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <h2>Maktab Portal</h2>
+            <p>Tizimga kirish uchun ma'lumotlaringizni kiriting</p>
+            
+            <!-- CSRF TOKEN QO'SHILDI -->
+            <form action="/login" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="input-group">
+                    <label>Login</label>
+                    <input type="text" name="username" placeholder="Loginingiz" required>
+                </div>
+                
+                <div class="input-group">
+                    <label>Parol</label>
+                    <input type="password" name="password" placeholder="Parolingiz" required>
+                </div>
+                
+                <button type="submit" class="btn-primary">Kirish</button>
+            </form>
+            
+            <div class="footer-link">
+                <a href="/register">Yangi maktab ro‘yxatdan o‘tish</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

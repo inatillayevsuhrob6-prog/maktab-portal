@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head><meta charset="UTF-8"><title>Sinfni Tahrirlash</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>.form-container { max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); } .input-group { margin-bottom: 20px; } .input-group label { display: block; margin-bottom: 5px; font-weight: bold; } .input-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; } .btn-save { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }</style>
+</head>
+<body class="legacy-admin-page" style="background:#f4f6f9;">
+{% include "admin_sidebar.html" %}
+<div class="form-container">
+    <h2>Sinfni Tahrirlash</h2>
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="input-group">
+            <label>Sinf Nomi</label>
+            <input type="text" name="class_name" value="{{ c.name }}" required>
+        </div>
+        <button type="submit" class="btn-save">Saqlash</button>
+        <a href="/classes" style="display:block; text-align:center; margin-top:15px; color:#555;">Bekor qilish</a>
+    </form>
+</div>
+</body></html>

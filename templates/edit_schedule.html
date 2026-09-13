@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Darsni tahrirlash</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .schedule-edit-card { max-width: 760px; margin: 30px auto; padding: 28px; background:white; border-radius:16px; box-shadow:0 12px 28px rgba(30,64,175,.08); }
+        .schedule-edit-card h1 { color:#172554; margin-top:0; }
+        .schedule-edit-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:16px; }
+        .schedule-edit-grid label { color:#334155; font-size:.82rem; font-weight:700; }
+        .schedule-edit-grid input, .schedule-edit-grid select { display:block; margin-top:7px; }
+        .schedule-edit-actions { display:flex; gap:10px; margin-top:22px; }
+        .schedule-edit-actions a { display:inline-block; padding:11px 18px; color:#64748b; text-decoration:none; }
+        @media (max-width:620px) { .schedule-edit-card { margin:20px 0; padding:20px; } .schedule-edit-grid { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body class="legacy-admin-page" style="background:#f5f8ff; padding:20px;">
+    {% include "admin_sidebar.html" %}
+    <div class="page-navbar">
+        <h3>Darsni tahrirlash</h3>
+        <div class="nav-actions"><a href="/schedule/manage" class="nav-link">← Jadvalga qaytish</a><a href="/logout" class="btn-logout-nav">Chiqish</a></div>
+    </div>
+    <div class="schedule-edit-card">
+        <h1>Dars ma’lumotlari</h1>
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="schedule-edit-grid">
+                <label>Kun<select name="day_of_week" required>{% for day in ['Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'] %}<option value="{{ day }}" {% if lesson.day_of_week == day %}selected{% endif %}>{{ day }}</option>{% endfor %}</select></label>
+                <label>Sinf (ixtiyoriy)<select name="class_id"><option value="">Umumiy dars</option>{% for school_class in classes %}<option value="{{ school_class.id }}" {% if lesson.class_id == school_class.id %}selected{% endif %}>{{ school_class.name }}-sinf</option>{% endfor %}</select></label>
+                <label>Boshlanish vaqti<input type="time" name="start_time" value="{{ lesson.start_time }}" required></label>
+                <label>Tugash vaqti<input type="time" name="end_time" value="{{ lesson.end_time }}" required></label>
+                <label>Fan<select name="subject_id" required>{% for subject in subjects %}<option value="{{ subject.id }}" {% if lesson.subject_id == subject.id %}selected{% endif %}>{{ subject.name }}</option>{% endfor %}</select></label>
+                <label>O‘qituvchi<select name="teacher_id" required>{% for teacher in teachers %}<option value="{{ teacher.id }}" {% if lesson.teacher_id == teacher.id %}selected{% endif %}>{{ teacher.first_name }} {{ teacher.last_name }}</option>{% endfor %}</select></label>
+                <label>Xona<input type="text" name="room_number" value="{{ lesson.room_number or '' }}" placeholder="205"></label>
+            </div>
+            <div class="schedule-edit-actions"><button type="submit" class="btn-primary">Saqlash</button><a href="/schedule/manage">Bekor qilish</a></div>
+        </form>
+    </div>
+</body>
+</html>

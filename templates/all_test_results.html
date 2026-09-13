@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test natijalari</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="legacy-admin-page" style="background:#f5f8ff; padding:20px;">
+    {% include "admin_sidebar.html" %}
+    <div class="page-navbar">
+        <h3>Test natijalari</h3>
+        <div class="nav-actions"><a href="/dashboard" class="nav-link">← Bosh sahifa</a><a href="/logout" class="btn-logout-nav">Chiqish</a></div>
+    </div>
+    <div class="results-page-card">
+        <div class="results-heading"><div><span class="panel-kicker">NAZORAT VA TAHLIL</span><h1>Kim qanday ishladi?</h1><p>O‘quvchi, sinf va test natijalari.</p></div><a href="/tests" class="btn-primary">Testlar</a></div>
+        <div class="table-responsive">
+            <table class="results-table">
+                <thead><tr><th>O‘quvchi</th><th>Sinf</th><th>Test</th><th>Natija</th><th>Foiz</th><th>Sana</th></tr></thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td><strong>{{ result.student.first_name }} {{ result.student.last_name }}</strong></td>
+                        <td><span class="class-pill">{{ result.student.student_class.name if result.student.student_class else '-' }}-sinf</span></td>
+                        <td>{{ result.test.title }}</td>
+                        <td>{{ result.score }} / {{ result.total_questions }}</td>
+                        <td><span class="result-percent {% if result.percentage >= 80 %}good{% elif result.percentage >= 60 %}mid{% else %}low{% endif %}">{{ result.percentage|round(1) }}%</span></td>
+                        <td>{{ result.submitted_at.strftime('%d.%m.%Y %H:%M') if result.submitted_at else '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="empty-results">Hali hech bir o‘quvchi test ishlamagan.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

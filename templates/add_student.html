@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>O'quvchi Qo'shish</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .form-container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .btn-submit { width: 100%; padding: 14px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #555; text-decoration: none; }
+    </style>
+</head>
+<body class="legacy-admin-page" style="background: #f4f6f9; padding: 40px;">
+    {% include "admin_sidebar.html" %}
+    <a href="/students" class="back-link">← O'quvchilar ro'yxatiga qaytish</a>
+    <div class="form-container">
+        <h2 style="margin-top:0; color:#2c3e50;">Yangi O'quvchi Qo'shish</h2>
+        <form action="/add_student" method="POST">
+            <!-- CSRF TOKEN -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            <div class="input-group">
+                <label>Ism</label>
+                <input type="text" name="first_name" placeholder="Masalan: Ali" required>
+            </div>
+            <div class="input-group">
+                <label>Familiya</label>
+                <input type="text" name="last_name" placeholder="Masalan: Valiyev" required>
+            </div>
+            <div class="input-group">
+                <label>Sinf</label>
+                <select name="class_id" required>
+                    <option value="">Tanlang</option>
+                    {% for c in classes %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn-submit">Saqlash</button>
+        </form>
+    </div>
+</body>
+</html>

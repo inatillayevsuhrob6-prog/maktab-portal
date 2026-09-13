@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin profil - {{ school.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="legacy-admin-page" style="background:#f5f8ff; padding:20px;">
+    {% include "admin_sidebar.html" %}
+    <div class="page-navbar">
+        <h3>Admin profil sozlamalari</h3>
+        <div class="nav-actions"><a href="/dashboard" class="nav-link">← Bosh sahifa</a><a href="/logout" class="btn-logout-nav">Chiqish</a></div>
+    </div>
+    <div class="admin-profile-card">
+        <div class="admin-profile-heading"><span class="profile-symbol">◉</span><div><span class="panel-kicker">ACCOUNT SETTINGS</span><h1>Admin profili</h1><p>Maktab ma’lumotlarini shu yerdan boshqaring.</p></div></div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}<div class="profile-flash {{ category }}">{{ message }}</div>{% endfor %}
+        {% endwith %}
+        <form method="POST" class="admin-profile-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label>Maktab nomi<input type="text" name="name" value="{{ school.name }}" required></label>
+            <label>Email<input type="email" name="email" value="{{ school.email or '' }}" required></label>
+            <label>Telefon<input type="text" name="phone" value="{{ school.phone or '' }}" placeholder="+998 90 000 00 00"></label>
+            <label>Manzil<input type="text" name="address" value="{{ school.address or '' }}" placeholder="Maktab manzili"></label>
+            <label>Logo URL<input type="url" name="logo" value="{{ school.logo or '' }}" placeholder="https://.../logo.png"></label>
+            <button type="submit" class="btn-primary">Saqlash</button>
+        </form>
+    </div>
+</body>
+</html>

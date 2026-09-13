@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head><meta charset="UTF-8"><title>O'qituvchini Tahrirlash</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>.form-container { max-width: 500px; margin: 50px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); } .input-group { margin-bottom: 20px; } .input-group label { display: block; margin-bottom: 5px; font-weight: bold; } .input-group input, .input-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; } .class-picker { min-height: 130px; background: #f8fbff; } .btn-save { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }</style>
+</head>
+<body class="legacy-admin-page" style="background:#f4f6f9;">
+{% include "admin_sidebar.html" %}
+<div class="form-container">
+    <h2>O'qituvchini Tahrirlash</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="input-group"><label>Ism</label><input type="text" name="first_name" value="{{ t.first_name }}" required></div>
+        <div class="input-group"><label>Familiya</label><input type="text" name="last_name" value="{{ t.last_name }}" required></div>
+        <div class="input-group"><label>Login</label><input type="text" name="login" value="{{ t.login }}" required></div>
+        <div class="input-group"><label>Telefon</label><input type="text" name="phone" value="{{ t.phone or '' }}"></div>
+        <div class="input-group"><label>Rasm fayli</label><input type="file" name="profile_image" accept="image/jpeg,image/png,image/gif,image/webp"></div>
+        <div class="input-group"><label>Yoki rasm URL</label><input type="url" name="profile_pic" value="{{ t.profile_pic or '' }}"></div>
+        <div class="input-group">
+            <label>Fan</label>
+            <input type="text" name="subject_name" value="{{ t.subject.name if t.subject else '' }}" placeholder="Masalan: Ona tili" required>
+        </div>
+        <div class="input-group">
+            <label>Qaysi sinflarga kiradi?</label>
+            <select name="class_ids" class="class-picker" multiple>
+                {% for school_class in classes %}
+                    <option value="{{ school_class.id }}" {% if school_class.id in (assigned_class_ids or []) %}selected{% endif %}>{{ school_class.name }}-sinf</option>
+                {% endfor %}
+            </select>
+            <small style="display:block; margin-top:6px; color:#7f8c8d;">Bir nechta sinfni tanlash mumkin.</small>
+        </div>
+        <div class="input-group"><label>Yangi Parol (bo'sh qoldirsangiz o'zgarmaydi)</label><input type="password" name="password"></div>
+        <button type="submit" class="btn-save">Saqlash</button>
+        <a href="/teachers" style="display:block; text-align:center; margin-top:15px; color:#555;">Bekor qilish</a>
+    </form>
+</div>
+</body></html>

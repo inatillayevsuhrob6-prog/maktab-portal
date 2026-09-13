@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boshqaruv Paneli - {{ school.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-page">
+    <div class="app-shell">
+        <aside class="app-sidebar" id="dashboardSidebar">
+            <a href="/dashboard" class="sidebar-brand"><span class="brand-mark">▦</span><span>{{ school.name }}</span></a>
+            <div class="sidebar-user"><span class="sidebar-user-dot"></span><span>Administrator paneli</span></div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="active"><span>⌂</span>Bosh sahifa</a>
+                <a href="/classes"><span>▤</span>Sinflar</a>
+                <a href="/students"><span>♙</span>O‘quvchilar</a>
+                <a href="/teachers"><span>♟</span>O‘qituvchilar</a>
+                <a href="/tests"><span>▣</span>Testlar</a>
+                <a href="/schedule/manage"><span>◫</span>Dars jadvali</a>
+                <a href="/library/manage"><span>▥</span>Kutubxona</a>
+                <a href="/news/manage"><span>▰</span>Yangiliklar</a>
+                <a href="/ai_chat"><span>✦</span>AI Chat</a>
+                <a href="/admin_profile"><span>◉</span>Admin profil</a>
+            </nav>
+            <a href="/logout" class="sidebar-logout"><span>↪</span>Chiqish</a>
+    </aside>
+
+    <main class="app-main">
+            <header class="topbar">
+                <button class="menu-toggle" onclick="toggleDashboardSidebar()" aria-label="Menyuni ochish">☰</button>
+                <div class="dashboard-breadcrumb"><span>Boshqaruv paneli</span><strong>{{ school.name }}</strong></div>
+                <form action="/search" method="GET" class="topbar-search"><span>⌕</span><input type="text" name="q" placeholder="Qidirish..."></form>
+                <div class="topbar-status"><span></span> Tizim faol</div>
+            </header>
+
+            <div class="content-wrapper dashboard-content">
+                <section class="dashboard-hero">
+                    <div>
+                        <span class="eyebrow">BUGUNGI UMUMIY KO‘RINISH</span>
+                        <h1>Xush kelibsiz, {{ school.name }}!</h1>
+                        <p>Maktab faoliyatini bitta oynadan kuzating va boshqaring.</p>
+                    </div>
+                    <div class="hero-orbit"><i class="fas fa-chart-line"></i></div>
+                </section>
+
+                <section class="kpi-grid">
+                    <a href="/classes" class="kpi-card kpi-blue"><span class="kpi-icon"><i class="fas fa-layer-group"></i></span><span class="kpi-label">Sinflar</span><strong>{{ class_count }}</strong><small>Faol sinflar</small></a>
+                    <a href="/students" class="kpi-card kpi-cyan"><span class="kpi-icon"><i class="fas fa-user-graduate"></i></span><span class="kpi-label">O‘quvchilar</span><strong>{{ student_count }}</strong><small>Ro‘yxatdan o‘tgan</small></a>
+                    <a href="/teachers" class="kpi-card kpi-violet"><span class="kpi-icon"><i class="fas fa-chalkboard-teacher"></i></span><span class="kpi-label">O‘qituvchilar</span><strong>{{ teacher_count }}</strong><small>Jamoa a’zolari</small></a>
+                    <a href="/tests" class="kpi-card kpi-orange"><span class="kpi-icon"><i class="fas fa-clipboard-check"></i></span><span class="kpi-label">Testlar</span><strong>{{ test_count }}</strong><small>Yaratilgan testlar</small></a>
+                </section>
+
+                <section class="dashboard-layout">
+                    <article class="panel chart-panel panel-wide">
+                        <div class="panel-heading"><div><span class="panel-kicker">TAQSIMOT</span><h2>Sinflar bo‘yicha o‘quvchilar</h2></div><a href="/students">Batafsil <i class="fas fa-arrow-right"></i></a></div>
+                        <div class="chart-wrap"><canvas id="classChart"></canvas></div>
+                    </article>
+                    <article class="panel chart-panel">
+                        <div class="panel-heading"><div><span class="panel-kicker">YUKLAMA</span><h2>Haftalik darslar</h2></div><a href="/schedule/manage">Jadval <i class="fas fa-arrow-right"></i></a></div>
+                        <div class="chart-wrap chart-small"><canvas id="scheduleChart"></canvas></div>
+                    </article>
+                </section>
+
+                <section class="dashboard-layout lower-panels">
+                    <article class="panel progress-panel">
+                        <div class="panel-heading"><div><span class="panel-kicker">NATIJALAR</span><h2>Testlar samaradorligi</h2></div><a href="/test_results">Ko‘rish <i class="fas fa-arrow-right"></i></a></div>
+                        <div class="score-ring" style="--score: {{ average_score * 3.6 }}deg"><div><strong>{{ average_score }}%</strong><span>o‘rtacha natija</span></div></div>
+                        <div class="result-summary"><div><strong>{{ result_count }}</strong><span>Topshirilgan</span></div><div><strong>{{ passed_results }}</strong><span>Muvaffaqiyatli</span></div><div><strong>{{ schedule_count }}</strong><span>Darslar</span></div></div>
+                    </article>
+                    <article class="panel quick-panel">
+                        <div class="panel-heading"><div><span class="panel-kicker">TEZKOR AMALLAR</span><h2>Boshqaruv markazi</h2></div></div>
+                        <div class="quick-links"><a href="/add_student"><i class="fas fa-user-plus"></i><span>O‘quvchi qo‘shish</span><b>→</b></a><a href="/add_teacher"><i class="fas fa-user-tie"></i><span>O‘qituvchi qo‘shish</span><b>→</b></a><a href="/create_test"><i class="fas fa-file-circle-plus"></i><span>Yangi test yaratish</span><b>→</b></a><a href="/news/manage"><i class="fas fa-bullhorn"></i><span>Yangilik joylash</span><b>→</b></a></div>
+                    </article>
+                </section>
+
+                <section class="resource-strip">
+                    <a href="/library/manage"><i class="fas fa-book-open"></i><span><small>Kutubxona</small><strong>{{ book_count }} ta kitob</strong></span><b>→</b></a>
+                    <a href="/news/manage"><i class="fas fa-newspaper"></i><span><small>Yangiliklar</small><strong>{{ news_count }} ta xabar</strong></span><b>→</b></a>
+                    <a href="/ai_chat"><i class="fas fa-sparkles"></i><span><small>AI yordamchi</small><strong>Savol berish</strong></span><b>→</b></a>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>
+    const chartDefaults = { color: '#64748b', font: { family: 'Inter, system-ui, sans-serif' } };
+    new Chart(document.getElementById('classChart'), { type: 'bar', data: { labels: {{ class_labels|safe }}, datasets: [{ data: {{ class_student_counts|safe }}, backgroundColor: ['#2563eb', '#06b6d4', '#7c3aed', '#f59e0b', '#10b981', '#ef4444'], borderRadius: 8, borderSkipped: false, maxBarThickness: 42 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: chartDefaults }, y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#edf2fb' } } } } });
+    new Chart(document.getElementById('scheduleChart'), { type: 'line', data: { labels: {{ day_names|safe }}, datasets: [{ data: {{ schedule_counts|safe }}, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.12)', fill: true, tension: .4, pointRadius: 4, pointBackgroundColor: '#fff', pointBorderWidth: 3, pointBorderColor: '#2563eb' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { ...chartDefaults, maxRotation: 0, autoSkip: true } }, y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#edf2fb' } } } } });
+        function toggleDashboardSidebar() { document.getElementById('dashboardSidebar').classList.toggle('open'); }
+        document.addEventListener('click', event => { const sidebar = document.getElementById('dashboardSidebar'); const toggle = document.querySelector('.menu-toggle'); if (window.innerWidth <= 860 && sidebar && !sidebar.contains(event.target) && !toggle.contains(event.target)) sidebar.classList.remove('open'); });
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Boshqaruv Paneli - {{ school.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- NAVBAR (Chapda menyu, o'ngda search) -->
+    <nav class="navbar">
+        <div style="display:flex; align-items:center;">
+            <a href="/dashboard" class="navbar-brand">
+                <i class="fas fa-school"></i> {{ school.name }}
+            </a>
+            <ul class="nav-links">
+                <li><a href="/dashboard" class="active"><i class="fas fa-home"></i> Bosh sahifa</a></li>
+                <li><a href="/classes"><i class="fas fa-chalkboard"></i> Sinflar</a></li>
+                <li><a href="/students"><i class="fas fa-user-graduate"></i> O'quvchilar</a></li>
+                <li><a href="/teachers"><i class="fas fa-chalkboard-teacher"></i> O'qituvchilar</a></li>
+                <li><a href="/tests"><i class="fas fa-clipboard-list"></i> Testlar</a></li>
+                <li><a href="/ai_chat"><i class="fas fa-robot"></i> AI Chat</a></li>
+            </ul>
+        </div>
+        
+        <div style="display:flex; align-items:center; gap:15px;">
+            <form action="/search" method="GET" class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" name="q" class="search-input" placeholder="Qidirish...">
+            </form>
+            <a href="/logout" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Chiqish</a>
+        </div>
+    </nav>
+
+    <!-- DASHBOARD CONTENT -->
+    <div class="container">
+        <div class="page-header">
+            <h1>Xush kelibsiz, {{ school.name }}!</h1>
+            <p style="color:var(--text-light);">Boshqaruv paneli</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Sinflar -->
+            <a href="/classes" style="text-decoration:none;">
+                <div class="card">
+                    <div class="card-icon">🏫</div>
+                    <div class="card-title">Sinflar</div>
+                    <div class="card-value">{{ class_count }}</div>
+                </div>
+            </a>
+
+            <!-- O'quvchilar -->
+            <a href="/students" style="text-decoration:none;">
+                <div class="card">
+                    <div class="card-icon">🎓</div>
+                    <div class="card-title">O'quvchilar</div>
+                    <div class="card-value">{{ student_count }}</div>
+                </div>
+            </a>
+
+            <!-- O'qituvchilar -->
+            <a href="/teachers" style="text-decoration:none;">
+                <div class="card">
+                    <div class="card-icon">👨🏫</div>
+                    <div class="card-title">O'qituvchilar</div>
+                    <div class="card-value">{{ teacher_count }}</div>
+                </div>
+            </a>
+
+            <!-- Testlar -->
+            <a href="/tests" style="text-decoration:none;">
+                <div class="card">
+                    <div class="card-icon">📝</div>
+                    <div class="card-title">Testlar</div>
+                    <div class="card-value">{{ test_count }}</div>
+                </div>
+            </a>
+
+            <!-- AI Chat -->
+            <a href="/ai_chat" style="text-decoration:none;">
+                <div class="card">
+                    <div class="card-icon">🤖</div>
+                    <div class="card-title">AI Chat</div>
+                    <div class="card-value" style="font-size:1rem; color:var(--primary-blue);">Yordam so'rash</div>
+                </div>
+            </a>
+
+            <!-- Dars Jadvali -->
+            <a href="/schedule/manage" style="text-decoration:none;">
+                <div class="card">
+                    <div class="card-icon">📅</div>
+                    <div class="card-title">Dars Jadvali</div>
+                    <div class="card-value" style="font-size:1rem;">Boshqarish</div>
+                </div>
+            </a>
+
+            <!-- Kutubxona -->
+            <a href="/library/manage" style="text-decoration:none;">
+                <div class="card">
+                    <div class="card-icon">📚</div>
+                    <div class="card-title">Kutubxona</div>
+                    <div class="card-value" style="font-size:1rem;">{{ book_count }} ta kitob</div>
+                </div>
+            </a>
+
+            <!-- Yangiliklar -->
+            <a href="/news/manage" style="text-decoration:none;">
+                <div class="card">
+                    <div class="card-icon">📢</div>
+                    <div class="card-title">Yangiliklar</div>
+                    <div class="card-value" style="font-size:1rem;">{{ news_count }} ta xabar</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>O'qituvchi Qo'shish</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .form-container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .class-picker { min-height: 130px; background: #f8fbff; }
+        .hint { display:block; margin-top:6px; color:#7f8c8d; font-size:12px; }
+        .time-row { display:grid; grid-template-columns:1.2fr 1fr 1fr .8fr; gap:10px; }
+        .flash-msg { margin-bottom:18px; padding:11px 14px; border-radius:8px; background:#fee2e2; color:#991b1b; font-size:13px; }
+        .btn-submit { width: 100%; padding: 14px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #555; text-decoration: none; }
+    </style>
+</head>
+<body class="legacy-admin-page" style="background: #f4f6f9; padding: 40px;">
+    {% include "admin_sidebar.html" %}
+    <a href="/teachers" class="back-link">← O'qituvchilar ro'yxatiga qaytish</a>
+    <div class="form-container">
+        <h2 style="margin-top:0; color:#2c3e50;">Yangi O'qituvchi Qo'shish</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}<div class="flash-msg">{{ message }}</div>{% endfor %}
+        {% endwith %}
+        <form action="/add_teacher" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="input-group">
+                <label>Ism</label>
+                <input type="text" name="first_name" placeholder="Masalan: Ali" required>
+            </div>
+            <div class="input-group">
+                <label>Familiya</label>
+                <input type="text" name="last_name" placeholder="Masalan: Valiyev" required>
+            </div>
+            <div class="input-group">
+                <label>Login (Kirish uchun)</label>
+                <input type="text" name="login" placeholder="Masalan: ali.valiyev" required>
+            </div>
+            <div class="input-group">
+                <label>Parol</label>
+                <input type="password" name="password" placeholder="Min. 6 belgi" required minlength="6">
+            </div>
+            <div class="input-group">
+                <label>Fan nomi</label>
+                <input type="text" name="subject_name" placeholder="Masalan: Matematika" required>
+            </div>
+            <div class="input-group">
+                <label>Qaysi sinflarga dars beradi?</label>
+                <select name="class_ids" class="class-picker" multiple>
+                    {% for school_class in classes %}
+                        <option value="{{ school_class.id }}">{{ school_class.name }}-sinf</option>
+                    {% endfor %}
+                </select>
+                <span class="hint">Bir nechta sinfni tanlash mumkin. Ctrl yoki Cmd tugmasidan foydalaning.</span>
+            </div>
+            <div class="input-group">
+                <label>Birinchi dars vaqti</label>
+                <div class="time-row">
+                    <select name="lesson_day" required>
+                        <option value="">Kun</option>
+                        <option value="Dushanba">Dushanba</option><option value="Seshanba">Seshanba</option><option value="Chorshanba">Chorshanba</option><option value="Payshanba">Payshanba</option><option value="Juma">Juma</option><option value="Shanba">Shanba</option>
+                    </select>
+                    <input type="time" name="start_time" required>
+                    <input type="time" name="end_time" required>
+                    <input type="text" name="room_number" placeholder="Xona">
+                </div>
+                <span class="hint">Tanlangan sinflarga shu vaqt uchun dars jadvali ham avtomatik yaratiladi.</span>
+            </div>
+            <button type="submit" class="btn-submit">Saqlash</button>
+        </form>
+    </div>
+</body>
+</html>
