@@ -976,27 +976,7 @@ def create_app():
                 
             genai.configure(api_key=api_key)
             
-            # Mavjud modellarni tekshirish va eng yaxshisini tanlash
-            available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-            
-            # Prioritet tartibida modellarni sinash
-            preferred_models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro']
-            selected_model = None
-            
-            for model_name in preferred_models:
-                full_name = f"models/{model_name}"
-                if full_name in available_models:
-                    selected_model = model_name
-                    break
-            
-            if not selected_model:
-                if available_models:
-                    selected_model = available_models[0].replace("models/", "")
-                else:
-                    return jsonify({"reply": "❌ Hech qanday AI modeli topilmadi."})
-            
-            print(f"✅ Tanlangan model: {selected_model}")
-            
+            selected_model = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
             model = genai.GenerativeModel(selected_model)
             
             safety_settings = [
