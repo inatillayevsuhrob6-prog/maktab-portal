@@ -12,7 +12,7 @@ from flask_limiter.util import get_remote_address
 import json
 import bleach
 import os
-import google.generativeai as genai
+from openai import OpenAI
 from datetime import datetime, timedelta, timezone
 
 def migrate_schedule_class_column():
@@ -390,7 +390,7 @@ from flask_limiter.util import get_remote_address
 import json
 import bleach
 import os
-import google.generativeai as genai
+
 from datetime import datetime, timedelta, timezone
 
 def create_app():
@@ -956,65 +956,6 @@ def create_app():
         if 'school_id' not in session: return redirect(url_for('home'))
         if 'chat_history' not in session: session['chat_history'] = []
         return render_template("ai_chat.html")
-
-    @app.route("/ask_ai_chat_stream", methods=["POST"])
-    @csrf.exempt
-    def ask_ai_chat_stream():
-        if 'school_id' not in session: 
-            return jsonify({"error": "Unauthorized"}), 401
-            
-        data = request.get_json()
-        user_message = data.get('message', '')
-        
-        if not user_message:
-            return jsonify({"reply": ""})
-
-        try:
-            api_key = os.environ.get('GEMINI_API_KEY')
-            if not api_key:
-                return jsonify({"reply": "⚠️ API kaliti topilmadi."})
-                
-            genai.configure(api_key=api_key)
-            
-            # ENG BARQAROR MODELNI TANLASH (Tuzatilgan qism)
-            selected_model = 'gemini-pro' 
-            
-            model = genai.GenerativeModel(selected_model)
-            
-            safety_settings = [
-                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
-            ]
-            
-            response = model.generate_content(
-                f"Siz maktab o'quvchilari uchun mehribon AI yordamchisiz. Savol: {user_message}",
-                safety_settings=safety_settings
-            )
-            
-            reply = response.text
-            return jsonify({"reply": reply})
-            
-        except Exception as e:
-            print(f"Gemini Xatosi: {e}")
-            return jsonify({"reply": f"Xatolik: {str(e)}"}), 500
-
-    @app.route("/clear_chat", methods=["POST"])
-    @csrf.exempt
-    def clear_chat():
-        if 'school_id' in session:
-            session['chat_history'] = []
-            session.modified = True
-        return jsonify({"status": "cleared"})
-
-    # --- O'CHIRISH ROUTE LARI ---
-    @app.route("/delete_class/<int:cid>")
-    def delete_class(cid):
-        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        c = Class.query.filter_by(id=cid, school_id=session['school_id']).first_or_404()
-        db.session.delete(c); db.session.commit(); return redirect(url_for('classes'))
-
     @app.route("/delete_student/<int:sid>")
     def delete_student(sid):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
@@ -1160,6 +1101,52 @@ def create_app():
             flash("Admin profili muvaffaqiyatli saqlandi.", "success")
             return redirect(url_for('admin_profile'))
         return render_template("admin_profile.html", school=school)
+    
+    @app.route("/ask_ai_chat_stream", methods=["POST"])
+    @csrf.exempt
+    def ask_ai_chat_stream():
+        if 'school_id' not in session: 
+            return jsonify({"error": "Unauthorized"}), 401
+            
+        data = request.get_json()
+        user_message = data.get('message', '')
+        
+        if not user_message:
+            return jsonify({"reply": ""})
+
+        try:
+            api_key = os.environ.get('GROQ_API_KEY')
+            if not api_key:
+                return jsonify({"reply": "⚠️ Groq API kaliti topilmadi."})
+                
+            client = OpenAI(
+                base_url="https://api.groq.com/openai/v1",
+                api_key=api_key
+            )
+            
+            response = client.chat.completions.create(
+                model="openai/gpt-oss-120b",
+                messages=[
+                    {"role": "system", "content": "Siz maktab o'quvchilari uchun mehribon AI yordamchisiz. Qisqa va aniq javob bering."},
+                    {"role": "user", "content": user_message}
+                ]
+            )
+            
+            reply = response.choices[0].message.content
+            return jsonify({"reply": reply})
+            
+        except Exception as e:
+            print(f"Groq Xatosi: {e}")
+            return jsonify({"reply": f"Xatolik: {str(e)}"}), 500
+
+    @app.route("/clear_chat", methods=["POST"])
+    @csrf.exempt
+    def clear_chat():
+        if 'school_id' in session:
+            session['chat_history'] = []
+            session.modified = True
+        return jsonify({"status": "cleared"})
+
 
     @app.route("/logout")
     def logout():
