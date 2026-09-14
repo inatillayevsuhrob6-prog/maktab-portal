@@ -24,10 +24,13 @@
             <h2>To'garaklarni Boshqarish</h2>
             <a href="/dashboard" style="color:#64748b; text-decoration:none;">← Dashboard</a>
         </div>
+
+        <!-- Yangi To'garak Qo'shish -->
         <form action="/clubs/add" method="POST" style="background:#f8fafc; padding:20px; border-radius:12px; margin-bottom:30px;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <input type="text" name="name" placeholder="To'garak nomi (Masalan: Futbol, Robototexnika)" required>
             <textarea name="description" placeholder="Qisqacha tavsif..." rows="2"></textarea>
+            
             <div class="form-row">
                 <select name="teacher_id" required>
                     <option value="">O'qituvchini tanlang...</option>
@@ -37,11 +40,14 @@
                 </select>
                 <input type="text" name="schedule" placeholder="Vaqt (Masalan: Dushanba, 15:00)">
             </div>
+            
             <div class="form-row">
                 <input type="number" name="max_students" placeholder="Maksimal o'quvchilar soni" value="20">
                 <button type="submit">To'garak Qo'shish</button>
             </div>
         </form>
+
+        <!-- Mavjud To'garaklar -->
         <div class="club-list">
             <h3>Mavjud To'garaklar</h3>
             {% for c in clubs %}
