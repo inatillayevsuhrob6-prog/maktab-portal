@@ -21,7 +21,7 @@
         /* CHAP TOMON - KO'K FON */
         .left-side {
             flex: 1;
-            background: linear-gradient(135deg, #1e40af 0%, #2563eb 58%, #0891b2 100%);
+            background: linear-gradient(135deg, #102a68 0%, #164194 56%, #0b7285 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -36,6 +36,10 @@
             background: rgba(255,255,255,0.1); border-radius: 50%;
         }
         .left-side::after { content: ''; position: absolute; left: -120px; bottom: -160px; width: 430px; height: 430px; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; box-shadow: 0 0 0 32px rgba(255,255,255,.05), 0 0 0 64px rgba(255,255,255,.04); }
+        .business-grid { position: absolute; inset: 0; opacity: .16; background-image: linear-gradient(rgba(255,255,255,.22) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.22) 1px, transparent 1px); background-size: 46px 46px; mask-image: linear-gradient(135deg, rgba(0,0,0,.9), transparent 72%); }
+        .business-orbit { position: absolute; right: 12%; top: 20%; width: 210px; height: 210px; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; animation: orbitSpin 18s linear infinite; }
+        .business-orbit::before, .business-orbit::after { content: ''; position: absolute; width: 9px; height: 9px; border-radius: 50%; background: #67e8f9; box-shadow: 0 0 18px #67e8f9; }
+        .business-orbit::before { top: 22px; left: 28px; }.business-orbit::after { right: 12px; bottom: 45px; background: #bfdbfe; box-shadow: 0 0 18px #bfdbfe; }
 
         .brand-logo {
             font-size: 1.8rem; font-weight: 800; margin-bottom: 42px;
@@ -66,6 +70,9 @@
         .school-window.left { left: 25px; }.school-window.right { right: 25px; }
         .scene-icon { position: absolute; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.35); border-radius: 14px; background: rgba(255,255,255,.16); font-size: 1.35rem; box-shadow: 0 10px 20px rgba(15,23,42,.12); }
         .scene-icon.book { top: 8px; left: 8%; animation: floatOne 4s ease-in-out infinite; }.scene-icon.chart { top: 28px; right: 8%; animation: floatTwo 4.5s .5s ease-in-out infinite; }.scene-icon.star { bottom: 5px; right: 22%; animation: floatOne 3.8s .9s ease-in-out infinite; }
+        .business-metrics { position: absolute; right: 3%; bottom: 18px; z-index: 3; display: flex; gap: 8px; }
+        .metric-chip { min-width: 92px; padding: 9px 11px; border: 1px solid rgba(255,255,255,.24); border-radius: 10px; color: #dbeafe; background: rgba(15,23,42,.18); backdrop-filter: blur(10px); box-shadow: 0 10px 18px rgba(15,23,42,.12); animation: floatTwo 5s 1s ease-in-out infinite; }
+        .metric-chip strong, .metric-chip span { display: block; }.metric-chip strong { color: #fff; font-size: .9rem; }.metric-chip span { margin-top: 3px; color: #bfdbfe; font-size: .62rem; }
 
         .scroll-indicator {
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
@@ -163,6 +170,7 @@
         @keyframes cardReveal { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         @keyframes floatOne { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-12px) rotate(4deg); } }
         @keyframes floatTwo { 0%, 100% { transform: translateY(0) rotate(4deg); } 50% { transform: translateY(10px) rotate(-4deg); } }
+        @keyframes orbitSpin { to { transform: rotate(360deg); } }
 
         @media (max-width: 1024px) {
             .main-container { flex-direction: column; }
@@ -170,6 +178,7 @@
             .hero-text h1 { font-size: 2.5rem; }
             .right-side { padding: 40px 20px; }
             .school-scene { margin: 24px auto 0; }
+            .business-orbit { right: 5%; top: 12%; }
         }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; } }
     </style>
@@ -180,6 +189,8 @@
     <div class="main-container">
         <!-- CHAP TOMON -->
         <div class="left-side">
+            <div class="business-grid" aria-hidden="true"></div>
+            <div class="business-orbit" aria-hidden="true"></div>
             <div class="brand-logo">
                 <div class="brand-icon" aria-hidden="true"></div>
                 Maktab Boshqaruvi
@@ -196,6 +207,10 @@
                     <span class="school-window left"></span>
                     <span class="school-window right"></span>
                     <span class="school-door"></span>
+                </div>
+                <div class="business-metrics">
+                    <div class="metric-chip"><strong>24/7</strong><span>Platforma</span></div>
+                    <div class="metric-chip"><strong>+32%</strong><span>Natijalar</span></div>
                 </div>
             </div>
             <div class="scroll-indicator" onclick="document.getElementById('features').scrollIntoView()">
