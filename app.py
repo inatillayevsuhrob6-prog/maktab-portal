@@ -53,12 +53,13 @@ def migrate_schedule_class_column():
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    os.makedirs(app.instance_path, exist_ok=True)
     
-    csrf = CSRFProtect(app)
-    # ... db.init_app(app) dan keyin ...
+    # ... (boshqa sozlamalar: csrf, limiter va h.k.) ...
     
-        with app.app_context():
+    db.init_app(app)
+    
+    # TO'G'RI INDENTATSIYA BILAN QO'SHILGAN QISM:
+    with app.app_context():
         from sqlalchemy import text
         
         # 1. Bazani yaratish (agar yo'q bo'lsa)
@@ -66,25 +67,34 @@ def create_app():
         
         # 2. NEWS jadvalidagi image_url ustunini tekshirish va qo'shish
         try:
-            # Ustun bor-yo'qligini tekshirish
             result = db.session.execute(text(
                 "SELECT column_name FROM information_schema.columns WHERE table_name='news' AND column_name='image_url'"
             )).fetchone()
             
             if not result:
-                print("⚠️ 'image_url' ustuni topilmadi. Qo'shilmoqda...")
+                print("️ 'image_url' ustuni topilmadi. Qo'shilmoqda...")
                 db.session.execute(text("ALTER TABLE news ADD COLUMN image_url TEXT;"))
                 db.session.commit()
                 print("✅ 'image_url' ustuni muvaffaqiyatli qo'shildi!")
-            else:
-                print("️ 'image_url' ustuni allaqachon mavjud.")
         except Exception as e:
             print(f"❌ Bazani yangilashda xatolik: {e}")
             db.session.rollback()
             
-        # ... qolgan kodlar (Achievement qo'shish va h.k.) ...
-            
-        # ... qolgan kodlar (Achievement qo'shish va h.k.) ...
+        # Achievement qo'shish (agar bo'lmasa)
+        if not Achievement.query.first():
+            achievements = [
+                Achievement(name="Birinchi Qadam", description="Birinchi testni topshirdingiz", xp_reward=50, condition_type="first_test"),
+                Achievement(name="Matematika Ustasi", description="10 ta test topshirdingiz", icon="", xp_reward=200, condition_type="test_count", condition_value=10),
+                Achievement(name="Mukammallik", description="100% natija oldingiz", icon="", xp_reward=100, condition_type="perfect_score")
+            ]
+            db.session.add_all(achievements)
+            db.session.commit()
+
+    # ... (boshqa funksiyalar: sanitize_input, save_teacher_profile_image va h.k.) ...
+    
+    @app.before_request
+    def check_session_timeout():
+        # ...
     @app.errorhandler(CSRFError)
     def handle_csrf_error(error):
         flash("Sahifa eskirgan. Jadval yangilandi, amalni qayta bajaring.", "danger")
