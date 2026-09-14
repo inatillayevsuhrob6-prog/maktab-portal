@@ -2,30 +2,94 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin profil - {{ school.name }}</title>
+    <title>Admin Profil Sozlamalari</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body { background: #f8fafc; font-family: 'Inter', sans-serif; }
+        .profile-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        
+        .card { 
+            background: white; border-radius: 20px; padding: 40px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
+        }
+        
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #f1f5f9; padding-bottom: 20px; }
+        .header h2 { color: #1e293b; font-size: 1.8rem; margin: 0 0 10px; }
+        .header p { color: #64748b; margin: 0; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 0; }
+        .form-group.full-width { grid-column: span 2; }
+        
+        label { display: block; margin-bottom: 8px; color: #334155; font-weight: 600; font-size: 0.9rem; }
+        input { 
+            width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 10px; 
+            font-size: 1rem; transition: 0.3s; background: #f8fafc;
+        }
+        input:focus { border-color: #2563eb; background: white; outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        
+        .btn-save { 
+            width: 100%; padding: 16px; background: #2563eb; color: white; border: none; 
+            border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; 
+            transition: 0.3s; margin-top: 10px;
+        }
+        .btn-save:hover { background: #1d4ed8; transform: translateY(-2px); }
+        
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .form-group.full-width { grid-column: span 1; }
+        }
+    </style>
 </head>
-<body class="legacy-admin-page" style="background:#f5f8ff; padding:20px;">
-    {% include "admin_sidebar.html" %}
-    <div class="page-navbar">
-        <h3>Admin profil sozlamalari</h3>
-        <div class="nav-actions"><a href="/dashboard" class="nav-link">← Bosh sahifa</a><a href="/logout" class="btn-logout-nav">Chiqish</a></div>
-    </div>
-    <div class="admin-profile-card">
-        <div class="admin-profile-heading"><span class="profile-symbol">◉</span><div><span class="panel-kicker">ACCOUNT SETTINGS</span><h1>Admin profili</h1><p>Maktab ma’lumotlarini shu yerdan boshqaring.</p></div></div>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% for category, message in messages %}<div class="profile-flash {{ category }}">{{ message }}</div>{% endfor %}
-        {% endwith %}
-        <form method="POST" class="admin-profile-form">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <label>Maktab nomi<input type="text" name="name" value="{{ school.name }}" required></label>
-            <label>Email<input type="email" name="email" value="{{ school.email or '' }}" required></label>
-            <label>Telefon<input type="text" name="phone" value="{{ school.phone or '' }}" placeholder="+998 90 000 00 00"></label>
-            <label>Manzil<input type="text" name="address" value="{{ school.address or '' }}" placeholder="Maktab manzili"></label>
-            <label>Logo URL<input type="url" name="logo" value="{{ school.logo or '' }}" placeholder="https://.../logo.png"></label>
-            <button type="submit" class="btn-primary">Saqlash</button>
-        </form>
+<body>
+    <div class="profile-container">
+        <div class="card">
+            <div class="header">
+                <h2>⚙️ Admin Profil Sozlamalari</h2>
+                <p>Maktab ma'lumotlarini shu yerdan boshqaring</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div style="background: {% if category == 'danger' %}#fee2e2{% else %}#dcfce7{% endif %}; color: {% if category == 'danger' %}#991b1b{% else %}#166534{% endif %}; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center;">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Maktab nomi</label>
+                        <input type="text" name="name" value="{{ school.name }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" value="{{ school.email }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Telefon</label>
+                        <input type="text" name="phone" value="{{ school.phone }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Manzil</label>
+                        <input type="text" name="address" value="{{ school.address }}">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label>Logo URL (ixtiyoriy)</label>
+                        <input type="text" name="logo" value="{{ school.logo or '' }}" placeholder="https://...">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-save">Saqlash</button>
+            </form>
+        </div>
     </div>
 </body>
 </html>
