@@ -300,7 +300,9 @@ def create_app():
                     and_(ChatMessage.sender_type == role, ChatMessage.sender_id == current_user_id,
                          ChatMessage.recipient_type == contact_type, ChatMessage.recipient_id == selected.id),
                     and_(ChatMessage.sender_type == contact_type, ChatMessage.sender_id == selected.id,
-                         ChatMessage.recipient_type == role, ChatMessage.recipient_id == current_user_id)
+                        ChatMessage.recipient_type == role, ChatMessage.recipient_id == current_user_id),
+                    and_(ChatMessage.sender_type == 'admin', ChatMessage.recipient_type == role,
+                        ChatMessage.recipient_id == current_user_id)
                 )
             ).order_by(ChatMessage.created_at.asc()).all()
 

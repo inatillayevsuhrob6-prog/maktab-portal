@@ -43,6 +43,7 @@
             <div class="chat-message-list">
                 {% for message in messages %}
                 <div class="chat-bubble {% if message.sender_type == current_role and message.sender_id == current_user_id %}mine{% else %}theirs{% endif %}">
+                    {% if message.sender_type == 'admin' %}<span class="chat-sender-label">Admin</span>{% endif %}
                     <p>{{ message.body }}</p>
                     <time>{{ message.created_at.strftime('%d.%m.%Y %H:%M') }}</time>
                 </div>

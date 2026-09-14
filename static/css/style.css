@@ -499,3 +499,4 @@ input:focus, select:focus, textarea:focus {
 .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
 .page-header { margin-bottom: 2rem; animation: fadeInUp 0.5s ease-out; }
 .page-header h1 { font-size: 2rem; color: var(--dark-blue); font-weight: 800; }
+.chat-sender-label { display: block; margin-bottom: 4px; color: #2563eb; font-size: .65rem; font-weight: 800; }
