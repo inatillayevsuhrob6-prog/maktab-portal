@@ -70,13 +70,21 @@
                         <div class="score-ring" style="--score: {{ average_score * 3.6 }}deg"><div><strong>{{ average_score }}%</strong><span>o‘rtacha natija</span></div></div>
                         <div class="result-summary"><div><strong>{{ result_count }}</strong><span>Topshirilgan</span></div><div><strong>{{ passed_results }}</strong><span>Muvaffaqiyatli</span></div><div><strong>{{ schedule_count }}</strong><span>Darslar</span></div></div>
                     </article>
+                    <article class="panel quick-panel">
+                        <div class="panel-heading"><div><span class="panel-kicker">TO‘GARAKLAR</span><h2>Sinflar bo‘yicha tarqalish</h2></div><a href="/clubs/manage">Boshqarish <i class="fas fa-arrow-right"></i></a></div>
+                        <div class="chart-wrap chart-small"><canvas id="clubsChart"></canvas></div>
+                    </article>
                 </section>
 
-                <section class="bottom-club-panel">
-                    <article class="panel">
-                        <div class="panel-heading"><div><span class="panel-kicker">TO‘GARAKLAR</span><h2>Sinflar bo‘yicha tarqalish</h2></div><a href="/clubs/manage">Boshqarish <i class="fas fa-arrow-right"></i></a></div>
-                        <div class="chart-wrap club-chart-wrap"><canvas id="clubsChart"></canvas></div>
-                    </article>
+                <section class="dashboard-grid bottom-shortcuts">
+                    <a href="/classes" style="text-decoration:none;"><div class="card"><div class="card-icon">🏫</div><div class="card-title">Sinflar</div><div class="card-value">{{ class_count }}</div></div></a>
+                    <a href="/students" style="text-decoration:none;"><div class="card"><div class="card-icon">🎓</div><div class="card-title">O‘quvchilar</div><div class="card-value">{{ student_count }}</div></div></a>
+                    <a href="/teachers" style="text-decoration:none;"><div class="card"><div class="card-icon">👨🏫</div><div class="card-title">O‘qituvchilar</div><div class="card-value">{{ teacher_count }}</div></div></a>
+                    <a href="/tests" style="text-decoration:none;"><div class="card"><div class="card-icon">📝</div><div class="card-title">Testlar</div><div class="card-value">{{ test_count }}</div></div></a>
+                    <a href="/ai_chat" style="text-decoration:none;"><div class="card"><div class="card-icon">🤖</div><div class="card-title">AI Chat</div><div class="card-value" style="font-size:1rem; color:var(--primary-blue);">Yordam so‘rash</div></div></a>
+                    <a href="/schedule/manage" style="text-decoration:none;"><div class="card"><div class="card-icon">📅</div><div class="card-title">Dars jadvali</div><div class="card-value" style="font-size:1rem;">Boshqarish</div></div></a>
+                    <a href="/library/manage" style="text-decoration:none;"><div class="card"><div class="card-icon">📚</div><div class="card-title">Kutubxona</div><div class="card-value" style="font-size:1rem;">{{ book_count }} ta kitob</div></div></a>
+                    <a href="/news/manage" style="text-decoration:none;"><div class="card"><div class="card-icon">📢</div><div class="card-title">Yangiliklar</div><div class="card-value" style="font-size:1rem;">{{ news_count }} ta xabar</div></div></a>
                 </section>
             </div>
         </main>
