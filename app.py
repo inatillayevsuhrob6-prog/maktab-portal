@@ -269,10 +269,14 @@ def create_app():
     @app.route("/chat")
     def chat():
         role = session.get('user_role')
-        if 'school_id' not in session or role not in {'student', 'teacher'}:
+        if 'school_id' not in session or role not in {'admin', 'student', 'teacher'}:
             return redirect(url_for('home'))
 
         sid = session['school_id']
+        if role == 'admin':
+            messages = ChatMessage.query.filter_by(school_id=sid).order_by(ChatMessage.created_at.desc()).all()
+            return render_template("chat_admin.html", messages=messages)
+
         if role == 'student':
             current_user_id = session['student_id']
             contacts = Teacher.query.filter_by(school_id=sid).order_by(Teacher.first_name, Teacher.last_name).all()

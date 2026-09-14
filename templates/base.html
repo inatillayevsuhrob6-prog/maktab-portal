@@ -29,6 +29,7 @@
                     <a href="/schedule/manage" class="{% if request.path.startswith('/schedule') %}active{% endif %}"><span>◫</span>Dars jadvali</a>
                     <a href="/library/manage" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kutubxona</a>
                     <a href="/news/manage" class="{% if request.path.startswith('/news') %}active{% endif %}"><span>▰</span>Yangiliklar</a>
+                    <a href="/chat" class="{% if request.path.startswith('/chat') %}active{% endif %}"><span>◌</span>Ichki chat</a>
                     <a href="/ai_chat" class="{% if request.path.startswith('/ai_chat') %}active{% endif %}"><span>✦</span>AI Chat</a>
                     <a href="/admin_profile" class="{% if request.path.startswith('/admin_profile') %}active{% endif %}"><span>◉</span>Admin profil</a>
                 {% elif session.get('user_role') == 'teacher' %}

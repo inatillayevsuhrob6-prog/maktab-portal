@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Chat nazorati{% endblock %}
+
+{% block content %}
+<div class="chat-page">
+    <div class="chat-page-heading">
+        <div>
+            <span class="page-kicker">NAZORAT PANELI</span>
+            <h1>Ichki chatlar</h1>
+            <p>O‘qituvchi va o‘quvchilar o‘rtasidagi ichki yozishmalar.</p>
+        </div>
+        <span class="chat-status"><i></i> Faqat ko‘rish</span>
+    </div>
+    <section class="admin-chat-log">
+        {% for message in messages %}
+        <article class="admin-chat-row">
+            <div class="admin-chat-people">
+                <strong>{{ message.sender_type|capitalize }} #{{ message.sender_id }}</strong>
+                <span>→ {{ message.recipient_type|capitalize }} #{{ message.recipient_id }}</span>
+            </div>
+            <p>{{ message.body }}</p>
+            <time>{{ message.created_at.strftime('%d.%m.%Y %H:%M') }}</time>
+        </article>
+        {% else %}
+        <div class="chat-welcome standalone"><span>💬</span><strong>Hozircha xabarlar yo‘q</strong><p>O‘qituvchi va o‘quvchilar yozishmalari shu yerda ko‘rinadi.</p></div>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}
