@@ -70,9 +70,12 @@
                         <div class="score-ring" style="--score: {{ average_score * 3.6 }}deg"><div><strong>{{ average_score }}%</strong><span>o‘rtacha natija</span></div></div>
                         <div class="result-summary"><div><strong>{{ result_count }}</strong><span>Topshirilgan</span></div><div><strong>{{ passed_results }}</strong><span>Muvaffaqiyatli</span></div><div><strong>{{ schedule_count }}</strong><span>Darslar</span></div></div>
                     </article>
-                    <article class="panel quick-panel">
+                </section>
+
+                <section class="bottom-club-panel">
+                    <article class="panel">
                         <div class="panel-heading"><div><span class="panel-kicker">TO‘GARAKLAR</span><h2>Sinflar bo‘yicha tarqalish</h2></div><a href="/clubs/manage">Boshqarish <i class="fas fa-arrow-right"></i></a></div>
-                        <div class="chart-wrap chart-small"><canvas id="clubsChart"></canvas></div>
+                        <div class="chart-wrap club-chart-wrap"><canvas id="clubsChart"></canvas></div>
                     </article>
                 </section>
             </div>
