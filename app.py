@@ -556,6 +556,21 @@ def create_app():
         return render_template("student_library.html", books=q.all(), genres=genres, current_genre=gf)
 
     
+        @app.route("/clubs")
+    def view_clubs():
+        if 'school_id' not in session: return redirect(url_for('home'))
+        clubs = Club.query.filter_by(school_id=session['school_id']).all()
+        return render_template("clubs.html", clubs=clubs)
+
+    @app.route("/clubs/join/<int:club_id>")
+    def join_club(club_id):
+        if 'school_id' not in session or session.get('user_role') != 'student': 
+            flash("Faqat o'quvchilar to'garakka a'zo bo'lishi mumkin.", "danger")
+            return redirect(url_for('view_clubs'))
+        club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first_or_404()
+        flash(f"Siz '{club.name}' to'garagiga so'rov yubordingiz!", "success")
+        return redirect(url_for('view_clubs'))
+
     @app.route("/clubs/manage")
     def manage_clubs():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
@@ -773,7 +788,6 @@ def create_app():
         session.clear(); return redirect(url_for('home'))
         
     
-@app.route("/clubs")
 def view_clubs():
     if 'school_id' not in session: return redirect(url_for('home'))
     clubs = Club.query.filter_by(school_id=session['school_id']).all()
