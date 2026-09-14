@@ -1191,6 +1191,9 @@ def create_app():
         
     return app
 
+# app.py faylining ENG OXIRIGA QO'SHING:
+
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
     app.run(debug=True)
