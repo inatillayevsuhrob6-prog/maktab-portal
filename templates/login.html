@@ -21,7 +21,7 @@
         /* CHAP TOMON - KO'K FON */
         .left-side {
             flex: 1;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 58%, #0891b2 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -35,26 +35,37 @@
             content: ''; position: absolute; top: -100px; right: -100px; width: 400px; height: 400px;
             background: rgba(255,255,255,0.1); border-radius: 50%;
         }
+        .left-side::after { content: ''; position: absolute; left: -120px; bottom: -160px; width: 430px; height: 430px; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; box-shadow: 0 0 0 32px rgba(255,255,255,.05), 0 0 0 64px rgba(255,255,255,.04); }
 
         .brand-logo {
-            font-size: 1.8rem; font-weight: 800; margin-bottom: 60px;
-            display: flex; align-items: center; gap: 15px; z-index: 2;
+            font-size: 1.8rem; font-weight: 800; margin-bottom: 42px;
+            display: flex; align-items: center; gap: 15px; z-index: 2; animation: revealDown .8s ease both;
         }
 
         .brand-icon {
             width: 50px; height: 50px; background: white; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center; color: var(--primary);
+            display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.7rem;
         }
+        .brand-icon::before { content: '▦'; }
 
         .hero-text h1 {
             font-size: 3.5rem; line-height: 1.1; margin-bottom: 25px;
-            font-weight: 800; z-index: 2; position: relative; letter-spacing: -1px;
+            font-weight: 800; z-index: 2; position: relative; letter-spacing: -1px; animation: revealUp .8s .15s ease both;
         }
 
         .hero-text p {
             font-size: 1.2rem; opacity: 0.9; line-height: 1.6;
-            max-width: 500px; z-index: 2; position: relative;
+            max-width: 500px; z-index: 2; position: relative; animation: revealUp .8s .3s ease both;
         }
+
+        .school-scene { position: relative; z-index: 2; width: min(100%, 500px); height: 170px; margin-top: 34px; animation: revealUp .8s .45s ease both; }
+        .school-building { position: absolute; left: 50%; bottom: 10px; width: 210px; height: 92px; transform: translateX(-50%); border: 3px solid rgba(255,255,255,.75); border-radius: 8px 8px 4px 4px; background: rgba(255,255,255,.16); box-shadow: 0 16px 30px rgba(15,23,42,.16); }
+        .school-building::before { content: ''; position: absolute; left: 50%; top: -42px; width: 0; height: 0; transform: translateX(-50%); border-left: 108px solid transparent; border-right: 108px solid transparent; border-bottom: 44px solid rgba(255,255,255,.8); }
+        .school-door { position: absolute; left: 50%; bottom: 0; width: 34px; height: 52px; transform: translateX(-50%); border-radius: 5px 5px 0 0; background: #1e3a8a; }
+        .school-window { position: absolute; top: 22px; width: 27px; height: 25px; border: 3px solid #dbeafe; border-radius: 4px; background: #38bdf8; box-shadow: inset 0 0 0 3px rgba(30,58,138,.35); }
+        .school-window.left { left: 25px; }.school-window.right { right: 25px; }
+        .scene-icon { position: absolute; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid rgba(255,255,255,.35); border-radius: 14px; background: rgba(255,255,255,.16); font-size: 1.35rem; box-shadow: 0 10px 20px rgba(15,23,42,.12); }
+        .scene-icon.book { top: 8px; left: 8%; animation: floatOne 4s ease-in-out infinite; }.scene-icon.chart { top: 28px; right: 8%; animation: floatTwo 4.5s .5s ease-in-out infinite; }.scene-icon.star { bottom: 5px; right: 22%; animation: floatOne 3.8s .9s ease-in-out infinite; }
 
         .scroll-indicator {
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
@@ -70,7 +81,7 @@
             align-items: center;
             justify-content: center;
             padding: 40px;
-            background: white;
+            background: radial-gradient(circle at 15% 15%, rgba(219,234,254,.8), transparent 28%), #fff;
             position: relative;
             z-index: 10;
         }
@@ -86,7 +97,7 @@
             border-radius: 24px;
             /* Box shadow o'rniga oddiy border yoki yengil soya */
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); 
-            border: 1px solid #f1f5f9;
+            border: 1px solid #dbeafe; animation: cardReveal .8s .2s ease both;
         }
 
         .login-header { text-align: center; margin-bottom: 35px; }
@@ -147,12 +158,20 @@
         .news-card h3 { font-size: 1.2rem; margin-bottom: 10px; color: #0f172a; }
         .news-card p { color: #64748b; font-size: 0.95rem; line-height: 1.6; }
 
+        @keyframes revealDown { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes revealUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes cardReveal { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes floatOne { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-12px) rotate(4deg); } }
+        @keyframes floatTwo { 0%, 100% { transform: translateY(0) rotate(4deg); } 50% { transform: translateY(10px) rotate(-4deg); } }
+
         @media (max-width: 1024px) {
             .main-container { flex-direction: column; }
             .left-side { padding: 60px 40px; min-height: auto; }
             .hero-text h1 { font-size: 2.5rem; }
             .right-side { padding: 40px 20px; }
+            .school-scene { margin: 24px auto 0; }
         }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; } }
     </style>
 </head>
 <body>
@@ -162,12 +181,22 @@
         <!-- CHAP TOMON -->
         <div class="left-side">
             <div class="brand-logo">
-                <div class="brand-icon"></div>
+                <div class="brand-icon" aria-hidden="true"></div>
                 Maktab Boshqaruvi
             </div>
             <div class="hero-text">
                 <h1>Zamonaviy ta'lim uchun aqlli platforma</h1>
                 <p>Barcha maktablar uchun yagona raqamli yechim. Dars jadvali, testlar, kutubxona va AI yordamchi bir joyda.</p>
+            </div>
+            <div class="school-scene" aria-hidden="true">
+                <span class="scene-icon book">📚</span>
+                <span class="scene-icon chart">📊</span>
+                <span class="scene-icon star">✦</span>
+                <div class="school-building">
+                    <span class="school-window left"></span>
+                    <span class="school-window right"></span>
+                    <span class="school-door"></span>
+                </div>
             </div>
             <div class="scroll-indicator" onclick="document.getElementById('features').scrollIntoView()">
                 <span>Pastga tushing</span>
