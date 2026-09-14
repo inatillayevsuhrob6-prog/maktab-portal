@@ -834,9 +834,34 @@ def create_app():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
         school = School.query.get_or_404(session['school_id'])
         if request.method == "POST":
-            school.name = sanitize_input(request.form.get('name')) or school.name; school.address = sanitize_input(request.form.get('address'))
-            school.phone = sanitize_input(request.form.get('phone')); school.email = sanitize_input(request.form.get('email')); school.logo = sanitize_input(request.form.get('logo'))
-            db.session.commit(); session['school_name'] = school.name; flash("Admin profili muvaffaqiyatli saqlandi.", "success"); return redirect(url_for('admin_profile'))
+            school.name = sanitize_input(request.form.get('name')) or school.name
+            school.address = sanitize_input(request.form.get('address'))
+            school.phone = sanitize_input(request.form.get('phone'))
+            school.email = sanitize_input(request.form.get('email'))
+            
+            # Logo faylini yuklash
+            uploaded_logo = request.files.get('logo_file')
+            if uploaded_logo and uploaded_logo.filename:
+                try:
+                    filename = secure_filename(uploaded_logo.filename)
+                    ext = os.path.splitext(filename)[1].lower()
+                    if ext in {'.jpg', '.jpeg', '.png', '.gif', '.webp'}:
+                        upload_dir = os.path.join(app.static_folder, 'uploads', 'logos')
+                        os.makedirs(upload_dir, exist_ok=True)
+                        saved_name = f"school_{session['school_id']}{ext}"
+                        uploaded_logo.save(os.path.join(upload_dir, saved_name))
+                        school.logo = url_for('static', filename=f'uploads/logos/{saved_name}')
+                        flash("Logo muvaffaqiyatli yangilandi!", "success")
+                    else:
+                        flash("Faqat rasmlar (JPG, PNG) yuklash mumkin.", "warning")
+                except Exception as e:
+                    print(f"Logo yuklash xatosi: {e}")
+                    flash("Logoni yuklashda xatolik yuz berdi.", "danger")
+            
+            db.session.commit()
+            session['school_name'] = school.name
+            flash("Ma'lumotlar saqlandi.", "success")
+            return redirect(url_for('admin_profile'))
         return render_template("admin_profile.html", school=school)
 
     @app.route("/logout")

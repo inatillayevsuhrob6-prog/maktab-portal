@@ -6,8 +6,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body { background: #f8fafc; font-family: 'Inter', sans-serif; }
-        .profile-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .profile-container { max-width: 800px; margin: 40px auto; padding: 0 20px; position: relative; }
         
+        .back-link { 
+            position: absolute; top: 0; left: 0; 
+            color: #64748b; text-decoration: none; font-weight: 600; 
+            display: flex; align-items: center; gap: 5px; transition: 0.3s;
+        }
+        .back-link:hover { color: #2563eb; transform: translateX(-3px); }
+
         .card { 
             background: white; border-radius: 20px; padding: 40px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
@@ -22,11 +29,31 @@
         .form-group.full-width { grid-column: span 2; }
         
         label { display: block; margin-bottom: 8px; color: #334155; font-weight: 600; font-size: 0.9rem; }
-        input { 
+        input[type="text"], input[type="email"], input[type="tel"] { 
             width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 10px; 
-            font-size: 1rem; transition: 0.3s; background: #f8fafc;
+            font-size: 1rem; transition: 0.3s; background: #f8fafc; box-sizing: border-box;
         }
         input:focus { border-color: #2563eb; background: white; outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        
+        /* Fayl yuklash uchun maxsus stil */
+        .file-upload-wrapper {
+            position: relative;
+            width: 100%;
+            height: 50px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            background: #f8fafc;
+        }
+        .file-upload-wrapper:hover { border-color: #2563eb; background: #eff6ff; }
+        .file-upload-wrapper input[type="file"] {
+            position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+        }
+        .file-upload-text { color: #64748b; font-size: 0.95rem; }
         
         .btn-save { 
             width: 100%; padding: 16px; background: #2563eb; color: white; border: none; 
@@ -39,20 +66,12 @@
             .form-grid { grid-template-columns: 1fr; }
             .form-group.full-width { grid-column: span 1; }
         }
-    
-        .back-link { 
-            position: absolute; top: 20px; left: 20px; 
-            color: #64748b; text-decoration: none; font-weight: 600; 
-            display: flex; align-items: center; gap: 5px; transition: 0.3s;
-        }
-        .back-link:hover { color: #2563eb; transform: translateX(-3px); }
-
     </style>
 </head>
 <body>
     <div class="profile-container">
         <a href="/dashboard" class="back-link">← Ortga</a>
-
+        
         <div class="card">
             <div class="header">
                 <h2>⚙️ Admin Profil Sozlamalari</h2>
@@ -67,7 +86,8 @@
                 {% endif %}
             {% endwith %}
 
-            <form method="POST">
+            <!-- enctype="multipart/form-data" qo'shildi, bu fayl yuklash uchun shart -->
+            <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 
                 <div class="form-grid">
@@ -83,7 +103,7 @@
                     
                     <div class="form-group">
                         <label>Telefon</label>
-                        <input type="text" name="phone" value="{{ school.phone }}">
+                        <input type="tel" name="phone" value="{{ school.phone }}">
                     </div>
                     
                     <div class="form-group">
@@ -92,8 +112,16 @@
                     </div>
                     
                     <div class="form-group full-width">
-                        <label>Logo URL (ixtiyoriy)</label>
-                        <input type="text" name="logo" value="{{ school.logo or '' }}" placeholder="https://...">
+                        <label>Maktab Logosi (Rasm fayli)</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" name="logo_file" accept="image/*">
+                            <span class="file-upload-text" id="file-name">📁 Rasm tanlash (JPG, PNG)</span>
+                        </div>
+                        {% if school.logo %}
+                            <div style="margin-top: 10px; font-size: 0.85rem; color: #64748b;">
+                                Hozirgi logo: <a href="{{ school.logo }}" target="_blank">Ko'rish</a>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -101,5 +129,13 @@
             </form>
         </div>
     </div>
+
+    <script>
+        // Fayl tanlanganda nomini ko'rsatish
+        document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : "📁 Rasm tanlash (JPG, PNG)";
+            document.getElementById('file-name').innerText = fileName;
+        });
+    </script>
 </body>
 </html>
