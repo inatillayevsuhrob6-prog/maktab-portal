@@ -638,36 +638,21 @@ def create_app():
     @app.route("/clubs/stats")
     def clubs_stats():
         if 'school_id' not in session or session.get('user_role') != 'admin': 
-            return jsonify({})
+            return jsonify({"total_members": 0})
         
         try:
             sid = session['school_id']
             
-            # 1. Jami a'zolar soni
-            total_members = db.session.query(func.count(StudentClub.id)).filter(
-                StudentClub.has(student=Student.query.filter_by(school_id=sid))
-            ).scalar() or 0
+            # To'g'ri usul: StudentClub va Student jadvallarini join qilish
+            total_members = db.session.query(func.count(StudentClub.id))\
+                .join(Student, Student.id == StudentClub.student_id)\
+                .filter(Student.school_id == sid)\
+                .scalar() or 0
             
-            # 2. Faol to'garaklar soni
-            active_clubs = db.session.query(Club.id).join(StudentClub).filter(
-                Club.school_id == sid
-            ).distinct().count()
-            
-            # 3. Eng mashhur to'garak nomi
-            most_popular = db.session.query(Club.name, func.count(StudentClub.id).label('count'))\
-                .join(StudentClub).filter(Club.school_id == sid)\
-                .group_by(Club.id).order_by(db.desc('count')).first()
-                
-            popular_name = most_popular[0] if most_popular else "Yo'q"
-            
-            return jsonify({
-                "total_members": total_members,
-                "active_clubs": active_clubs,
-                "popular_club": popular_name
-            })
+            return jsonify({"total_members": total_members})
         except Exception as e:
             print(f"Stats error: {e}")
-            return jsonify({"total_members": 0, "active_clubs": 0, "popular_club": "-"})
+            return jsonify({"total_members": 0})
 
     @app.route("/clubs/manage")
     def manage_clubs():
