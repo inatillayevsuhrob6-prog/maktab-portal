@@ -87,87 +87,7 @@
         </div>
         
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            fetch('/clubs/stats')
-                .then(response => response.json())
-                .then(data => {
-                    const ctx = document.getElementById('clubsChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: data.labels,
-                            datasets: [{
-                                label: 'A'zolar soni',
-                                data: data.data,
-                                backgroundColor: '#f59e0b',
-                                borderRadius: 5
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-                        }
-                    });
-                });
-        </script>
-
         
-        
-<!-- TO'GARAKLAR STATISTIKASI (TESTLAR USLUBIDA) -->
-<div class="card" style="padding: 25px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-        <div>
-            <span style="color:#94a3b8; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; font-weight:700;">TO'GARAKLAR</span>
-            <h3 style="margin:5px 0 0; color:#1e293b;">Umumiy ko'rsatkichlar</h3>
-        </div>
-        <a href="/clubs/manage" style="color:#2563eb; text-decoration:none; font-weight:600; font-size:0.9rem;">Boshqarish →</a>
-    </div>
-    
-    <div id="clubs-stats-container" style="text-align: left;">
-        <button onclick="openMembersModal()" style="display:inline-flex; align-items:center; background:#fff; border:1px solid #e2e8f0; padding:10px 20px; border-radius:10px; box-shadow:0 2px 4px rgba(0,0,0,0.02); cursor:pointer; transition:0.2s; outline:none;">
-            <span style="font-size:1.2rem; font-weight:700; color:#2563eb;" id="stat-members">0</span>
-            <span style="color:#64748b; font-size:0.85rem; margin-left:8px;">jami a'zo </span>
-        </button>
-    </div>
-    
-    <!-- MODAL OYNA -->
-    <div id="membersModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-        <div style="background:white; width:90%; max-width:500px; border-radius:16px; padding:25px; position:relative; max-height:80vh; overflow-y:auto; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
-            <button onclick="closeMembersModal()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:1.5rem; cursor:pointer; color:#64748b;">&times;</button>
-            <h3 style="margin:0 0 20px; color:#1e293b; border-bottom:1px solid #f1f5f9; padding-bottom:10px;">To'garak a'zolari ro'yxati</h3>
-            <div id="membersListContent">
-                <p style="text-align:center; color:#64748b;">Yuklanmoqda...</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    fetch('/clubs/stats')
-        .then(r => r.json())
-        .then(data => {
-            const membersEl = document.getElementById('stat-members');
-            if (membersEl) membersEl.innerText = data.total_members || 0;
-        })
-        .catch(e => console.log("Clubs stats error:", e));
-</script>
-
-        TEZKOR AMALLAR</span><h2>Boshqaruv markazi</h2></div></div>
-                        <div class="quick-links"><a href="/add_student"><i class="fas fa-user-plus"></i><span>O‘quvchi qo‘shish</span><b>→</b></a><a href="/add_teacher"><i class="fas fa-user-tie"></i><span>O‘qituvchi qo‘shish</span><b>→</b></a><a href="/create_test"><i class="fas fa-file-circle-plus"></i><span>Yangi test yaratish</span><b>→</b></a><a href="/news/manage"><i class="fas fa-bullhorn"></i><span>Yangilik joylash</span><b>→</b></a></div>
-                    </article>
-                </section>
-
-                <section class="resource-strip">
-                    <a href="/library/manage"><i class="fas fa-book-open"></i><span><small>Kutubxona</small><strong>{{ book_count }} ta kitob</strong></span><b>→</b></a>
-                    <a href="/news/manage"><i class="fas fa-newspaper"></i><span><small>Yangiliklar</small><strong>{{ news_count }} ta xabar</strong></span><b>→</b></a>
-            
-                    <a href="/ai_chat"><i class="fas fa-sparkles"></i><span><small>AI yordamchi</small><strong>Savol berish</strong></span><b>→</b></a>
-                </section>
-            </div>
-        </main>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script>
     const chartDefaults = { color: '#64748b', font: { family: 'Inter, system-ui, sans-serif' } };
     new Chart(document.getElementById('classChart'), { type: 'bar', data: { labels: {{ class_labels|safe }}, datasets: [{ data: {{ class_student_counts|safe }}, backgroundColor: ['#2563eb', '#06b6d4', '#7c3aed', '#f59e0b', '#10b981', '#ef4444'], borderRadius: 8, borderSkipped: false, maxBarThickness: 42 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: chartDefaults }, y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#edf2fb' } } } } });
@@ -175,6 +95,55 @@
         function toggleDashboardSidebar() { document.getElementById('dashboardSidebar').classList.toggle('open'); }
         document.addEventListener('click', event => { const sidebar = document.getElementById('dashboardSidebar'); const toggle = document.querySelector('.menu-toggle'); if (window.innerWidth <= 860 && sidebar && !sidebar.contains(event.target) && !toggle.contains(event.target)) sidebar.classList.remove('open'); });
     </script>
+
+<script>
+function openMembersModal() {
+    var modal = document.getElementById('membersModal');
+    var contentDiv = document.getElementById('membersListContent');
+    modal.style.display = 'flex';
+    contentDiv.innerHTML = '<p style="text-align:center; color:#64748b; padding:20px;">Yuklanmoqda...</p>';
+    
+    fetch('/clubs/members/list')
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (!data || data.length === 0) {
+                contentDiv.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">Hozircha a'zolar yo'q.</p>';
+                return;
+            }
+            
+            var html = '<table style="width:100%; border-collapse:collapse; font-size:0.9rem;">';
+            html += '<thead><tr style="border-bottom:2px solid #f1f5f9; text-align:left;"><th style="padding:10px; color:#64748b; font-weight:600;">ISM-FAMILIYA</th><th style="padding:10px; color:#64748b; font-weight:600;">SINF</th></tr></thead><tbody>';
+            
+            for (var i = 0; i < data.length; i++) {
+                var m = data[i];
+                html += '<tr style="border-bottom:1px solid #f8fafc;">';
+                html += '<td style="padding:12px 10px; color:#1e293b;">' + m.name + '</td>';
+                html += '<td style="padding:12px 10px;"><span style="background:#eff6ff; color:#2563eb; padding:4px 8px; border-radius:6px; font-size:0.8rem; font-weight:600;">' + m.class + '</span></td>';
+                html += '</tr>';
+            }
+            
+            html += '</tbody></table>';
+            contentDiv.innerHTML = html;
+        })
+        .catch(function(e) {
+            console.error(e);
+            contentDiv.innerHTML = '<p style="text-align:center; color:#ef4444;">Xatolik yuz berdi.</p>';
+        });
+}
+
+function closeMembersModal() {
+    document.getElementById('membersModal').style.display = 'none';
+}
+
+// Modal tashqarisiga bosganda yopish
+window.onclick = function(event) {
+    var modal = document.getElementById('membersModal');
+    if (event.target == modal) {
+        closeMembersModal();
+    }
+}
+</script>
+
 </body>
 </html>
 <!DOCTYPE html>
@@ -296,6 +265,55 @@
             </a>
         </div>
     </div>
+
+
+<script>
+function openMembersModal() {
+    var modal = document.getElementById('membersModal');
+    var contentDiv = document.getElementById('membersListContent');
+    modal.style.display = 'flex';
+    contentDiv.innerHTML = '<p style="text-align:center; color:#64748b; padding:20px;">Yuklanmoqda...</p>';
+    
+    fetch('/clubs/members/list')
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (!data || data.length === 0) {
+                contentDiv.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">Hozircha a'zolar yo'q.</p>';
+                return;
+            }
+            
+            var html = '<table style="width:100%; border-collapse:collapse; font-size:0.9rem;">';
+            html += '<thead><tr style="border-bottom:2px solid #f1f5f9; text-align:left;"><th style="padding:10px; color:#64748b; font-weight:600;">ISM-FAMILIYA</th><th style="padding:10px; color:#64748b; font-weight:600;">SINF</th></tr></thead><tbody>';
+            
+            for (var i = 0; i < data.length; i++) {
+                var m = data[i];
+                html += '<tr style="border-bottom:1px solid #f8fafc;">';
+                html += '<td style="padding:12px 10px; color:#1e293b;">' + m.name + '</td>';
+                html += '<td style="padding:12px 10px;"><span style="background:#eff6ff; color:#2563eb; padding:4px 8px; border-radius:6px; font-size:0.8rem; font-weight:600;">' + m.class + '</span></td>';
+                html += '</tr>';
+            }
+            
+            html += '</tbody></table>';
+            contentDiv.innerHTML = html;
+        })
+        .catch(function(e) {
+            console.error(e);
+            contentDiv.innerHTML = '<p style="text-align:center; color:#ef4444;">Xatolik yuz berdi.</p>';
+        });
+}
+
+function closeMembersModal() {
+    document.getElementById('membersModal').style.display = 'none';
+}
+
+// Modal tashqarisiga bosganda yopish
+window.onclick = function(event) {
+    var modal = document.getElementById('membersModal');
+    if (event.target == modal) {
+        closeMembersModal();
+    }
+}
+</script>
 
 </body>
 </html>
