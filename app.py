@@ -58,7 +58,7 @@ def create_app():
     csrf = CSRFProtect(app)
     # ... db.init_app(app) dan keyin ...
     
-    with app.app_context():
+        with app.app_context():
         from sqlalchemy import text
         
         # 1. Bazani yaratish (agar yo'q bo'lsa)
@@ -81,6 +81,8 @@ def create_app():
         except Exception as e:
             print(f"❌ Bazani yangilashda xatolik: {e}")
             db.session.rollback()
+            
+        # ... qolgan kodlar (Achievement qo'shish va h.k.) ...
             
         # ... qolgan kodlar (Achievement qo'shish va h.k.) ...
     @app.errorhandler(CSRFError)
