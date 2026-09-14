@@ -6,49 +6,113 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         body { background: #f8fafc; padding: 40px 20px; font-family: sans-serif; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto; }
-        .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.3s; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .back-btn { color: #64748b; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .card { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.3s; border-left: 5px solid #2563eb; }
         .card:hover { transform: translateY(-5px); }
-        .card-body { padding: 25px; }
-        .card h3 { margin: 0 0 10px; color: #1e293b; }
-        .card p { color: #64748b; font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px; }
-        .meta { display: flex; justify-content: space-between; font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; }
-        .btn-join { display: block; width: 100%; text-align: center; background: #2563eb; color: white; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: 600; }
+        .card h3 { margin: 0 0 10px; color: #1e293b; font-size: 1.4rem; }
+        .desc { color: #64748b; font-size: 0.95rem; margin-bottom: 20px; min-height: 45px; }
+        .meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: #94a3b8; margin-bottom: 20px; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+        .teacher { display: flex; align-items: center; gap: 8px; }
+        .teacher img { width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; }
+        .members-count { color: #2563eb; font-weight: 600; background: #eff6ff; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; }
+        
+        .btn-join { 
+            display: block; width: 100%; text-align: center; 
+            background: #2563eb; color: white; padding: 14px; 
+            border-radius: 10px; text-decoration: none; font-weight: 600; 
+            border: none; cursor: pointer; transition: 0.3s;
+        }
         .btn-join:hover { background: #1d4ed8; }
+        .btn-join.joined { background: #10b981; cursor: default; }
     </style>
 </head>
 <body>
-    <div style="text-align:center; margin-bottom:40px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; max-width:1200px; margin:0 auto 20px;">
-            <a href="javascript:history.back()" style="color:#64748b; text-decoration:none; font-weight:600;">← Ortga</a>
-        </div>
-        <h1 style="color:#1e293b; font-size:2.5rem; text-align:center;">Maktab To'garaklari</h1>
-        <p style="color:#64748b;">Qiziqishingizga mos to'garakni tanlang va rivojlaning!</p>
-    </div>
-
-    <div class="grid">
-        {% for c in clubs %}
-        <div class="card">
-            <div class="card-body">
-                <h3>{{ c.name }}</h3>
-                <p>{{ c.description or 'Tavsif kiritilmagan.' }}</p>
-                <div class="meta">
-                    <span>👨‍ {{ c.teacher.first_name }} {{ c.teacher.last_name }}</span>
-                    <span> {{ c.schedule }}</span>
-                    <span>👥 {{ c.members|length }} a'zo</span>
-                </div>
-                {% if session.get('user_role') == 'student' %}
-                <a href="/clubs/join/{{ c.id }}" class="btn-join">A'zo Bo'lish</a>
-                {% else %}
-                <div style="text-align:center; color:#94a3b8; font-size:0.9rem;">Batafsil ma'lumot uchun o'qituvchiga murojaat qiling</div>
-                {% endif %}
+    <div class="container">
+        <div class="header">
+            <a href="javascript:history.back()" class="back-btn">← Ortga</a>
+            <div style="text-align: right;">
+                <h1 style="color:#1e293b; margin:0;">Maktab To'garaklari</h1>
+                <p style="color:#64748b; margin:5px 0 0;">Qiziqishingizga mos to'garakni tanlang</p>
             </div>
         </div>
-        {% else %}
-        <div style="grid-column: 1/-1; text-align:center; padding:40px; color:#94a3b8; background:white; border-radius:16px;">
-            Hozircha faol to'garaklar mavjud emas.
+
+        <div class="grid">
+            {% for c in clubs %}
+            <div class="card">
+                <h3>{{ c.name }}</h3>
+                <p class="desc">{{ c.description or 'Qo\'shimcha ma\'lumot yo\'q.' }}</p>
+                
+                <div class="meta">
+                    <div class="teacher">
+                        <!-- Agar rasm bo'lmasa default icon -->
+                        <img src="{{ c.teacher.profile_pic or url_for('static', filename='img/default-avatar.png') }}" onerror="this.src='https://ui-avatars.com/api/?name={{ c.teacher.first_name[0] }}+{{ c.teacher.last_name[0] }}&background=random'">
+                        <span>{{ c.teacher.first_name }} {{ c.teacher.last_name }}</span>
+                    </div>
+                    <span class="members-count"> {{ c.members|length }} a'zo</span>
+                </div>
+
+                {% if session.get('user_role') == 'student' %}
+                    {% set is_member = false %}
+                    {% for m in c.members %}
+                        {% if m.student_id == session.get('student_id') %}
+                            {% set is_member = true %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if is_member %}
+                        <button class="btn-join joined" disabled>✅ A'zosiz</button>
+                    {% else %}
+                        <button class="btn-join" onclick="joinClub(this, {{ c.id }})">A'zo Bo'lish</button>
+                    {% endif %}
+                {% else %}
+                    <div style="text-align:center; color:#94a3b8; font-size:0.9rem; margin-top:10px;">
+                        O'quvchilar uchun
+                    </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div style="grid-column: 1/-1; text-align:center; padding:40px; color:#94a3b8; background:white; border-radius:16px;">
+                Hozircha faol to'garaklar mavjud emas.
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
+
+    <script>
+        function joinClub(btn, clubId) {
+            btn.innerText = "Yuklanmoqda...";
+            btn.style.opacity = "0.7";
+            
+            fetch('/clubs/join/' + clubId)
+                .then(response => response.json()) // JSON javob kutamiz
+                .then(data => {
+                    if (data.status === 'success') {
+                        btn.innerText = "✅ A'zo bo'ldingiz!";
+                        btn.classList.add('joined');
+                        btn.disabled = true;
+                        btn.style.background = "#10b981";
+                        btn.style.opacity = "1";
+                        
+                        // A'zolar sonini yangilash (vizual)
+                        const card = btn.closest('.card');
+                        const countSpan = card.querySelector('.members-count');
+                        let currentCount = parseInt(countSpan.innerText.replace(/\D/g,'')) || 0;
+                        countSpan.innerText = "👥 " + (currentCount + 1) + " a'zo";
+                    } else {
+                        alert(data.message || "Xatolik yuz berdi");
+                        btn.innerText = "A'zo Bo'lish";
+                        btn.style.opacity = "1";
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    btn.innerText = "Xatolik! Qayta urinib ko'ring";
+                    btn.style.opacity = "1";
+                });
+        }
+    </script>
 </body>
 </html>

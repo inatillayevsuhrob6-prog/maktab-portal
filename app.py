@@ -585,18 +585,16 @@ def create_app():
     @app.route("/clubs/join/<int:club_id>")
     def join_club(club_id):
         if 'school_id' not in session or session.get('user_role') != 'student': 
-            flash("Faqat o'quvchilar to'garakka a'zo bo'lishi mumkin.", "danger")
-            return redirect(url_for('view_clubs'))
+            return jsonify({"status": "error", "message": "Ruxsat yo'q"})
         
         student_id = session.get('student_id')
         existing = StudentClub.query.filter_by(student_id=student_id, club_id=club_id).first()
         if existing:
-            flash("Siz allaqachon bu to'garakdasiz!", "warning")
+            return jsonify({"status": "warning", "message": "Siz allaqachon a'zosiz"})
         else:
             db.session.add(StudentClub(student_id=student_id, club_id=club_id))
             db.session.commit()
-            flash("Muvaffaqiyatli a'zo bo'ldingiz!", "success")
-        return redirect(url_for('view_clubs'))
+            return jsonify({"status": "success", "message": "A'zo bo'ldingiz!"})
 
     @app.route("/clubs/stats")
     def clubs_stats():
