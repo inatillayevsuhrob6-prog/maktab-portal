@@ -275,7 +275,9 @@ def create_app():
         sid = session['school_id']
         if role == 'admin':
             messages = ChatMessage.query.filter_by(school_id=sid).order_by(ChatMessage.created_at.desc()).all()
-            return render_template("chat_admin.html", messages=messages)
+            teachers = Teacher.query.filter_by(school_id=sid).order_by(Teacher.first_name, Teacher.last_name).all()
+            students = Student.query.filter_by(school_id=sid).order_by(Student.first_name, Student.last_name).all()
+            return render_template("chat_admin.html", messages=messages, teachers=teachers, students=students)
 
         if role == 'student':
             current_user_id = session['student_id']
@@ -315,7 +317,7 @@ def create_app():
     @app.route("/chat/send", methods=["POST"])
     def send_chat_message():
         role = session.get('user_role')
-        if 'school_id' not in session or role not in {'student', 'teacher'}:
+        if 'school_id' not in session or role not in {'admin', 'student', 'teacher'}:
             return redirect(url_for('home'))
 
         recipient_type = request.form.get('recipient_type')
@@ -325,7 +327,7 @@ def create_app():
             flash("Xabar va qabul qiluvchini tanlang.", "warning")
             return redirect(url_for('chat'))
 
-        if recipient_type == role:
+        if role != 'admin' and recipient_type == role:
             flash("O'zingizga xabar yubora olmaysiz.", "warning")
             return redirect(url_for('chat'))
 
@@ -335,7 +337,7 @@ def create_app():
             flash("Qabul qiluvchi topilmadi.", "danger")
             return redirect(url_for('chat'))
 
-        sender_id = session['teacher_id'] if role == 'teacher' else session['student_id']
+        sender_id = session['teacher_id'] if role == 'teacher' else session['student_id'] if role == 'student' else session['school_id']
         db.session.add(ChatMessage(
             school_id=session['school_id'],
             sender_type=role,

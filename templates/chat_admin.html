@@ -6,7 +6,36 @@
 <div class="chat-page">
     <div class="chat-page-heading">
         <div>
+        <section class="admin-chat-compose">
+            <div>
+                <span class="page-kicker">YANGI XABAR</span>
+                <h2>O‘qituvchi yoki o‘quvchiga yozish</h2>
+            </div>
+            <form method="POST" action="{{ url_for('send_chat_message') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="recipient_type" id="adminRecipientType">
+                <input type="hidden" name="recipient_id" id="adminRecipientId">
+                <select id="adminRecipient" required>
+                    <option value="">Qabul qiluvchini tanlang</option>
+                    <optgroup label="O‘qituvchilar">
+                        {% for teacher in teachers %}<option value="teacher:{{ teacher.id }}">{{ teacher.first_name }} {{ teacher.last_name }}</option>{% endfor %}
+                    </optgroup>
+                    <optgroup label="O‘quvchilar">
+                        {% for student in students %}<option value="student:{{ student.id }}">{{ student.first_name }} {{ student.last_name }}</option>{% endfor %}
+                    </optgroup>
+                </select>
+                <input name="body" maxlength="2000" placeholder="Xabaringizni yozing..." required>
+                <button type="submit">Yuborish <span>➜</span></button>
+            </form>
+        </section>
             <span class="page-kicker">NAZORAT PANELI</span>
+    <script>
+        document.getElementById('adminRecipient').addEventListener('change', function () {
+            const parts = this.value.split(':');
+            document.getElementById('adminRecipientType').value = parts[0] || '';
+            document.getElementById('adminRecipientId').value = parts[1] || '';
+        });
+    </script>
             <h1>Ichki chatlar</h1>
             <p>O‘qituvchi va o‘quvchilar o‘rtasidagi ichki yozishmalar.</p>
         </div>
