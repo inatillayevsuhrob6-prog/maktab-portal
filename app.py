@@ -3,7 +3,7 @@ from config import Config
 from extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from backend.models import School, Class, Student, Teacher, TeacherClassAssignment, Subject, Test, TestQuestion, TestResult, Achievement, StudentAchievement, Schedule, Book, News, Club
+from backend.models import School, Class, Student, Teacher, TeacherClassAssignment, Subject, Test, TestQuestion, TestResult, Achievement, StudentAchievement, Schedule, Book, News, Club, StudentClub
 from sqlalchemy.orm import joinedload
 from sqlalchemy import text
 from flask_wtf.csrf import CSRFProtect, CSRFError
@@ -587,9 +587,29 @@ def create_app():
         if 'school_id' not in session or session.get('user_role') != 'student': 
             flash("Faqat o'quvchilar to'garakka a'zo bo'lishi mumkin.", "danger")
             return redirect(url_for('view_clubs'))
-        club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first_or_404()
-        flash(f"Siz '{club.name}' to'garagiga so'rov yubordingiz!", "success")
+        
+        student_id = session.get('student_id')
+        existing = StudentClub.query.filter_by(student_id=student_id, club_id=club_id).first()
+        if existing:
+            flash("Siz allaqachon bu to'garakdasiz!", "warning")
+        else:
+            db.session.add(StudentClub(student_id=student_id, club_id=club_id))
+            db.session.commit()
+            flash("Muvaffaqiyatli a'zo bo'ldingiz!", "success")
         return redirect(url_for('view_clubs'))
+
+    @app.route("/clubs/stats")
+    def clubs_stats():
+        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        # Sinflar bo'yicha a'zolar statistikasi
+        stats = db.session.query(
+            Class.name, 
+            db.func.count(StudentClub.id)
+        ).join(Student, Student.class_id == Class.id)         .join(StudentClub, StudentClub.student_id == Student.id)         .filter(Class.school_id == session['school_id'])         .group_by(Class.name).all()
+         
+        labels = [row[0] for row in stats]
+        data = [row[1] for row in stats]
+        return jsonify({"labels": labels, "data": data})
 
     @app.route("/news/manage")
     def manage_news():

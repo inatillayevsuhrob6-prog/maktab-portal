@@ -229,3 +229,12 @@ class Club(db.Model):
     
     # Munosabatlar
     teacher = db.relationship('Teacher', backref=db.backref('clubs', lazy=True))
+
+class StudentClub(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
+    club_id = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    student = db.relationship('Student', backref=db.backref('club_memberships', lazy=True))
+    club = db.relationship('Club', backref=db.backref('members', lazy=True))

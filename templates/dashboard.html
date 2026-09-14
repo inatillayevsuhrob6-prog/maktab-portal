@@ -74,7 +74,42 @@
                         <div class="result-summary"><div><strong>{{ result_count }}</strong><span>Topshirilgan</span></div><div><strong>{{ passed_results }}</strong><span>Muvaffaqiyatli</span></div><div><strong>{{ schedule_count }}</strong><span>Darslar</span></div></div>
                     </article>
                     <article class="panel quick-panel">
-                        <div class="panel-heading"><div><span class="panel-kicker">TEZKOR AMALLAR</span><h2>Boshqaruv markazi</h2></div></div>
+                        <div class="panel-heading"><div><span class="panel-kicker">
+        <!-- TO'GARAKLAR STATISTIKASI -->
+        <div class="card" style="padding:20px; margin-bottom:20px;">
+            <h3 style="margin-bottom:15px; color:#1e293b;">To'garaklar: Sinflar bo'yicha tarqalish</h3>
+            <canvas id="clubsChart" height="100"></canvas>
+            <div style="text-align:right; margin-top:10px;">
+                <a href="/clubs/manage" style="color:#2563eb; text-decoration:none; font-size:0.9rem;">Boshqarish →</a>
+            </div>
+        </div>
+        
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            fetch('/clubs/stats')
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('clubsChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'A'zolar soni',
+                                data: data.data,
+                                backgroundColor: '#f59e0b',
+                                borderRadius: 5
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                        }
+                    });
+                });
+        </script>
+
+        TEZKOR AMALLAR</span><h2>Boshqaruv markazi</h2></div></div>
                         <div class="quick-links"><a href="/add_student"><i class="fas fa-user-plus"></i><span>O‘quvchi qo‘shish</span><b>→</b></a><a href="/add_teacher"><i class="fas fa-user-tie"></i><span>O‘qituvchi qo‘shish</span><b>→</b></a><a href="/create_test"><i class="fas fa-file-circle-plus"></i><span>Yangi test yaratish</span><b>→</b></a><a href="/news/manage"><i class="fas fa-bullhorn"></i><span>Yangilik joylash</span><b>→</b></a></div>
                     </article>
                 </section>

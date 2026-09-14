@@ -19,7 +19,10 @@
 </head>
 <body>
     <div style="text-align:center; margin-bottom:40px;">
-        <h1 style="color:#1e293b; font-size:2.5rem;">Maktab To'garaklari</h1>
+        <div style="display:flex; justify-content:space-between; align-items:center; max-width:1200px; margin:0 auto 20px;">
+            <a href="javascript:history.back()" style="color:#64748b; text-decoration:none; font-weight:600;">← Ortga</a>
+        </div>
+        <h1 style="color:#1e293b; font-size:2.5rem; text-align:center;">Maktab To'garaklari</h1>
         <p style="color:#64748b;">Qiziqishingizga mos to'garakni tanlang va rivojlaning!</p>
     </div>
 
@@ -32,6 +35,7 @@
                 <div class="meta">
                     <span>👨‍ {{ c.teacher.first_name }} {{ c.teacher.last_name }}</span>
                     <span> {{ c.schedule }}</span>
+                    <span>👥 {{ c.members|length }} a'zo</span>
                 </div>
                 {% if session.get('user_role') == 'student' %}
                 <a href="/clubs/join/{{ c.id }}" class="btn-join">A'zo Bo'lish</a>
