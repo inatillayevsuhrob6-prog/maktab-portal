@@ -214,6 +214,12 @@ def create_app():
         schedule_items = Schedule.query.filter_by(school_id=sid).all()
         day_names = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"]
         schedule_counts = [sum(item.day_of_week == day for item in schedule_items) for day in day_names]
+        club_class_rows = db.session.query(Class.name, func.count(StudentClub.id)) \
+            .join(Student, Student.class_id == Class.id) \
+            .join(StudentClub, Student.id == StudentClub.student_id) \
+            .filter(Student.school_id == sid) \
+            .group_by(Class.name) \
+            .order_by(Class.name).all()
         results = TestResult.query.join(Student).filter(Student.school_id == sid).all()
         average_score = round(sum(item.percentage or 0 for item in results) / len(results), 1) if results else 0
         passed_results = sum((item.percentage or 0) >= 60 for item in results)
@@ -232,7 +238,9 @@ def create_app():
             class_labels=json.dumps(class_labels),
             class_student_counts=json.dumps(class_student_counts),
             day_names=json.dumps(day_names),
-            schedule_counts=json.dumps(schedule_counts))
+            schedule_counts=json.dumps(schedule_counts),
+            club_class_labels=json.dumps([row[0] for row in club_class_rows]),
+            club_class_counts=json.dumps([row[1] for row in club_class_rows]))
 
     # --- O'QITUVCHI DASHBOARD ---
     @app.route("/teacher_dashboard")

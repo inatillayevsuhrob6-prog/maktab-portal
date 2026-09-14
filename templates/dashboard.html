@@ -21,19 +21,14 @@
                 <a href="/schedule/manage"><span>◫</span>Dars jadvali</a>
                 <a href="/library/manage"><span>▥</span>Kutubxona</a>
                 <a href="/news/manage"><span>▰</span>Yangiliklar</a>
-            <a href="/clubs/manage" class="nav-link">
-                <span class="icon">🎯</span>
-                <span>To'garaklar</span>
-            </a>
-
-            
+                <a href="/clubs/manage"><span>🎯</span>To‘garaklar</a>
                 <a href="/ai_chat"><span>✦</span>AI Chat</a>
                 <a href="/admin_profile"><span>◉</span>Admin profil</a>
             </nav>
             <a href="/logout" class="sidebar-logout"><span>↪</span>Chiqish</a>
-    </aside>
+        </aside>
 
-    <main class="app-main">
+        <main class="app-main">
             <header class="topbar">
                 <button class="menu-toggle" onclick="toggleDashboardSidebar()" aria-label="Menyuni ochish">☰</button>
                 <div class="dashboard-breadcrumb"><span>Boshqaruv paneli</span><strong>{{ school.name }}</strong></div>
@@ -76,242 +71,76 @@
                         <div class="result-summary"><div><strong>{{ result_count }}</strong><span>Topshirilgan</span></div><div><strong>{{ passed_results }}</strong><span>Muvaffaqiyatli</span></div><div><strong>{{ schedule_count }}</strong><span>Darslar</span></div></div>
                     </article>
                     <article class="panel quick-panel">
-                        <div class="panel-heading"><div><span class="panel-kicker">
-        <!-- TO'GARAKLAR STATISTIKASI -->
-        <div class="card" style="padding:20px; margin-bottom:20px;">
-            <h3 style="margin-bottom:15px; color:#1e293b;">To'garaklar: Sinflar bo'yicha tarqalish</h3>
-            <canvas id="clubsChart" height="100"></canvas>
-            <div style="text-align:right; margin-top:10px;">
-                <a href="/clubs/manage" style="color:#2563eb; text-decoration:none; font-size:0.9rem;">Boshqarish →</a>
+                        <div class="panel-heading"><div><span class="panel-kicker">TO‘GARAKLAR</span><h2>Sinflar bo‘yicha tarqalish</h2></div><a href="/clubs/manage">Boshqarish <i class="fas fa-arrow-right"></i></a></div>
+                        <div class="chart-wrap chart-small"><canvas id="clubsChart"></canvas></div>
+                    </article>
+                </section>
             </div>
-        </div>
-        
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        
-    
-
-
-<script>
-function openMembersModal() {
-    var modal = document.getElementById('membersModal');
-    var contentDiv = document.getElementById('membersListContent');
-    modal.style.display = 'flex';
-    contentDiv.innerHTML = '<p style="text-align:center; color:#64748b; padding:20px;">Yuklanmoqda...</p>';
-    
-    fetch('/clubs/members/list')
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if (!data || data.length === 0) {
-                contentDiv.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">Hozircha a'zolar yo'q.</p>';
-                return;
-            }
-            
-            var html = '<table style="width:100%; border-collapse:collapse; font-size:0.9rem;">';
-            html += '<thead><tr style="border-bottom:2px solid #f1f5f9; text-align:left;"><th style="padding:10px; color:#64748b; font-weight:600;">ISM-FAMILIYA</th><th style="padding:10px; color:#64748b; font-weight:600;">SINF</th></tr></thead><tbody>';
-            
-            for (var i = 0; i < data.length; i++) {
-                var m = data[i];
-                html += '<tr style="border-bottom:1px solid #f8fafc;">';
-                html += '<td style="padding:12px 10px; color:#1e293b;">' + m.name + '</td>';
-                html += '<td style="padding:12px 10px;"><span style="background:#eff6ff; color:#2563eb; padding:4px 8px; border-radius:6px; font-size:0.8rem; font-weight:600;">' + m.class + '</span></td>';
-                html += '</tr>';
-            }
-            
-            html += '</tbody></table>';
-            contentDiv.innerHTML = html;
-        })
-        .catch(function(e) {
-            console.error(e);
-            contentDiv.innerHTML = '<p style="text-align:center; color:#ef4444;">Xatolik yuz berdi.</p>';
-        });
-}
-
-function closeMembersModal() {
-    document.getElementById('membersModal').style.display = 'none';
-}
-
-// Modal tashqarisiga bosganda yopish
-window.onclick = function(event) {
-    var modal = document.getElementById('membersModal');
-    if (event.target == modal) {
-        closeMembersModal();
-    }
-}
-</script>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <title>Boshqaruv Paneli - {{ school.name }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-
-    <!-- NAVBAR (Chapda menyu, o'ngda search) -->
-    <nav class="navbar">
-        <div style="display:flex; align-items:center;">
-            <a href="/dashboard" class="navbar-brand">
-                <i class="fas fa-school"></i> {{ school.name }}
-            </a>
-            <ul class="nav-links">
-                <li><a href="/dashboard" class="active"><i class="fas fa-home"></i> Bosh sahifa</a></li>
-                <li><a href="/classes"><i class="fas fa-chalkboard"></i> Sinflar</a></li>
-                <li><a href="/students"><i class="fas fa-user-graduate"></i> O'quvchilar</a></li>
-                <li><a href="/teachers"><i class="fas fa-chalkboard-teacher"></i> O'qituvchilar</a></li>
-                <li><a href="/tests"><i class="fas fa-clipboard-list"></i> Testlar</a></li>
-                <li><a href="/ai_chat"><i class="fas fa-robot"></i> AI Chat</a></li>
-            </ul>
-        </div>
-        
-        <div style="display:flex; align-items:center; gap:15px;">
-            <form action="/search" method="GET" class="search-container">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" name="q" class="search-input" placeholder="Qidirish...">
-            </form>
-            <a href="/logout" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Chiqish</a>
-        </div>
-    </nav>
-
-    <!-- DASHBOARD CONTENT -->
-    <div class="container">
-        <div class="page-header">
-            <h1>Xush kelibsiz, {{ school.name }}!</h1>
-            <p style="color:var(--text-light);">Boshqaruv paneli</p>
-        </div>
-
-        <div class="dashboard-grid">
-            <!-- Sinflar -->
-            <a href="/classes" style="text-decoration:none;">
-                <div class="card">
-                    <div class="card-icon">🏫</div>
-                    <div class="card-title">Sinflar</div>
-                    <div class="card-value">{{ class_count }}</div>
-                </div>
-            </a>
-
-            <!-- O'quvchilar -->
-            <a href="/students" style="text-decoration:none;">
-                <div class="card">
-                    <div class="card-icon">🎓</div>
-                    <div class="card-title">O'quvchilar</div>
-                    <div class="card-value">{{ student_count }}</div>
-                </div>
-            </a>
-
-            <!-- O'qituvchilar -->
-            <a href="/teachers" style="text-decoration:none;">
-                <div class="card">
-                    <div class="card-icon">👨🏫</div>
-                    <div class="card-title">O'qituvchilar</div>
-                    <div class="card-value">{{ teacher_count }}</div>
-                </div>
-            </a>
-
-            <!-- Testlar -->
-            <a href="/tests" style="text-decoration:none;">
-                <div class="card">
-                    <div class="card-icon">📝</div>
-                    <div class="card-title">Testlar</div>
-                    <div class="card-value">{{ test_count }}</div>
-                </div>
-            </a>
-
-            <!-- AI Chat -->
-            <a href="/ai_chat" style="text-decoration:none;">
-                <div class="card">
-                    <div class="card-icon">🤖</div>
-                    <div class="card-title">AI Chat</div>
-                    <div class="card-value" style="font-size:1rem; color:var(--primary-blue);">Yordam so'rash</div>
-                </div>
-            </a>
-
-            <!-- Dars Jadvali -->
-            <a href="/schedule/manage" style="text-decoration:none;">
-                <div class="card">
-                    <div class="card-icon">📅</div>
-                    <div class="card-title">Dars Jadvali</div>
-                    <div class="card-value" style="font-size:1rem;">Boshqarish</div>
-                </div>
-            </a>
-
-            <!-- Kutubxona -->
-            <a href="/library/manage" style="text-decoration:none;">
-                <div class="card">
-                    <div class="card-icon">📚</div>
-                    <div class="card-title">Kutubxona</div>
-                    <div class="card-value" style="font-size:1rem;">{{ book_count }} ta kitob</div>
-                </div>
-            </a>
-
-            <!-- Yangiliklar -->
-            
-            <a href="/news/manage" style="text-decoration:none;">
-                <div class="card">
-                    <div class="card-icon">📢</div>
-                    <div class="card-title">Yangiliklar</div>
-            
-                    <div class="card-value" style="font-size:1rem;">{{ news_count }} ta xabar</div>
-                </div>
-            </a>
-        </div>
+        </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function toggleDashboardSidebar() {
+            document.getElementById('dashboardSidebar').classList.toggle('open');
+        }
 
+        const chartDefaults = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        };
 
-
-
-<script>
-function openMembersModal() {
-    var modal = document.getElementById('membersModal');
-    var contentDiv = document.getElementById('membersListContent');
-    modal.style.display = 'flex';
-    contentDiv.innerHTML = '<p style="text-align:center; color:#64748b; padding:20px;">Yuklanmoqda...</p>';
-    
-    fetch('/clubs/members/list')
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if (!data || data.length === 0) {
-                contentDiv.innerHTML = '<p style="text-align:center; color:#94a3b8; padding:20px;">Hozircha a'zolar yo'q.</p>';
-                return;
-            }
-            
-            var html = '<table style="width:100%; border-collapse:collapse; font-size:0.9rem;">';
-            html += '<thead><tr style="border-bottom:2px solid #f1f5f9; text-align:left;"><th style="padding:10px; color:#64748b; font-weight:600;">ISM-FAMILIYA</th><th style="padding:10px; color:#64748b; font-weight:600;">SINF</th></tr></thead><tbody>';
-            
-            for (var i = 0; i < data.length; i++) {
-                var m = data[i];
-                html += '<tr style="border-bottom:1px solid #f8fafc;">';
-                html += '<td style="padding:12px 10px; color:#1e293b;">' + m.name + '</td>';
-                html += '<td style="padding:12px 10px;"><span style="background:#eff6ff; color:#2563eb; padding:4px 8px; border-radius:6px; font-size:0.8rem; font-weight:600;">' + m.class + '</span></td>';
-                html += '</tr>';
-            }
-            
-            html += '</tbody></table>';
-            contentDiv.innerHTML = html;
-        })
-        .catch(function(e) {
-            console.error(e);
-            contentDiv.innerHTML = '<p style="text-align:center; color:#ef4444;">Xatolik yuz berdi.</p>';
+        new Chart(document.getElementById('classChart'), {
+            type: 'bar',
+            data: {
+                labels: {{ class_labels | safe }},
+                datasets: [{
+                    data: {{ class_student_counts | safe }},
+                    backgroundColor: '#2563eb',
+                    borderRadius: 8,
+                    maxBarThickness: 42
+                }]
+            },
+            options: chartDefaults
         });
-}
 
-function closeMembersModal() {
-    document.getElementById('membersModal').style.display = 'none';
-}
+        new Chart(document.getElementById('scheduleChart'), {
+            type: 'line',
+            data: {
+                labels: {{ day_names | safe }},
+                datasets: [{
+                    data: {{ schedule_counts | safe }},
+                    borderColor: '#0891b2',
+                    backgroundColor: 'rgba(8, 145, 178, .12)',
+                    fill: true,
+                    tension: .35,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#0891b2'
+                }]
+            },
+            options: chartDefaults
+        });
 
-// Modal tashqarisiga bosganda yopish
-window.onclick = function(event) {
-    var modal = document.getElementById('membersModal');
-    if (event.target == modal) {
-        closeMembersModal();
-    }
-}
-</script>
-
+        new Chart(document.getElementById('clubsChart'), {
+            type: 'doughnut',
+            data: {
+                labels: {{ club_class_labels | safe }},
+                datasets: [{
+                    data: {{ club_class_counts | safe }},
+                    backgroundColor: ['#2563eb', '#0891b2', '#7c3aed', '#ea580c', '#16a34a', '#e11d48'],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '64%',
+                plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true } } }
+            }
+        });
+    </script>
 </body>
 </html>
