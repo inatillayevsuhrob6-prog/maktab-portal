@@ -573,7 +573,15 @@ def create_app():
     def delete_club(club_id):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
         club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first_or_404()
-        db.session.delete(club); db.session.commit()
+        
+        # 1. Avval shu to'garakdagi barcha a'zolarni o'chirish
+        StudentClub.query.filter_by(club_id=club.id).delete()
+        
+        # 2. Keyin to'garakning o'zini o'chirish
+        db.session.delete(club)
+        db.session.commit()
+        
+        flash("To'garak va unga tegishli ma'lumotlar o'chirildi.", "success")
         return redirect(url_for('manage_clubs'))
 
     @app.route("/clubs")

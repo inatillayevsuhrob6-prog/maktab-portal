@@ -21,10 +21,7 @@
                 <a href="/schedule/manage"><span>◫</span>Dars jadvali</a>
                 <a href="/library/manage"><span>▥</span>Kutubxona</a>
                 <a href="/news/manage"><span>▰</span>Yangiliklar</a>
-            <a href="/clubs/manage" class="nav-link">
-                <span class="icon">🎯</span>
-                <span>To'garaklar</span>
-            </a>
+            
                 <a href="/ai_chat"><span>✦</span>AI Chat</a>
                 <a href="/admin_profile"><span>◉</span>Admin profil</a>
             </nav>
@@ -109,6 +106,18 @@
                 });
         </script>
 
+        
+        <!-- TO'GARAKLAR KARTASI -->
+        <div class="card" style="padding: 25px; border-left: 5px solid #f59e0b;">
+            <div style="font-size: 2.5rem; margin-bottom: 15px;">🎯</div>
+            <h3 style="margin: 0 0 5px; color: #64748b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">TO'GARAKLAR</h3>
+            <div style="font-size: 2.5rem; font-weight: 800; color: #1e293b; margin-bottom: 10px;">
+                {{ clubs_count or 0 }}
+            </div>
+            <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">Faol to'garaklar</p>
+            <a href="/clubs/manage" style="display: block; margin-top: 20px; color: #f59e0b; text-decoration: none; font-weight: 600; font-size: 0.95rem;">Boshqarish →</a>
+        </div>
+
         TEZKOR AMALLAR</span><h2>Boshqaruv markazi</h2></div></div>
                         <div class="quick-links"><a href="/add_student"><i class="fas fa-user-plus"></i><span>O‘quvchi qo‘shish</span><b>→</b></a><a href="/add_teacher"><i class="fas fa-user-tie"></i><span>O‘qituvchi qo‘shish</span><b>→</b></a><a href="/create_test"><i class="fas fa-file-circle-plus"></i><span>Yangi test yaratish</span><b>→</b></a><a href="/news/manage"><i class="fas fa-bullhorn"></i><span>Yangilik joylash</span><b>→</b></a></div>
                     </article>
@@ -117,10 +126,7 @@
                 <section class="resource-strip">
                     <a href="/library/manage"><i class="fas fa-book-open"></i><span><small>Kutubxona</small><strong>{{ book_count }} ta kitob</strong></span><b>→</b></a>
                     <a href="/news/manage"><i class="fas fa-newspaper"></i><span><small>Yangiliklar</small><strong>{{ news_count }} ta xabar</strong></span><b>→</b></a>
-            <a href="/clubs/manage" class="nav-link">
-                <span class="icon">🎯</span>
-                <span>To'garaklar</span>
-            </a>
+            
                     <a href="/ai_chat"><i class="fas fa-sparkles"></i><span><small>AI yordamchi</small><strong>Savol berish</strong></span><b>→</b></a>
                 </section>
             </div>
@@ -245,18 +251,12 @@
             </a>
 
             <!-- Yangiliklar -->
-            <a href="/clubs/manage" class="nav-link">
-                <span class="icon">🎯</span>
-                <span>To'garaklar</span>
-            </a>
+            
             <a href="/news/manage" style="text-decoration:none;">
                 <div class="card">
                     <div class="card-icon">📢</div>
                     <div class="card-title">Yangiliklar</div>
-            <a href="/clubs/manage" class="nav-link">
-                <span class="icon">🎯</span>
-                <span>To'garaklar</span>
-            </a>
+            
                     <div class="card-value" style="font-size:1rem;">{{ news_count }} ta xabar</div>
                 </div>
             </a>
