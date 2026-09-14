@@ -183,13 +183,30 @@ def create_app():
     def dashboard():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
         sid = session['school_id']; school = School.query.get(sid)
+        school_classes = Class.query.filter_by(school_id=sid).order_by(Class.name).all()
+        class_labels = [item.name for item in school_classes]
+        class_student_counts = [Student.query.filter_by(school_id=sid, class_id=item.id).count() for item in school_classes]
+        schedule_items = Schedule.query.filter_by(school_id=sid).all()
+        day_names = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"]
+        schedule_counts = [sum(item.day_of_week == day for item in schedule_items) for day in day_names]
+        results = TestResult.query.join(Student).filter(Student.school_id == sid).all()
+        average_score = round(sum(item.percentage or 0 for item in results) / len(results), 1) if results else 0
+        passed_results = sum((item.percentage or 0) >= 60 for item in results)
         return render_template("dashboard.html", school=school, 
             class_count=Class.query.filter_by(school_id=sid).count(),
             student_count=Student.query.filter_by(school_id=sid).count(),
             teacher_count=Teacher.query.filter_by(school_id=sid).count(),
             test_count=Test.query.filter_by(school_id=sid).count(),
             book_count=Book.query.filter_by(school_id=sid).count(),
-            news_count=News.query.filter_by(school_id=sid).count())
+            news_count=News.query.filter_by(school_id=sid).count(),
+            schedule_count=len(schedule_items),
+            average_score=average_score,
+            passed_results=passed_results,
+            result_count=len(results),
+            class_labels=json.dumps(class_labels),
+            class_student_counts=json.dumps(class_student_counts),
+            day_names=json.dumps(day_names),
+            schedule_counts=json.dumps(schedule_counts))
 
     # --- O'QITUVCHI DASHBOARD ---
     @app.route("/teacher_dashboard")
