@@ -10,4 +10,5 @@ bleach==6.1.0
 google-generativeai==0.7.2
 python-dotenv
 psycopg2-binary==2.9.9
-openai>=1.55.3
+openai==1.55.3
+httpx==0.27.2
