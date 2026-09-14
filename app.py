@@ -56,7 +56,33 @@ def create_app():
     os.makedirs(app.instance_path, exist_ok=True)
     
     csrf = CSRFProtect(app)
-
+    # ... db.init_app(app) dan keyin ...
+    
+    with app.app_context():
+        from sqlalchemy import text
+        
+        # 1. Bazani yaratish (agar yo'q bo'lsa)
+        db.create_all()
+        
+        # 2. NEWS jadvalidagi image_url ustunini tekshirish va qo'shish
+        try:
+            # Ustun bor-yo'qligini tekshirish
+            result = db.session.execute(text(
+                "SELECT column_name FROM information_schema.columns WHERE table_name='news' AND column_name='image_url'"
+            )).fetchone()
+            
+            if not result:
+                print("⚠️ 'image_url' ustuni topilmadi. Qo'shilmoqda...")
+                db.session.execute(text("ALTER TABLE news ADD COLUMN image_url TEXT;"))
+                db.session.commit()
+                print("✅ 'image_url' ustuni muvaffaqiyatli qo'shildi!")
+            else:
+                print("️ 'image_url' ustuni allaqachon mavjud.")
+        except Exception as e:
+            print(f"❌ Bazani yangilashda xatolik: {e}")
+            db.session.rollback()
+            
+        # ... qolgan kodlar (Achievement qo'shish va h.k.) ...
     @app.errorhandler(CSRFError)
     def handle_csrf_error(error):
         flash("Sahifa eskirgan. Jadval yangilandi, amalni qayta bajaring.", "danger")
