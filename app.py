@@ -52,6 +52,14 @@ def create_app():
                 db.session.execute(text("ALTER TABLE news ADD COLUMN image_url TEXT;"))
                 db.session.commit()
                 print("✅ 'image_url' ustuni muvaffaqiyatli qo'shildi!")
+            # 3. CLUB jadvalini yaratish
+            try:
+                db.session.execute(text("CREATE TABLE IF NOT EXISTS club (id SERIAL PRIMARY KEY, name VARCHAR(200) NOT NULL, description TEXT, teacher_id INTEGER REFERENCES teachers(id), max_students INTEGER DEFAULT 20, schedule VARCHAR(100), school_id INTEGER NOT NULL REFERENCES schools(id));"))
+                db.session.commit()
+                print("✅ 'club' jadvali yaratildi!")
+            except Exception as e:
+                print(f"❌ Club xatoligi: {e}")
+                db.session.rollback()
         except Exception as e:
             print(f"❌ Bazani yangilashda xatolik: {e}")
             db.session.rollback()
