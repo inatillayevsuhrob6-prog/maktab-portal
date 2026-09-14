@@ -112,6 +112,45 @@
         </script>
 
         
+        
+<!-- TO'GARAKLAR STATISTIKASI (TESTLAR USLUBIDA) -->
+<div class="card" style="padding: 25px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+        <div>
+            <span style="color:#94a3b8; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; font-weight:700;">TO'GARAKLAR</span>
+            <h3 style="margin:5px 0 0; color:#1e293b;">Umumiy ko'rsatkichlar</h3>
+        </div>
+        <a href="/clubs/manage" style="color:#2563eb; text-decoration:none; font-weight:600; font-size:0.9rem;">Boshqarish →</a>
+    </div>
+    
+    <div id="clubs-stats-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+        <!-- Ma'lumotlar JS orqali yuklanadi -->
+        <div style="background:#f8fafc; padding:20px; border-radius:12px; text-align:center;">
+            <div style="font-size:1.5rem; font-weight:800; color:#1e293b;" id="stat-members">...</div>
+            <div style="color:#64748b; font-size:0.85rem; margin-top:5px;">Jami a'zolar</div>
+        </div>
+        <div style="background:#f8fafc; padding:20px; border-radius:12px; text-align:center;">
+            <div style="font-size:1.5rem; font-weight:800; color:#1e293b;" id="stat-active">...</div>
+            <div style="color:#64748b; font-size:0.85rem; margin-top:5px;">Faol to'garaklar</div>
+        </div>
+        <div style="background:#f8fafc; padding:20px; border-radius:12px; text-align:center;">
+            <div style="font-size:1rem; font-weight:700; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="stat-popular">...</div>
+            <div style="color:#64748b; font-size:0.85rem; margin-top:5px;">Eng mashhuri</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    fetch('/clubs/stats')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('stat-members').innerText = data.total_members || 0;
+            document.getElementById('stat-active').innerText = data.active_clubs || 0;
+            document.getElementById('stat-popular').innerText = data.popular_club || "-";
+        })
+        .catch(e => console.log("Clubs stats error:", e));
+</script>
+
         TEZKOR AMALLAR</span><h2>Boshqaruv markazi</h2></div></div>
                         <div class="quick-links"><a href="/add_student"><i class="fas fa-user-plus"></i><span>O‘quvchi qo‘shish</span><b>→</b></a><a href="/add_teacher"><i class="fas fa-user-tie"></i><span>O‘qituvchi qo‘shish</span><b>→</b></a><a href="/create_test"><i class="fas fa-file-circle-plus"></i><span>Yangi test yaratish</span><b>→</b></a><a href="/news/manage"><i class="fas fa-bullhorn"></i><span>Yangilik joylash</span><b>→</b></a></div>
                     </article>
