@@ -4,33 +4,285 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maktab Portal - Kirish</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        body { 
+            height: 100vh; 
+            display: flex; 
+            background: #f8fafc; 
+            overflow: hidden;
+        }
+
+        /* CHAP TOMON - RASM VA YOZUVLAR */
+        .left-side {
+            flex: 1.2;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* Orqa fon bezaklari */
+        .left-side::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .left-side::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+
+        .brand-logo {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 2;
+        }
+
+        .brand-icon {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            font-size: 1.5rem;
+        }
+
+        .hero-text {
+            z-index: 2;
+            max-width: 500px;
+        }
+
+        .hero-text h1 {
+            font-size: 3rem;
+            line-height: 1.2;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero-text p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .features {
+            display: flex;
+            gap: 20px;
+            z-index: 2;
+        }
+
+        .feature-item {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .feature-item span {
+            display: block;
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .feature-item strong {
+            font-size: 1.1rem;
+        }
+
+        /* O'NG TOMON - LOGIN FORMA */
+        .right-side {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            padding: 40px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            font-size: 1.8rem;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #334155;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 25px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .register-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mobil versiya */
+        @media (max-width: 968px) {
+            .left-side { display: none; }
+            .right-side { flex: 1; }
+        }
+    </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-box">
-            <h2>Maktab Portal</h2>
-            <p>Tizimga kirish uchun ma'lumotlaringizni kiriting</p>
+    <!-- CHAP TOMON -->
+    <div class="left-side">
+        <div class="brand-logo">
+            <div class="brand-icon"></div>
+            Maktab Portal
+        </div>
+        
+        <div class="hero-text">
+            <h1>Zamonaviy ta'lim uchun aqlli platforma</h1>
+            <p>Barcha maktablar uchun yagona raqamli yechim. Dars jadvali, testlar, kutubxona va AI yordamchi bir joyda.</p>
             
-            <!-- CSRF TOKEN QO'SHILDI -->
-            <form action="/login" method="POST">
+            <div class="features">
+                <div class="feature-item">
+                    <span>AI Yordamchi</span>
+                    <strong>24/7 Qo'llab-quvvatlash</strong>
+                </div>
+                <div class="feature-item">
+                    <span>Xavfsizlik</span>
+                    <strong>Ma'lumotlar Himoyasi</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- O'NG TOMON -->
+    <div class="right-side">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>Xush kelibsiz!</h2>
+                <p>Tizimga kirish uchun ma'lumotlaringizni kiriting</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div style="background: {% if category == 'danger' %}#fee2e2{% else %}#dcfce7{% endif %}; color: {% if category == 'danger' %}#991b1b{% else %}#166534{% endif %}; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="/login">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 
-                <div class="input-group">
+                <div class="form-group">
                     <label>Login</label>
-                    <input type="text" name="username" placeholder="Loginingiz" required>
+                    <input type="text" name="username" placeholder="Loginingizni kiriting" required autofocus>
                 </div>
-                
-                <div class="input-group">
+
+                <div class="form-group">
                     <label>Parol</label>
-                    <input type="password" name="password" placeholder="Parolingiz" required>
+                    <input type="password" name="password" placeholder="Parolingizni kiriting" required>
                 </div>
-                
-                <button type="submit" class="btn-primary">Kirish</button>
+
+                <button type="submit" class="btn-login">Kirish</button>
             </form>
-            
-            <div class="footer-link">
-                <a href="/register">Yangi maktab ro‘yxatdan o‘tish</a>
+
+            <div class="register-link">
+                Yangi maktab ro'yxatdan o'tish <a href="/register">→</a>
             </div>
         </div>
     </div>
