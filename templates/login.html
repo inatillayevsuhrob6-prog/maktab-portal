@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maktab Portal - Kirish</title>
+    <title>Maktab Boshqaruvi - Kirish</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -52,44 +52,46 @@
         }
 
         .brand-logo {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 800;
-            margin-bottom: 40px;
+            margin-bottom: 50px;
             display: flex;
             align-items: center;
             gap: 15px;
             z-index: 2;
+            letter-spacing: -0.5px;
         }
 
         .brand-icon {
-            width: 50px;
-            height: 50px;
+            width: 56px;
+            height: 56px;
             background: white;
-            border-radius: 12px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #2563eb;
-            font-size: 1.5rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
         .hero-text {
             z-index: 2;
-            max-width: 500px;
+            max-width: 550px;
         }
 
         .hero-text h1 {
-            font-size: 3rem;
-            line-height: 1.2;
-            margin-bottom: 20px;
-            font-weight: 700;
+            font-size: 3.2rem;
+            line-height: 1.15;
+            margin-bottom: 24px;
+            font-weight: 800;
+            letter-spacing: -1px;
         }
 
         .hero-text p {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             opacity: 0.9;
             line-height: 1.6;
-            margin-bottom: 40px;
+            margin-bottom: 45px;
+            font-weight: 400;
         }
 
         .features {
@@ -100,21 +102,30 @@
 
         .feature-item {
             background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            padding: 15px 20px;
-            border-radius: 12px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 18px 24px;
+            border-radius: 16px;
             border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.2);
         }
 
         .feature-item span {
             display: block;
             font-size: 0.85rem;
             opacity: 0.8;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
+            font-weight: 500;
         }
 
         .feature-item strong {
             font-size: 1.1rem;
+            font-weight: 700;
         }
 
         /* O'NG TOMON - LOGIN FORMA */
@@ -129,22 +140,24 @@
 
         .login-card {
             width: 100%;
-            max-width: 420px;
-            padding: 40px;
+            max-width: 440px;
+            padding: 45px;
             background: white;
             border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1);
+            border: 1px solid #f1f5f9;
         }
 
         .login-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 35px;
         }
 
         .login-header h2 {
             font-size: 1.8rem;
-            color: #1e293b;
-            margin-bottom: 10px;
+            color: #0f172a;
+            margin-bottom: 12px;
+            font-weight: 700;
         }
 
         .login-header p {
@@ -153,62 +166,66 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: #334155;
-            font-weight: 500;
+            font-weight: 600;
             font-size: 0.9rem;
         }
 
         .form-group input {
             width: 100%;
-            padding: 14px 16px;
+            padding: 16px;
             border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 1rem;
             transition: all 0.3s;
             outline: none;
+            background: #f8fafc;
         }
 
         .form-group input:focus {
             border-color: #2563eb;
+            background: white;
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
         }
 
         .btn-login {
             width: 100%;
-            padding: 16px;
+            padding: 18px;
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 1rem;
+            border-radius: 14px;
+            font-size: 1.05rem;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s;
             margin-top: 10px;
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
         }
 
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 15px 25px -5px rgba(37, 99, 235, 0.5);
         }
 
         .register-link {
             text-align: center;
-            margin-top: 25px;
+            margin-top: 30px;
             color: #64748b;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .register-link a {
             color: #2563eb;
             text-decoration: none;
             font-weight: 600;
+            margin-left: 5px;
         }
 
         .register-link a:hover {
@@ -218,7 +235,8 @@
         /* Mobil versiya */
         @media (max-width: 968px) {
             .left-side { display: none; }
-            .right-side { flex: 1; }
+            .right-side { flex: 1; padding: 20px; }
+            .login-card { box-shadow: none; border: none; padding: 20px; }
         }
     </style>
 </head>
@@ -226,8 +244,15 @@
     <!-- CHAP TOMON -->
     <div class="left-side">
         <div class="brand-logo">
-            <div class="brand-icon"></div>
-            Maktab Portal
+            <!-- MAKTAB IKONKASI (SVG) -->
+            <div class="brand-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3L1 9L12 15L21 10.09V17H23V9L12 3Z" fill="#2563eb"/>
+                    <path d="M5 13.18V17.18C5 17.18 8 19 12 19C16 19 19 17.18 19 17.18V13.18L12 17L5 13.18Z" fill="#1d4ed8"/>
+                </svg>
+            </div>
+            <!-- YANGI NOM -->
+            Maktab Boshqaruvi
         </div>
         
         <div class="hero-text">
@@ -251,14 +276,14 @@
     <div class="right-side">
         <div class="login-card">
             <div class="login-header">
-                <h2>Xush kelibsiz!</h2>
-                <p>Tizimga kirish uchun ma'lumotlaringizni kiriting</p>
+                <h2>Tizimga kirish</h2>
+                <p>Hisobingizga kirish uchun ma'lumotlarni kiriting</p>
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                        <div style="background: {% if category == 'danger' %}#fee2e2{% else %}#dcfce7{% endif %}; color: {% if category == 'danger' %}#991b1b{% else %}#166534{% endif %}; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+                        <div style="background: {% if category == 'danger' %}#fee2e2{% else %}#dcfce7{% endif %}; color: {% if category == 'danger' %}#991b1b{% else %}#166534{% endif %}; padding: 14px; border-radius: 10px; margin-bottom: 24px; font-size: 0.9rem; text-align: center;">
                             {{ message }}
                         </div>
                     {% endfor %}
