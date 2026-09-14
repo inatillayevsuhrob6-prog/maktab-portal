@@ -137,11 +137,6 @@ def create_app():
         public_news = News.query.order_by(News.created_at.desc()).limit(6).all()
         return render_template("login.html", news_list=public_news)
         
-        
-    
-    
-    
-    
     @app.route("/register", methods=["GET", "POST"])
     def register():
         if request.method == "POST":
