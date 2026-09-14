@@ -9,10 +9,11 @@
         .profile-container { max-width: 800px; margin: 40px auto; padding: 0 20px; position: relative; }
         
         .back-link { 
-            position: absolute; top: 0; left: 0; 
+            display: inline-flex; align-items: center; gap: 5px;
             color: #64748b; text-decoration: none; font-weight: 600; 
-            display: flex; align-items: center; gap: 5px; transition: 0.3s;
+            margin-bottom: 20px; transition: 0.3s; font-size: 1rem;
         }
+        .back-link:hover { color: #2563eb; transform: translateX(-5px); }
         .back-link:hover { color: #2563eb; transform: translateX(-3px); }
 
         .card { 
@@ -70,8 +71,9 @@
 </head>
 <body>
     <div class="profile-container">
-        <a href="/dashboard" class="back-link">← Ortga</a>
         
+        
+        <a href="/dashboard" class="back-link">← Ortga</a>
         <div class="card">
             <div class="header">
                 <h2>⚙️ Admin Profil Sozlamalari</h2>
