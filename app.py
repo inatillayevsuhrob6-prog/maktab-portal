@@ -48,29 +48,21 @@ def create_app():
             )).fetchone()
             
             if not result:
-                print("️ 'image_url' ustuni topilmadi. Qo'shilmoqda...")
+                print("⚠️ 'image_url' ustuni topilmadi. Qo'shilmoqda...")
                 db.session.execute(text("ALTER TABLE news ADD COLUMN image_url TEXT;"))
                 db.session.commit()
                 print("✅ 'image_url' ustuni muvaffaqiyatli qo'shildi!")
-            
-            # Club jadvalini yaratish
-            try:
-                db.session.execute(text("CREATE TABLE IF NOT EXISTS club (id SERIAL PRIMARY KEY, name VARCHAR(200) NOT NULL, description TEXT, teacher_id INTEGER REFERENCES teachers(id), max_students INTEGER DEFAULT 20, schedule VARCHAR(100), school_id INTEGER NOT NULL REFERENCES schools(id));"))
-                db.session.commit()
-                print("✅ 'club' jadvali yaratildi!")
-            except Exception as e:
-                print(f" Club xatoligi: {e}")
-                db.session.rollback()
-            # 3. CLUB jadvalini yaratish
-            try:
-                db.session.execute(text("CREATE TABLE IF NOT EXISTS club (id SERIAL PRIMARY KEY, name VARCHAR(200) NOT NULL, description TEXT, teacher_id INTEGER REFERENCES teachers(id), max_students INTEGER DEFAULT 20, schedule VARCHAR(100), school_id INTEGER NOT NULL REFERENCES schools(id));"))
-                db.session.commit()
-                print("✅ 'club' jadvali yaratildi!")
-            except Exception as e:
-                print(f"❌ Club xatoligi: {e}")
-                db.session.rollback()
         except Exception as e:
             print(f"❌ Bazani yangilashda xatolik: {e}")
+            db.session.rollback()
+            
+        # 3. CLUB jadvalini yaratish (agar yo'q bo'lsa)
+        try:
+            db.session.execute(text("CREATE TABLE IF NOT EXISTS club (id SERIAL PRIMARY KEY, name VARCHAR(200) NOT NULL, description TEXT, teacher_id INTEGER REFERENCES teachers(id), max_students INTEGER DEFAULT 20, schedule VARCHAR(100), school_id INTEGER NOT NULL REFERENCES schools(id));"))
+            db.session.commit()
+            print("✅ 'club' jadvali muvaffaqiyatli yaratildi!")
+        except Exception as e:
+            print(f" Club jadvalini yaratishda xatolik: {e}")
             db.session.rollback()
             
         # Achievement qo'shish (agar bo'lmasa)
@@ -555,22 +547,7 @@ def create_app():
         genres = [g[0] for g in db.session.query(Book.genre).filter_by(school_id=sid).distinct().all() if g[0]]
         return render_template("student_library.html", books=q.all(), genres=genres, current_genre=gf)
 
-    
-        @app.route("/clubs")
-    def view_clubs():
-        if 'school_id' not in session: return redirect(url_for('home'))
-        clubs = Club.query.filter_by(school_id=session['school_id']).all()
-        return render_template("clubs.html", clubs=clubs)
-
-    @app.route("/clubs/join/<int:club_id>")
-    def join_club(club_id):
-        if 'school_id' not in session or session.get('user_role') != 'student': 
-            flash("Faqat o'quvchilar to'garakka a'zo bo'lishi mumkin.", "danger")
-            return redirect(url_for('view_clubs'))
-        club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first_or_404()
-        flash(f"Siz '{club.name}' to'garagiga so'rov yubordingiz!", "success")
-        return redirect(url_for('view_clubs'))
-
+    # --- TO'GARAKLAR (CLUBS) ROUTE LARI ---
     @app.route("/clubs/manage")
     def manage_clubs():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
@@ -598,6 +575,21 @@ def create_app():
         club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first_or_404()
         db.session.delete(club); db.session.commit()
         return redirect(url_for('manage_clubs'))
+
+    @app.route("/clubs")
+    def view_clubs():
+        if 'school_id' not in session: return redirect(url_for('home'))
+        clubs = Club.query.filter_by(school_id=session['school_id']).all()
+        return render_template("clubs.html", clubs=clubs)
+
+    @app.route("/clubs/join/<int:club_id>")
+    def join_club(club_id):
+        if 'school_id' not in session or session.get('user_role') != 'student': 
+            flash("Faqat o'quvchilar to'garakka a'zo bo'lishi mumkin.", "danger")
+            return redirect(url_for('view_clubs'))
+        club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first_or_404()
+        flash(f"Siz '{club.name}' to'garagiga so'rov yubordingiz!", "success")
+        return redirect(url_for('view_clubs'))
 
     @app.route("/news/manage")
     def manage_news():
@@ -656,9 +648,9 @@ def create_app():
         if not user_message: return jsonify({"reply": ""})
         try:
             api_key = os.environ.get('GROQ_API_KEY')
-            if not api_key: return jsonify({"reply": "⚠️ Groq API kaliti topilmadi."})
+            if not api_key: return jsonify({"reply": "️ Groq API kaliti topilmadi."})
             client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
-            response = client.chat.completions.create(model="openai/gpt-oss-20b", messages=[{"role": "system", "content": "Siz maktab o'quvchilari uchun mehribon AI yordamchisiz. Qisqa va aniq javob bering."}, {"role": "user", "content": user_message}])
+            response = client.chat.completions.create(model="llama-3.1-8b-instant", messages=[{"role": "system", "content": "Siz maktab o'quvchilari uchun mehribon AI yordamchisiz. Qisqa va aniq javob bering."}, {"role": "user", "content": user_message}])
             reply = response.choices[0].message.content; return jsonify({"reply": reply})
         except Exception as e:
             print(f"Groq Xatosi: {e}"); return jsonify({"reply": f"Xatolik: {str(e)}"}), 500
@@ -787,24 +779,7 @@ def create_app():
     def logout():
         session.clear(); return redirect(url_for('home'))
         
-    
-def view_clubs():
-    if 'school_id' not in session: return redirect(url_for('home'))
-    clubs = Club.query.filter_by(school_id=session['school_id']).all()
-    return render_template("clubs.html", clubs=clubs)
-
-@app.route("/clubs/join/<int:club_id>")
-def join_club(club_id):
-    if 'school_id' not in session or session.get('user_role') != 'student': 
-        flash("Faqat o'quvchilar to'garakka a'zo bo'lishi mumkin.", "danger")
-        return redirect(url_for('view_clubs'))
-    club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first_or_404()
-    flash(f"Siz '{club.name}' to'garagiga so'rov yubordingiz!", "success")
-    return redirect(url_for('view_clubs'))
-
     return app
-
-    
 
 # Gunicorn uchun app obyektini yaratish
 app = create_app()
