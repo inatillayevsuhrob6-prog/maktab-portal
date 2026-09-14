@@ -132,27 +132,48 @@ def create_app():
             if role == 'student': return redirect(url_for('student_dashboard'))
             if role == 'teacher': return redirect(url_for('teacher_dashboard'))
             return redirect(url_for('dashboard'))
-        return render_template("login.html")
         
-    @app.route("/register")
-    def register_page(): return render_template("register.html")
-
-    @app.route("/register", methods=["POST"])
-    @limiter.limit("5 per minute")
+        # Login sahifasi uchun umumiy yangiliklarni olish (faqat e'lonlar yoki eng so'nggi 6 ta)
+        public_news = News.query.order_by(News.created_at.desc()).limit(6).all()
+        return render_template("login.html", news_list=public_news)
+        
+        
+    
+    
+    
+    
+    @app.route("/register", methods=["GET", "POST"])
     def register():
-        name = sanitize_input(request.form.get('school_name'))
-        address = sanitize_input(request.form.get('address'))
-        phone = sanitize_input(request.form.get('phone'))
-        email = sanitize_input(request.form.get('email'))
-        login = sanitize_input(request.form.get('login'))
-        password = request.form.get('password')
-        if School.query.filter_by(login=login).first(): return "Login band.", 409
-        password_hash = generate_password_hash(password)
-        new_school = School(name=name, address=address, phone=phone, email=email, login=login, password_hash=password_hash)
-        try:
-            db.session.add(new_school); db.session.commit(); return redirect(url_for('home'))
-        except Exception as e:
-            db.session.rollback(); return f"Xatolik: {e}"
+        if request.method == "POST":
+            name = sanitize_input(request.form.get('school_name'))
+            address = sanitize_input(request.form.get('address'))
+            phone = sanitize_input(request.form.get('phone'))
+            email = sanitize_input(request.form.get('email'))
+            login = sanitize_input(request.form.get('login'))
+            password = request.form.get('password')
+            
+            # Email tekshiruvi
+            if School.query.filter_by(email=email).first():
+                flash("Bu email allaqachon ro'yxatdan o'tgan!", "danger")
+                return redirect(url_for('register'))
+                
+            # Login tekshiruvi
+            if School.query.filter_by(login=login).first():
+                flash("Bu login band! Boshqa login tanlang.", "danger")
+                return redirect(url_for('register'))
+            
+            password_hash = generate_password_hash(password)
+            new_school = School(name=name, address=address, phone=phone, email=email, login=login, password_hash=password_hash)
+            try:
+                db.session.add(new_school); db.session.commit()
+                flash("Muvaffaqiyatli ro'yxatdan o'tdingiz! Endi kirishingiz mumkin.", "success")
+                return redirect(url_for('home'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Xatolik yuz berdi: {e}", "danger")
+                
+        return render_template("register.html")
+
 
     @app.route("/login", methods=["POST"])
     @limiter.limit("10 per minute")
@@ -461,27 +482,47 @@ def create_app():
             if role == 'student': return redirect(url_for('student_dashboard'))
             if role == 'teacher': return redirect(url_for('teacher_dashboard'))
             return redirect(url_for('dashboard'))
-        return render_template("login.html")
         
-    @app.route("/register")
-    def register_page(): return render_template("register.html")
-
-    @app.route("/register", methods=["POST"])
-    @limiter.limit("5 per minute")
+        # Login sahifasi uchun umumiy yangiliklarni olish (faqat e'lonlar yoki eng so'nggi 6 ta)
+        public_news = News.query.order_by(News.created_at.desc()).limit(6).all()
+        return render_template("login.html", news_list=public_news)
+        
+    
+    
+    
+    
+    @app.route("/register", methods=["GET", "POST"])
     def register():
-        name = sanitize_input(request.form.get('school_name'))
-        address = sanitize_input(request.form.get('address'))
-        phone = sanitize_input(request.form.get('phone'))
-        email = sanitize_input(request.form.get('email'))
-        login = sanitize_input(request.form.get('login'))
-        password = request.form.get('password')
-        if School.query.filter_by(login=login).first(): return "Login band.", 409
-        password_hash = generate_password_hash(password)
-        new_school = School(name=name, address=address, phone=phone, email=email, login=login, password_hash=password_hash)
-        try:
-            db.session.add(new_school); db.session.commit(); return redirect(url_for('home'))
-        except Exception as e:
-            db.session.rollback(); return f"Xatolik: {e}"
+        if request.method == "POST":
+            name = sanitize_input(request.form.get('school_name'))
+            address = sanitize_input(request.form.get('address'))
+            phone = sanitize_input(request.form.get('phone'))
+            email = sanitize_input(request.form.get('email'))
+            login = sanitize_input(request.form.get('login'))
+            password = request.form.get('password')
+            
+            # Email tekshiruvi
+            if School.query.filter_by(email=email).first():
+                flash("Bu email allaqachon ro'yxatdan o'tgan!", "danger")
+                return redirect(url_for('register'))
+                
+            # Login tekshiruvi
+            if School.query.filter_by(login=login).first():
+                flash("Bu login band! Boshqa login tanlang.", "danger")
+                return redirect(url_for('register'))
+            
+            password_hash = generate_password_hash(password)
+            new_school = School(name=name, address=address, phone=phone, email=email, login=login, password_hash=password_hash)
+            try:
+                db.session.add(new_school); db.session.commit()
+                flash("Muvaffaqiyatli ro'yxatdan o'tdingiz! Endi kirishingiz mumkin.", "success")
+                return redirect(url_for('home'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Xatolik yuz berdi: {e}", "danger")
+                
+        return render_template("register.html")
+
 
     @app.route("/login", methods=["POST"])
     @limiter.limit("10 per minute")
@@ -926,7 +967,7 @@ def create_app():
     @app.route("/news/add", methods=["POST"])
     def add_news():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        db.session.add(News(title=sanitize_input(request.form.get('title')), content=sanitize_input(request.form.get('content')), is_announcement=(request.form.get('is_announcement')=='on'), school_id=session['school_id']))
+        db.session.add(News(title=sanitize_input(request.form.get('title')), content=sanitize_input(request.form.get('content')), image_url=sanitize_input(request.form.get('image_url')), is_announcement=(request.form.get('is_announcement')=='on'), school_id=session['school_id']))
         db.session.commit(); return redirect(url_for('manage_news'))
 
     @app.route("/news")
@@ -1082,6 +1123,7 @@ def create_app():
         if request.method == "POST":
             n.title = sanitize_input(request.form.get('title'))
             n.content = sanitize_input(request.form.get('content'))
+            n.image_url = sanitize_input(request.form.get('image_url'))
             n.is_announcement = (request.form.get('is_announcement') == 'on')
             db.session.commit(); return redirect(url_for('manage_news'))
         return render_template("edit_news.html", n=n)

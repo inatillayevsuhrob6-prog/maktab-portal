@@ -3,55 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maktab Portal - Ro‘yxatdan o‘tish</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Ro'yxatdan o'tish - Maktab Boshqaruvi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f8fafc; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        
+        .register-card {
+            width: 100%; max-width: 500px; background: white; padding: 40px;
+            border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+        }
+        
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-size: 1.8rem; color: #0f172a; margin-bottom: 10px; }
+        .header p { color: #64748b; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
+        label { display: block; margin-bottom: 8px; color: #334155; font-weight: 600; font-size: 0.9rem; }
+        input { width: 100%; padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1rem; transition: 0.3s; outline: none; }
+        input:focus { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+        
+        .btn-submit {
+            width: 100%; padding: 16px; background: #2563eb; color: white; border: none;
+            border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.3s; margin-top: 10px;
+        }
+        .btn-submit:hover { background: #1d4ed8; transform: translateY(-2px); }
+        
+        .login-link { text-align: center; margin-top: 20px; color: #64748b; }
+        .login-link a { color: #2563eb; text-decoration: none; font-weight: 600; }
+        
+        /* Flash messages */
+        .alert { padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; }
+        .alert-danger { background: #fee2e2; color: #991b1b; }
+        .alert-success { background: #dcfce7; color: #166534; }
+    </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-box">
-            <h2>Yangi Maktab Qo‘shish</h2>
-            <p>Platformaga qo‘shilish uchun ma'lumotlarni kiriting</p>
+    <div class="register-card">
+        <div class="header">
+            <h1>Maktab ro'yxatdan o'tishi</h1>
+            <p>Platformamizga qo'shiling va boshqaruvni osonlashtiring</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/register">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
-            <!-- CSRF TOKEN QO'SHILDI -->
-            <form action="/register" method="POST">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                
-                <div class="input-group">
-                    <label>Maktab Nomi</label>
-                    <input type="text" name="school_name" placeholder="Masalan: 24-sonli maktab" required>
-                </div>
-
-                <div class="input-group">
-                    <label>Manzil</label>
-                    <input type="text" name="address" placeholder="Toshkent sh..." required>
-                </div>
-
-                <div class="input-group">
-                    <label>Telefon</label>
-                    <input type="text" name="phone" placeholder="+998..." required>
-                </div>
-
-                <div class="input-group">
-                    <label>Email</label>
-                    <input type="email" name="email" placeholder="maktab@example.com" required>
-                </div>
-                
-                <div class="input-group">
-                    <label>Login (Admin uchun)</label>
-                    <input type="text" name="login" placeholder="Login tanlang" required>
-                </div>
-                
-                <div class="input-group">
-                    <label>Parol</label>
-                    <input type="password" name="password" placeholder="Xavfsiz parol" required>
-                </div>
-                
-                <button type="submit" class="btn-primary">Ro‘yxatdan o‘tish</button>
-            </form>
-            
-            <div class="footer-link">
-                <a href="/">Kirish sahifasiga qaytish</a>
+            <div class="form-group">
+                <label>Maktab nomi</label>
+                <input type="text" name="school_name" placeholder="Masalan: 1-sonli umumta'lim maktabi" required>
             </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Shahar/Tuman</label>
+                    <input type="text" name="address" placeholder="Qarshi sh." required>
+                </div>
+                <div class="form-group">
+                    <label>Telefon raqam</label>
+                    <input type="tel" name="phone" placeholder="+998 90 123 45 67" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Email manzil</label>
+                <input type="email" name="email" placeholder="maktab@example.com" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Login</label>
+                    <input type="text" name="login" placeholder="kirish_uchun_login" required>
+                </div>
+                <div class="form-group">
+                    <label>Parol</label>
+                    <input type="password" name="password" placeholder="Min 6 ta belgi" required minlength="6">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Ro'yxatdan o'tish</button>
+        </form>
+
+        <div class="login-link">
+            Akkauntingiz bormi? <a href="/">Kirish</a>
         </div>
     </div>
 </body>

@@ -4,129 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maktab Boshqaruvi - Kirish</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        :root { --primary: #2563eb; --dark: #1e293b; --light: #f8fafc; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
         
-        body { 
-            height: 100vh; 
-            display: flex; 
-            background: #f8fafc; 
-            overflow: hidden;
+        body { background: var(--light); color: var(--dark); overflow-x: hidden; }
+
+        /* ASOSIY LAYOUT - IKKIGA BO'LINGAN EKRAN */
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
         }
 
-        /* CHAP TOMON - RASM VA YOZUVLAR */
+        /* CHAP TOMON - KO'K FON */
         .left-side {
-            flex: 1.2;
+            flex: 1;
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            position: relative;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 60px;
+            padding: 60px 80px;
             color: white;
+            position: relative;
             overflow: hidden;
         }
 
-        /* Orqa fon bezaklari */
         .left-side::before {
-            content: '';
-            position: absolute;
-            top: -100px;
-            right: -100px;
-            width: 400px;
-            height: 400px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-        }
-
-        .left-side::after {
-            content: '';
-            position: absolute;
-            bottom: -50px;
-            left: -50px;
-            width: 300px;
-            height: 300px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
+            content: ''; position: absolute; top: -100px; right: -100px; width: 400px; height: 400px;
+            background: rgba(255,255,255,0.1); border-radius: 50%;
         }
 
         .brand-logo {
-            font-size: 1.8rem;
-            font-weight: 800;
-            margin-bottom: 50px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            z-index: 2;
-            letter-spacing: -0.5px;
+            font-size: 1.8rem; font-weight: 800; margin-bottom: 60px;
+            display: flex; align-items: center; gap: 15px; z-index: 2;
         }
 
         .brand-icon {
-            width: 56px;
-            height: 56px;
-            background: white;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
-        .hero-text {
-            z-index: 2;
-            max-width: 550px;
+            width: 50px; height: 50px; background: white; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: var(--primary);
         }
 
         .hero-text h1 {
-            font-size: 3.2rem;
-            line-height: 1.15;
-            margin-bottom: 24px;
-            font-weight: 800;
-            letter-spacing: -1px;
+            font-size: 3.5rem; line-height: 1.1; margin-bottom: 25px;
+            font-weight: 800; z-index: 2; position: relative; letter-spacing: -1px;
         }
 
         .hero-text p {
-            font-size: 1.15rem;
-            opacity: 0.9;
-            line-height: 1.6;
-            margin-bottom: 45px;
-            font-weight: 400;
+            font-size: 1.2rem; opacity: 0.9; line-height: 1.6;
+            max-width: 500px; z-index: 2; position: relative;
         }
 
-        .features {
-            display: flex;
-            gap: 20px;
-            z-index: 2;
+        .scroll-indicator {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            color: white; opacity: 0.7; animation: bounce 2s infinite; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 0.9rem;
         }
-
-        .feature-item {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 18px 24px;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.2);
-            transition: transform 0.3s;
-        }
-        
-        .feature-item:hover {
-            transform: translateY(-5px);
-            background: rgba(255,255,255,0.2);
-        }
-
-        .feature-item span {
-            display: block;
-            font-size: 0.85rem;
-            opacity: 0.8;
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
-
-        .feature-item strong {
-            font-size: 1.1rem;
-            font-weight: 700;
-        }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0) translateX(-50%);} 40% {transform: translateY(-10px) translateX(-50%);} }
 
         /* O'NG TOMON - LOGIN FORMA */
         .right-side {
@@ -134,182 +69,199 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: white;
             padding: 40px;
+            background: white;
+            position: relative;
+            z-index: 10;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 450px;
         }
 
         .login-card {
-            width: 100%;
-            max-width: 440px;
-            padding: 45px;
             background: white;
+            padding: 50px 40px;
             border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1);
+            /* Box shadow o'rniga oddiy border yoki yengil soya */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); 
             border: 1px solid #f1f5f9;
         }
 
-        .login-header {
-            text-align: center;
-            margin-bottom: 35px;
-        }
+        .login-header { text-align: center; margin-bottom: 35px; }
+        .login-header h2 { font-size: 2rem; color: #0f172a; margin-bottom: 10px; font-weight: 700; }
+        .login-header p { color: #64748b; font-size: 1rem; }
 
-        .login-header h2 {
-            font-size: 1.8rem;
-            color: #0f172a;
-            margin-bottom: 12px;
-            font-weight: 700;
-        }
-
-        .login-header p {
-            color: #64748b;
-            font-size: 0.95rem;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            color: #334155;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
+        .form-group { margin-bottom: 24px; }
+        .form-group label { display: block; margin-bottom: 10px; color: #334155; font-weight: 600; font-size: 0.95rem; }
         .form-group input {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 14px;
-            font-size: 1rem;
-            transition: all 0.3s;
-            outline: none;
-            background: #f8fafc;
+            width: 100%; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px;
+            font-size: 1rem; transition: all 0.3s; outline: none; background: #f8fafc;
         }
-
-        .form-group input:focus {
-            border-color: #2563eb;
-            background: white;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-        }
+        .form-group input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
 
         .btn-login {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: white;
-            border: none;
-            border-radius: 14px;
-            font-size: 1.05rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
-            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+            width: 100%; padding: 18px; background: var(--primary); color: white; border: none;
+            border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s;
+            margin-top: 10px; box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
         }
-
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 25px -5px rgba(37, 99, 235, 0.5);
-        }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 15px 25px -5px rgba(37, 99, 235, 0.5); background: #1d4ed8; }
 
         .register-link {
-            text-align: center;
-            margin-top: 30px;
-            color: #64748b;
-            font-size: 0.95rem;
+            text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #f1f5f9;
         }
-
         .register-link a {
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 600;
-            margin-left: 5px;
+            color: var(--primary); text-decoration: none; font-weight: 600; font-size: 1rem;
+            display: inline-flex; align-items: center; gap: 5px; transition: 0.3s;
         }
+        .register-link a:hover { gap: 10px; }
 
-        .register-link a:hover {
-            text-decoration: underline;
-        }
+        /* FEATURES & NEWS (Pastki qism uchun stillar) */
+        .content-below { width: 100%; }
+        .features-section { padding: 100px 20px; background: white; text-align: center; }
+        .section-title { font-size: 2.5rem; font-weight: 800; color: #0f172a; margin-bottom: 15px; }
+        .section-subtitle { color: #64748b; font-size: 1.1rem; margin-bottom: 60px; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .feature-card { padding: 40px 30px; background: #f8fafc; border-radius: 20px; border: 1px solid #f1f5f9; transition: 0.3s; }
+        .feature-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.05); border-color: var(--primary); }
+        .feature-icon { width: 60px; height: 60px; background: #eff6ff; color: var(--primary); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+        .feature-icon svg { width: 30px; height: 30px; fill: currentColor; }
 
-        /* Mobil versiya */
-        @media (max-width: 968px) {
-            .left-side { display: none; }
-            .right-side { flex: 1; padding: 20px; }
-            .login-card { box-shadow: none; border: none; padding: 20px; }
+        .news-section { padding: 100px 20px; background: #f8fafc; }
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .news-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .news-image-wrapper { width: 100%; aspect-ratio: 1/1; overflow: hidden; background: #e2e8f0; }
+        .news-image { width: 100%; height: 100%; object-fit: cover; }
+        .news-content { padding: 25px; }
+        .news-date { font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; display: block; }
+        .news-card h3 { font-size: 1.2rem; margin-bottom: 10px; color: #0f172a; }
+        .news-card p { color: #64748b; font-size: 0.95rem; line-height: 1.6; }
+
+        @media (max-width: 1024px) {
+            .main-container { flex-direction: column; }
+            .left-side { padding: 60px 40px; min-height: auto; }
+            .hero-text h1 { font-size: 2.5rem; }
+            .right-side { padding: 40px 20px; }
         }
     </style>
 </head>
 <body>
-    <!-- CHAP TOMON -->
-    <div class="left-side">
-        <div class="brand-logo">
-            <!-- MAKTAB IKONKASI (SVG) -->
-            <div class="brand-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 3L1 9L12 15L21 10.09V17H23V9L12 3Z" fill="#2563eb"/>
-                    <path d="M5 13.18V17.18C5 17.18 8 19 12 19C16 19 19 17.18 19 17.18V13.18L12 17L5 13.18Z" fill="#1d4ed8"/>
-                </svg>
+
+    <!-- YUQORI QISM: LOGIN VA HERO -->
+    <div class="main-container">
+        <!-- CHAP TOMON -->
+        <div class="left-side">
+            <div class="brand-logo">
+                <div class="brand-icon"></div>
+                Maktab Boshqaruvi
             </div>
-            <!-- YANGI NOM -->
-            Maktab Boshqaruvi
+            <div class="hero-text">
+                <h1>Zamonaviy ta'lim uchun aqlli platforma</h1>
+                <p>Barcha maktablar uchun yagona raqamli yechim. Dars jadvali, testlar, kutubxona va AI yordamchi bir joyda.</p>
+            </div>
+            <div class="scroll-indicator" onclick="document.getElementById('features').scrollIntoView()">
+                <span>Pastga tushing</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
+            </div>
         </div>
-        
-        <div class="hero-text">
-            <h1>Zamonaviy ta'lim uchun aqlli platforma</h1>
-            <p>Barcha maktablar uchun yagona raqamli yechim. Dars jadvali, testlar, kutubxona va AI yordamchi bir joyda.</p>
-            
-            <div class="features">
-                <div class="feature-item">
-                    <span>AI Yordamchi</span>
-                    <strong>24/7 Qo'llab-quvvatlash</strong>
-                </div>
-                <div class="feature-item">
-                    <span>Xavfsizlik</span>
-                    <strong>Ma'lumotlar Himoyasi</strong>
+
+        <!-- O'NG TOMON -->
+        <div class="right-side">
+            <div class="login-wrapper">
+                <div class="login-card">
+                    <div class="login-header">
+                        <h2>Tizimga kirish</h2>
+                        <p>Hisobingizga kirish uchun ma'lumotlarni kiriting</p>
+                    </div>
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div style="background: {% if category == 'danger' %}#fee2e2{% else %}#dcfce7{% endif %}; color: {% if category == 'danger' %}#991b1b{% else %}#166534{% endif %}; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; text-align: center;">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="/login">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-group">
+                            <label>Login</label>
+                            <input type="text" name="username" placeholder="Loginingizni kiriting" required autofocus>
+                        </div>
+                        <div class="form-group">
+                            <label>Parol</label>
+                            <input type="password" name="password" placeholder="Parolingizni kiriting" required>
+                        </div>
+                        <button type="submit" class="btn-login">Kirish</button>
+                    </form>
+                    
+                    <div class="register-link">
+                        <a href="/register">Yangi maktab ro'yxatdan o'tish →</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- O'NG TOMON -->
-    <div class="right-side">
-        <div class="login-card">
-            <div class="login-header">
-                <h2>Tizimga kirish</h2>
-                <p>Hisobingizga kirish uchun ma'lumotlarni kiriting</p>
+    <!-- PASTKI QISM: XUSUSIYATLAR VA YANGILIKLAR -->
+    <div class="content-below">
+        <div class="features-section" id="features">
+            <h2 class="section-title">Nima uchun biz?</h2>
+            <p class="section-subtitle">Maktabingizni boshqarishni osonlashtiradigan zamonaviy vositalar</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13A2.5 2.5 0 0 0 5 15.5A2.5 2.5 0 0 0 7.5 18a2.5 2.5 0 0 0 2.5-2.5A2.5 2.5 0 0 0 7.5 13m9 0a2.5 2.5 0 0 0-2.5 2.5a2.5 2.5 0 0 0 2.5 2.5a2.5 2.5 0 0 0 2.5-2.5a2.5 2.5 0 0 0-2.5-2.5"/></svg>
+                    </div>
+                    <h3>AI O'qituvchi</h3>
+                    <p>O'quvchilar uchun 24/7 ishlaydigan sun'iy intellekt yordamchisi.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2M9 17H7v-7h2v7m4 0h-2V7h2v10m4 0h-2v-4h2v4z"/></svg>
+                    </div>
+                    <h3>Smart Tahlil</h3>
+                    <p>O'quvchilar natijalarini real vaqt rejimida kuzating va tahlil qiling.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 17a2 2 0 0 0 2-2a2 2 0 0 0-2-2a2 2 0 0 0-2 2a2 2 0 0 0 2 2m6-9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h1V6a5 5 0 0 1 5-5a5 5 0 0 1 5 5v2h1m-6-5a3 3 0 0 0-3 3v2h6V6a3 3 0 0 0-3-3z"/></svg>
+                    </div>
+                    <h3>Xavfsizlik</h3>
+                    <p>Ma'lumotlaringiz ishonchli himoyalangan va shaxsiy baza.</p>
+                </div>
             </div>
+        </div>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div style="background: {% if category == 'danger' %}#fee2e2{% else %}#dcfce7{% endif %}; color: {% if category == 'danger' %}#991b1b{% else %}#166534{% endif %}; padding: 14px; border-radius: 10px; margin-bottom: 24px; font-size: 0.9rem; text-align: center;">
-                            {{ message }}
+        <div class="news-section" id="news">
+            <div style="text-align: center; margin-bottom: 60px;">
+                <h2 class="section-title">So'nggi Yangiliklar</h2>
+                <p class="section-subtitle">Maktab hayotidan eng so'nggi xabarlar</p>
+            </div>
+            <div class="news-grid">
+                {% if news_list %}
+                    {% for n in news_list %}
+                    <div class="news-card">
+                        <div class="news-image-wrapper">
+                            {% if n.image_url %}
+                                <img src="{{ n.image_url }}" class="news-image">
+                            {% else %}
+                                <div class="news-image" style="display:flex; align-items:center; justify-content:center; background:#f1f5f9; color:#94a3b8;">📰</div>
+                            {% endif %}
                         </div>
+                        <div class="news-content">
+                            <span class="news-date">{{ n.created_at.strftime('%d.%m.%Y') }}</span>
+                            <h3>{{ n.title }}</h3>
+                            <p>{{ n.content[:100] }}...</p>
+                        </div>
+                    </div>
                     {% endfor %}
                 {% endif %}
-            {% endwith %}
-
-            <form method="POST" action="/login">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                
-                <div class="form-group">
-                    <label>Login</label>
-                    <input type="text" name="username" placeholder="Loginingizni kiriting" required autofocus>
-                </div>
-
-                <div class="form-group">
-                    <label>Parol</label>
-                    <input type="password" name="password" placeholder="Parolingizni kiriting" required>
-                </div>
-
-                <button type="submit" class="btn-login">Kirish</button>
-            </form>
-
-            <div class="register-link">
-                Yangi maktab ro'yxatdan o'tish <a href="/register">→</a>
             </div>
         </div>
     </div>
+
 </body>
 </html>
