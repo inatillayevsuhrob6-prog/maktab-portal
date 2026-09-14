@@ -654,6 +654,27 @@ def create_app():
             print(f"Stats error: {e}")
             return jsonify({"total_members": 0})
 
+    
+    @app.route("/clubs/members/list")
+    def get_club_members_list():
+        if 'school_id' not in session or session.get('user_role') != 'admin': 
+            return jsonify([])
+        
+        try:
+            sid = session['school_id']
+            # To'garakka yozilgan o'quvchilarni sinf nomi bilan olish
+            members = db.session.query(
+                Student.first_name, 
+                Student.last_name, 
+                Class.name.label('class_name')
+            ).join(StudentClub, Student.id == StudentClub.student_id)             .join(Class, Student.class_id == Class.id)             .filter(Student.school_id == sid)             .order_by(Class.name, Student.last_name).all()
+             
+            result = [{"name": f"{m.first_name} {m.last_name}", "class": m.class_name} for m in members]
+            return jsonify(result)
+        except Exception as e:
+            print(f"Members list error: {e}")
+            return jsonify([])
+
     @app.route("/clubs/manage")
     def manage_clubs():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
