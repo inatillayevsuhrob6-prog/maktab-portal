@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from backend.models import School, Class, Student, Teacher, TeacherClassAssignment, Subject, Test, TestQuestion, TestResult, Achievement, StudentAchievement, Schedule, Book, News, Club, StudentClub
 from sqlalchemy.orm import joinedload
-from sqlalchemy import text
+from sqlalchemy import text, func
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -56,13 +56,14 @@ def create_app():
             print(f"❌ Bazani yangilashda xatolik: {e}")
             db.session.rollback()
             
-        # 3. CLUB jadvalini yaratish (agar yo'q bo'lsa)
+        # 3. CLUB jadvalini yaratish
         try:
             db.session.execute(text("CREATE TABLE IF NOT EXISTS club (id SERIAL PRIMARY KEY, name VARCHAR(200) NOT NULL, description TEXT, teacher_id INTEGER REFERENCES teachers(id), max_students INTEGER DEFAULT 20, schedule VARCHAR(100), school_id INTEGER NOT NULL REFERENCES schools(id));"))
+            db.session.execute(text("CREATE TABLE IF NOT EXISTS student_club (id SERIAL PRIMARY KEY, student_id INTEGER REFERENCES students(id), club_id INTEGER REFERENCES club(id), joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"))
             db.session.commit()
-            print("✅ 'club' jadvali muvaffaqiyatli yaratildi!")
+            print("✅ 'club' va 'student_club' jadvallari yaratildi!")
         except Exception as e:
-            print(f" Club jadvalini yaratishda xatolik: {e}")
+            print(f"❌ Club jadvalini yaratishda xatolik: {e}")
             db.session.rollback()
             
         # Achievement qo'shish (agar bo'lmasa)
@@ -208,6 +209,7 @@ def create_app():
             test_count=Test.query.filter_by(school_id=sid).count(),
             book_count=Book.query.filter_by(school_id=sid).count(),
             news_count=News.query.filter_by(school_id=sid).count(),
+            clubs_count=Club.query.filter_by(school_id=sid).count(),
             schedule_count=len(schedule_items),
             average_score=average_score,
             passed_results=passed_results,
@@ -547,108 +549,6 @@ def create_app():
         genres = [g[0] for g in db.session.query(Book.genre).filter_by(school_id=sid).distinct().all() if g[0]]
         return render_template("student_library.html", books=q.all(), genres=genres, current_genre=gf)
 
-    # --- TO'GARAKLAR (CLUBS) ROUTE LARI ---
-    @app.route("/clubs/stats")
-def clubs_stats():
-    if 'school_id' not in session or session.get('user_role') != 'admin': 
-        return jsonify({})
-    
-    try:
-        sid = session['school_id']
-        
-        # 1. Jami a'zolar soni
-        total_members = db.session.query(db.func.count(StudentClub.id)).filter(
-            StudentClub.has(student=Student.query.filter_by(school_id=sid))
-        ).scalar() or 0
-        
-        # 2. Faol to'garaklar soni (kamida 1 a'zosi borlar)
-        active_clubs = db.session.query(Club.id).join(StudentClub).filter(
-            Club.school_id == sid
-        ).distinct().count()
-        
-        # 3. Eng mashhur to'garak nomi
-        most_popular = db.session.query(Club.name, db.func.count(StudentClub.id).label('count'))            .join(StudentClub).filter(Club.school_id == sid)            .group_by(Club.id).order_by(db.desc('count')).first()
-            
-        popular_name = most_popular[0] if most_popular else "Yo'q"
-        
-        return jsonify({
-            "total_members": total_members,
-            "active_clubs": active_clubs,
-            "popular_club": popular_name
-        })
-    except Exception as e:
-        print(f"Stats error: {e}")
-        return jsonify({"total_members": 0, "active_clubs": 0, "popular_club": "-"})
-
-@app.route("/clubs/manage")
-    def manage_clubs():
-        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        clubs = Club.query.filter_by(school_id=session['school_id']).all()
-        teachers = Teacher.query.filter_by(school_id=session['school_id']).all()
-        return render_template("manage_clubs.html", clubs=clubs, teachers=teachers)
-
-    @app.route("/clubs/add", methods=["POST"])
-    def add_club():
-        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        db.session.add(Club(
-            name=sanitize_input(request.form.get('name')),
-            description=sanitize_input(request.form.get('description')),
-            teacher_id=request.form.get('teacher_id', type=int),
-            max_students=request.form.get('max_students', type=int),
-            schedule=sanitize_input(request.form.get('schedule')),
-            school_id=session['school_id']
-        ))
-        db.session.commit()
-        return redirect(url_for('manage_clubs'))
-
-    @app.route("/clubs/delete/<int:club_id>")
-    def delete_club(club_id):
-        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first_or_404()
-        
-        # 1. Avval shu to'garakdagi barcha a'zolarni o'chirish
-        StudentClub.query.filter_by(club_id=club.id).delete()
-        
-        # 2. Keyin to'garakning o'zini o'chirish
-        db.session.delete(club)
-        db.session.commit()
-        
-        flash("To'garak va unga tegishli ma'lumotlar o'chirildi.", "success")
-        return redirect(url_for('manage_clubs'))
-
-    @app.route("/clubs")
-    def view_clubs():
-        if 'school_id' not in session: return redirect(url_for('home'))
-        clubs = Club.query.filter_by(school_id=session['school_id']).all()
-        return render_template("clubs.html", clubs=clubs)
-
-    @app.route("/clubs/join/<int:club_id>")
-    def join_club(club_id):
-        if 'school_id' not in session or session.get('user_role') != 'student': 
-            return jsonify({"status": "error", "message": "Ruxsat yo'q"})
-        
-        student_id = session.get('student_id')
-        existing = StudentClub.query.filter_by(student_id=student_id, club_id=club_id).first()
-        if existing:
-            return jsonify({"status": "warning", "message": "Siz allaqachon a'zosiz"})
-        else:
-            db.session.add(StudentClub(student_id=student_id, club_id=club_id))
-            db.session.commit()
-            return jsonify({"status": "success", "message": "A'zo bo'ldingiz!"})
-
-    @app.route("/clubs/stats")
-    def clubs_stats():
-        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        # Sinflar bo'yicha a'zolar statistikasi
-        stats = db.session.query(
-            Class.name, 
-            db.func.count(StudentClub.id)
-        ).join(Student, Student.class_id == Class.id)         .join(StudentClub, StudentClub.student_id == Student.id)         .filter(Class.school_id == session['school_id'])         .group_by(Class.name).all()
-         
-        labels = [row[0] for row in stats]
-        data = [row[1] for row in stats]
-        return jsonify({"labels": labels, "data": data})
-
     @app.route("/news/manage")
     def manage_news():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
@@ -706,9 +606,9 @@ def clubs_stats():
         if not user_message: return jsonify({"reply": ""})
         try:
             api_key = os.environ.get('GROQ_API_KEY')
-            if not api_key: return jsonify({"reply": "️ Groq API kaliti topilmadi."})
+            if not api_key: return jsonify({"reply": "⚠️ Groq API kaliti topilmadi."})
             client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
-            response = client.chat.completions.create(model="llama-3.1-8b-instant", messages=[{"role": "system", "content": "Siz maktab o'quvchilari uchun mehribon AI yordamchisiz. Qisqa va aniq javob bering."}, {"role": "user", "content": user_message}])
+            response = client.chat.completions.create(model="openai/gpt-oss-20b", messages=[{"role": "system", "content": "Siz maktab o'quvchilari uchun mehribon AI yordamchisiz. Qisqa va aniq javob bering."}, {"role": "user", "content": user_message}])
             reply = response.choices[0].message.content; return jsonify({"reply": reply})
         except Exception as e:
             print(f"Groq Xatosi: {e}"); return jsonify({"reply": f"Xatolik: {str(e)}"}), 500
@@ -718,6 +618,97 @@ def clubs_stats():
     def clear_chat():
         if 'school_id' in session: session['chat_history'] = []; session.modified = True
         return jsonify({"status": "cleared"})
+
+    # --- TO'GARAKLAR ROUTE LARI ---
+    @app.route("/clubs/stats")
+    def clubs_stats():
+        if 'school_id' not in session or session.get('user_role') != 'admin': 
+            return jsonify({})
+        
+        try:
+            sid = session['school_id']
+            
+            # 1. Jami a'zolar soni
+            total_members = db.session.query(func.count(StudentClub.id)).filter(
+                StudentClub.has(student=Student.query.filter_by(school_id=sid))
+            ).scalar() or 0
+            
+            # 2. Faol to'garaklar soni
+            active_clubs = db.session.query(Club.id).join(StudentClub).filter(
+                Club.school_id == sid
+            ).distinct().count()
+            
+            # 3. Eng mashhur to'garak nomi
+            most_popular = db.session.query(Club.name, func.count(StudentClub.id).label('count'))\
+                .join(StudentClub).filter(Club.school_id == sid)\
+                .group_by(Club.id).order_by(db.desc('count')).first()
+                
+            popular_name = most_popular[0] if most_popular else "Yo'q"
+            
+            return jsonify({
+                "total_members": total_members,
+                "active_clubs": active_clubs,
+                "popular_club": popular_name
+            })
+        except Exception as e:
+            print(f"Stats error: {e}")
+            return jsonify({"total_members": 0, "active_clubs": 0, "popular_club": "-"})
+
+    @app.route("/clubs/manage")
+    def manage_clubs():
+        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        clubs = Club.query.filter_by(school_id=session['school_id']).all()
+        teachers = Teacher.query.filter_by(school_id=session['school_id']).all()
+        return render_template("manage_clubs.html", clubs=clubs, teachers=teachers)
+
+    @app.route("/clubs/add", methods=["POST"])
+    def add_club():
+        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        db.session.add(Club(
+            name=sanitize_input(request.form.get('name')),
+            description=sanitize_input(request.form.get('description')),
+            teacher_id=request.form.get('teacher_id', type=int),
+            max_students=request.form.get('max_students', type=int),
+            schedule=sanitize_input(request.form.get('schedule')),
+            school_id=session['school_id']
+        ))
+        db.session.commit()
+        return redirect(url_for('manage_clubs'))
+
+    @app.route("/clubs/delete/<int:club_id>")
+    def delete_club(club_id):
+        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first_or_404()
+        
+        # 1. Avval shu to'garakdagi barcha a'zolarni o'chirish
+        StudentClub.query.filter_by(club_id=club.id).delete()
+        
+        # 2. Keyin to'garakning o'zini o'chirish
+        db.session.delete(club)
+        db.session.commit()
+        
+        flash("To'garak va unga tegishli ma'lumotlar o'chirildi.", "success")
+        return redirect(url_for('manage_clubs'))
+
+    @app.route("/clubs")
+    def view_clubs():
+        if 'school_id' not in session: return redirect(url_for('home'))
+        clubs = Club.query.filter_by(school_id=session['school_id']).all()
+        return render_template("clubs.html", clubs=clubs)
+
+    @app.route("/clubs/join/<int:club_id>")
+    def join_club(club_id):
+        if 'school_id' not in session or session.get('user_role') != 'student': 
+            return jsonify({"status": "error", "message": "Ruxsat yo'q"})
+        
+        student_id = session.get('student_id')
+        existing = StudentClub.query.filter_by(student_id=student_id, club_id=club_id).first()
+        if existing:
+            return jsonify({"status": "warning", "message": "Siz allaqachon a'zosiz"})
+        else:
+            db.session.add(StudentClub(student_id=student_id, club_id=club_id))
+            db.session.commit()
+            return jsonify({"status": "success", "message": "A'zo bo'ldingiz!"})
 
     # --- O'CHIRISH ROUTE LARI ---
     @app.route("/delete_class/<int:cid>")
