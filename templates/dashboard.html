@@ -79,11 +79,61 @@
         </main>
     </div>
 
+    <div class="club-members-modal" id="clubMembersModal" aria-hidden="true">
+        <div class="club-members-dialog" role="dialog" aria-modal="true" aria-labelledby="clubMembersTitle">
+            <div class="club-members-dialog-heading">
+                <div>
+                    <span class="panel-kicker">TO‘GARAKLAR</span>
+                    <h2 id="clubMembersTitle">To‘garak a’zolari</h2>
+                </div>
+                <button type="button" class="club-members-close" onclick="closeClubMembers()" aria-label="Yopish">&times;</button>
+            </div>
+            <div id="clubMembersContent" class="club-members-content"></div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         function toggleDashboardSidebar() {
             document.getElementById('dashboardSidebar').classList.toggle('open');
         }
+
+        function openClubMembers() {
+            const modal = document.getElementById('clubMembersModal');
+            const content = document.getElementById('clubMembersContent');
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            content.innerHTML = '<p class="club-members-empty">Yuklanmoqda...</p>';
+
+            fetch('/clubs/members/list')
+                .then(response => response.json())
+                .then(members => {
+                    if (!members.length) {
+                        content.innerHTML = '<p class="club-members-empty">Hozircha to‘garaklarga yozilgan o‘quvchilar yo‘q.</p>';
+                        return;
+                    }
+
+                    content.innerHTML = '<div class="club-member-list">' + members.map(member => `
+                        <div class="club-member-row">
+                            <strong>${member.name}</strong>
+                            <span>${member.class}-sinf</span>
+                        </div>
+                    `).join('') + '</div>';
+                })
+                .catch(() => {
+                    content.innerHTML = '<p class="club-members-empty club-members-error">Ma’lumotlarni yuklashda xatolik yuz berdi.</p>';
+                });
+        }
+
+        function closeClubMembers() {
+            const modal = document.getElementById('clubMembersModal');
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        document.getElementById('clubMembersModal').addEventListener('click', event => {
+            if (event.target.id === 'clubMembersModal') closeClubMembers();
+        });
 
         const chartDefaults = {
             responsive: true,
@@ -138,7 +188,8 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 cutout: '64%',
-                plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true } } }
+                plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true } } },
+                onClick: openClubMembers
             }
         });
     </script>
