@@ -83,28 +83,43 @@ def create_app():
     def save_teacher_profile_image(uploaded_file, teacher_id):
         if not uploaded_file or not uploaded_file.filename:
             return None
-        filename = secure_filename(uploaded_file.filename)
-        extension = os.path.splitext(filename)[1].lower()
-        if extension not in {'.jpg', '.jpeg', '.png', '.gif', '.webp'}:
-            raise ValueError("Rasm faqat JPG, JPEG, PNG, GIF yoki WEBP formatida bo'lishi kerak.")
-        upload_dir = os.path.join(app.static_folder, 'uploads', 'teachers')
-        os.makedirs(upload_dir, exist_ok=True)
-        saved_name = f"teacher_{teacher_id}{extension}"
-        uploaded_file.save(os.path.join(upload_dir, saved_name))
-        return url_for('static', filename=f'uploads/teachers/{saved_name}')
+        try:
+            filename = secure_filename(uploaded_file.filename)
+            extension = os.path.splitext(filename)[1].lower()
+            if not extension: extension = '.jpg'
+            if extension not in {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic'}:
+                flash("Rasm formati noto'g'ri (faqat JPG, PNG, WEBP).", "warning")
+                return None
+            upload_dir = os.path.join(app.static_folder, 'uploads', 'teachers')
+            os.makedirs(upload_dir, exist_ok=True)
+            saved_name = f"teacher_{teacher_id}{extension}"
+            uploaded_file.save(os.path.join(upload_dir, saved_name))
+            return url_for('static', filename=f'uploads/teachers/{saved_name}')
+        except Exception as e:
+            print(f"Rasm yuklashda xato: {e}")
+            flash("Rasmni yuklashda xatolik yuz berdi.", "danger")
+            return None
 
     def save_student_profile_image(uploaded_file, student_id):
         if not uploaded_file or not uploaded_file.filename:
             return None
-        filename = secure_filename(uploaded_file.filename)
-        extension = os.path.splitext(filename)[1].lower()
-        if extension not in {'.jpg', '.jpeg', '.png', '.gif', '.webp'}:
-            raise ValueError("Rasm faqat JPG, JPEG, PNG, GIF yoki WEBP formatida bo'lishi kerak.")
-        upload_dir = os.path.join(app.static_folder, 'uploads', 'students')
-        os.makedirs(upload_dir, exist_ok=True)
-        saved_name = f"student_{student_id}{extension}"
-        uploaded_file.save(os.path.join(upload_dir, saved_name))
-        return url_for('static', filename=f'uploads/students/{saved_name}')
+        try:
+            filename = secure_filename(uploaded_file.filename)
+            extension = os.path.splitext(filename)[1].lower()
+            # Agar kengaytma bo'lmasa, .jpg deb olamiz
+            if not extension: extension = '.jpg'
+            if extension not in {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic'}:
+                flash("Rasm formati noto'g'ri (faqat JPG, PNG, WEBP).", "warning")
+                return None
+            upload_dir = os.path.join(app.static_folder, 'uploads', 'students')
+            os.makedirs(upload_dir, exist_ok=True)
+            saved_name = f"student_{student_id}{extension}"
+            uploaded_file.save(os.path.join(upload_dir, saved_name))
+            return url_for('static', filename=f'uploads/students/{saved_name}')
+        except Exception as e:
+            print(f"Rasm yuklashda xato: {e}")
+            flash("Rasmni yuklashda xatolik yuz berdi.", "danger")
+            return None
         
     @app.before_request
     def check_session_timeout():
