@@ -238,3 +238,16 @@ class StudentClub(db.Model):
     
     student = db.relationship('Student', backref=db.backref('club_memberships', lazy=True))
     club = db.relationship('Club', backref=db.backref('members', lazy=True))
+
+class ChatMessage(db.Model):
+    __tablename__ = 'chat_messages'
+    id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
+    sender_type = db.Column(db.String(20), nullable=False)
+    sender_id = db.Column(db.Integer, nullable=False)
+    recipient_type = db.Column(db.String(20), nullable=False)
+    recipient_id = db.Column(db.Integer, nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    school = db.relationship('School', backref=db.backref('chat_messages', lazy=True))

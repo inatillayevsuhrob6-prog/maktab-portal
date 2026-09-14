@@ -15,7 +15,7 @@
     <div class="dashboard-container">
         <nav class="navbar">
             <h3>{{ test.title }}</h3>
-            <a href="/my_tests" style="color:white; text-decoration:none;">Ortga</a>
+            <div style="display:flex; align-items:center; gap:14px;"><a href="/chat" style="color:white; text-decoration:none;">💬 Savol berish</a><a href="/my_tests" style="color:white; text-decoration:none;">Ortga</a></div>
         </nav>
         <div class="content">
             <form action="/submit_test/{{ test.id }}" method="POST">

@@ -3,9 +3,9 @@ from config import Config
 from extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from backend.models import School, Class, Student, Teacher, TeacherClassAssignment, Subject, Test, TestQuestion, TestResult, Achievement, StudentAchievement, Schedule, Book, News, Club, StudentClub
+from backend.models import School, Class, Student, Teacher, TeacherClassAssignment, Subject, Test, TestQuestion, TestResult, Achievement, StudentAchievement, Schedule, Book, News, Club, StudentClub, ChatMessage
 from sqlalchemy.orm import joinedload
-from sqlalchemy import text, func
+from sqlalchemy import text, func, and_, or_
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -264,6 +264,84 @@ def create_app():
                 grouped[s.day_of_week].append(s)
                 if s.student_class: unique_classes.add(s.student_class)
         return render_template("teacher_dashboard.html", teacher=teacher, schedule=grouped, my_classes=list(unique_classes))
+
+    # --- O'QITUVCHI-O'QUVCHI ICHKI CHAT ---
+    @app.route("/chat")
+    def chat():
+        role = session.get('user_role')
+        if 'school_id' not in session or role not in {'student', 'teacher'}:
+            return redirect(url_for('home'))
+
+        sid = session['school_id']
+        if role == 'student':
+            current_user_id = session['student_id']
+            contacts = Teacher.query.filter_by(school_id=sid).order_by(Teacher.first_name, Teacher.last_name).all()
+            contact_type = 'teacher'
+            selected_id = request.args.get('contact_id', type=int) or (contacts[0].id if contacts else None)
+            selected = next((item for item in contacts if item.id == selected_id), None)
+        else:
+            current_user_id = session['teacher_id']
+            contacts = Student.query.filter_by(school_id=sid).order_by(Student.first_name, Student.last_name).all()
+            contact_type = 'student'
+            selected_id = request.args.get('contact_id', type=int) or (contacts[0].id if contacts else None)
+            selected = next((item for item in contacts if item.id == selected_id), None)
+
+        messages = []
+        if selected:
+            messages = ChatMessage.query.filter(
+                ChatMessage.school_id == sid,
+                or_(
+                    and_(ChatMessage.sender_type == role, ChatMessage.sender_id == current_user_id,
+                         ChatMessage.recipient_type == contact_type, ChatMessage.recipient_id == selected.id),
+                    and_(ChatMessage.sender_type == contact_type, ChatMessage.sender_id == selected.id,
+                         ChatMessage.recipient_type == role, ChatMessage.recipient_id == current_user_id)
+                )
+            ).order_by(ChatMessage.created_at.asc()).all()
+
+        return render_template(
+            "chat.html",
+            contacts=contacts,
+            selected=selected,
+            selected_type=contact_type,
+            messages=messages,
+            current_role=role,
+            current_user_id=current_user_id
+        )
+
+    @app.route("/chat/send", methods=["POST"])
+    def send_chat_message():
+        role = session.get('user_role')
+        if 'school_id' not in session or role not in {'student', 'teacher'}:
+            return redirect(url_for('home'))
+
+        recipient_type = request.form.get('recipient_type')
+        recipient_id = request.form.get('recipient_id', type=int)
+        body = sanitize_input(request.form.get('body', '')).strip()
+        if recipient_type not in {'student', 'teacher'} or not recipient_id or not body:
+            flash("Xabar va qabul qiluvchini tanlang.", "warning")
+            return redirect(url_for('chat'))
+
+        if recipient_type == role:
+            flash("O'zingizga xabar yubora olmaysiz.", "warning")
+            return redirect(url_for('chat'))
+
+        model = Teacher if recipient_type == 'teacher' else Student
+        recipient = model.query.filter_by(id=recipient_id, school_id=session['school_id']).first()
+        if not recipient:
+            flash("Qabul qiluvchi topilmadi.", "danger")
+            return redirect(url_for('chat'))
+
+        sender_id = session['teacher_id'] if role == 'teacher' else session['student_id']
+        db.session.add(ChatMessage(
+            school_id=session['school_id'],
+            sender_type=role,
+            sender_id=sender_id,
+            recipient_type=recipient_type,
+            recipient_id=recipient_id,
+            body=body[:2000]
+        ))
+        db.session.commit()
+        return redirect(url_for('chat', contact_id=recipient_id))
 
     # --- O'QITUVCHI PROFIL SOZLAMALARI ---
     @app.route("/teacher_profile", methods=["GET", "POST"])

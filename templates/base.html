@@ -37,6 +37,7 @@
                     <a href="/schedule/view"><span>◫</span>Dars jadvali</a>
                     <a href="/library"><span>▥</span>Kutubxona</a>
                     <a href="/ai_chat"><span>✦</span>AI yordamchi</a>
+                    <a href="/chat" class="{% if request.path.startswith('/chat') %}active{% endif %}"><span>◌</span>Ichki chat</a>
                 {% else %}
                     <a href="/student_dashboard" class="{% if request.path == '/student_dashboard' %}active{% endif %}"><span>⌂</span>Kabinet</a>
                     <a href="/student_profile" class="{% if request.path.startswith('/student_profile') %}active{% endif %}"><span>◉</span>Mening profilim</a>
@@ -45,6 +46,7 @@
                     <a href="/library" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kitobxona</a>
                     <a href="/news" class="{% if request.path.startswith('/news') %}active{% endif %}"><span>▰</span>Yangiliklar</a>
                     <a href="/ai_chat"><span>✦</span>AI yordamchi</a>
+                    <a href="/chat" class="{% if request.path.startswith('/chat') %}active{% endif %}"><span>◌</span>Ichki chat</a>
                 {% endif %}
             </nav>
             <a href="/logout" class="sidebar-logout"><span>↪</span>Chiqish</a>
@@ -55,6 +57,7 @@
                 <form action="/search" method="GET" class="topbar-search">
                     <span>⌕</span><input type="text" name="q" placeholder="Qidirish..." value="{{ request.args.get('q', '') }}">
                 </form>
+                <button class="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Tungi rejimni almashtirish"><span id="themeIcon">☾</span><span class="theme-label">Rejim</span></button>
                 <div class="topbar-status"><span></span> Tizim faol</div>
             </header>
             <div class="content-wrapper">
@@ -78,6 +81,18 @@
                 sidebar.classList.remove('open');
             }
         });
+        function applyTheme() {
+            const dark = localStorage.getItem('theme') === 'dark';
+            document.body.classList.toggle('dark-mode', dark);
+            const icon = document.getElementById('themeIcon');
+            if (icon) icon.textContent = dark ? '☀' : '☾';
+        }
+        function toggleTheme() {
+            const dark = !document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', dark ? 'dark' : 'light');
+            applyTheme();
+        }
+        applyTheme();
     </script>
     
     {% block extra_js %}{% endblock %}

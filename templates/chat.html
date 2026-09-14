@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Ichki chat{% endblock %}
+
+{% block content %}
+<div class="chat-page">
+    <div class="chat-page-heading">
+        <div>
+            <span class="page-kicker">ALOQA MARKAZI</span>
+            <h1>O‘qituvchi-o‘quvchi chati</h1>
+            <p>Vazifa, dars yoki test haqida tezkor savol yuboring.</p>
+        </div>
+        <span class="chat-status"><i></i> Ichki aloqa</span>
+    </div>
+
+    <div class="internal-chat">
+        <aside class="chat-contacts">
+            <div class="chat-contacts-heading">
+                <strong>{% if current_role == 'student' %}O‘qituvchilar{% else %}O‘quvchilar{% endif %}</strong>
+                <span>{{ contacts|length }}</span>
+            </div>
+            <div class="chat-contact-list">
+                {% for contact in contacts %}
+                <a class="chat-contact {% if selected and contact.id == selected.id %}active{% endif %}" href="{{ url_for('chat', contact_id=contact.id) }}">
+                    <span class="chat-avatar">{{ contact.first_name[0] }}{{ contact.last_name[0] }}</span>
+                    <span class="chat-contact-info">
+                        <strong>{{ contact.first_name }} {{ contact.last_name }}</strong>
+                        <small>{% if current_role == 'student' %}{{ contact.subject.name if contact.subject else 'O‘qituvchi' }}{% else %}{{ contact.student_class.name if contact.student_class else 'O‘quvchi' }}-sinf{% endif %}</small>
+                    </span>
+                </a>
+                {% else %}
+                <p class="chat-empty">Hozircha suhbatlar uchun foydalanuvchilar yo‘q.</p>
+                {% endfor %}
+            </div>
+        </aside>
+
+        <section class="chat-window">
+            {% if selected %}
+            <header class="chat-window-header">
+                <span class="chat-avatar large">{{ selected.first_name[0] }}{{ selected.last_name[0] }}</span>
+                <div><strong>{{ selected.first_name }} {{ selected.last_name }}</strong><small>{% if current_role == 'student' %}{{ selected.subject.name if selected.subject else 'O‘qituvchi' }}{% else %}O‘quvchi{% endif %}</small></div>
+            </header>
+            <div class="chat-message-list">
+                {% for message in messages %}
+                <div class="chat-bubble {% if message.sender_type == current_role and message.sender_id == current_user_id %}mine{% else %}theirs{% endif %}">
+                    <p>{{ message.body }}</p>
+                    <time>{{ message.created_at.strftime('%d.%m.%Y %H:%M') }}</time>
+                </div>
+                {% else %}
+                <div class="chat-welcome"><span>💬</span><strong>Suhbatni boshlang</strong><p>Masalan: “Bu vazifa tushunarsiz bo‘ldi, yordam bera olasizmi?”</p></div>
+                {% endfor %}
+            </div>
+            <form class="chat-compose" method="POST" action="{{ url_for('send_chat_message') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="recipient_type" value="{{ selected_type }}">
+                <input type="hidden" name="recipient_id" value="{{ selected.id }}">
+                <input name="body" maxlength="2000" placeholder="Xabaringizni yozing..." autocomplete="off" required>
+                <button type="submit" aria-label="Xabar yuborish">Yuborish <span>➜</span></button>
+            </form>
+            {% else %}
+            <div class="chat-welcome standalone"><span>💬</span><strong>Suhbat uchun foydalanuvchi tanlang</strong><p>Chap tomondagi ro‘yxatdan suhbatdoshni tanlang.</p></div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

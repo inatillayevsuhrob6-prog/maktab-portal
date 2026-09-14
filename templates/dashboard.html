@@ -33,6 +33,7 @@
                 <button class="menu-toggle" onclick="toggleDashboardSidebar()" aria-label="Menyuni ochish">☰</button>
                 <div class="dashboard-breadcrumb"><span>Boshqaruv paneli</span><strong>{{ school.name }}</strong></div>
                 <form action="/search" method="GET" class="topbar-search"><span>⌕</span><input type="text" name="q" placeholder="Qidirish..."></form>
+                <button class="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Tungi rejimni almashtirish"><span id="themeIcon">☾</span><span class="theme-label">Rejim</span></button>
                 <div class="topbar-status"><span></span> Tizim faol</div>
             </header>
 
@@ -108,6 +109,20 @@
         function toggleDashboardSidebar() {
             document.getElementById('dashboardSidebar').classList.toggle('open');
         }
+
+        function applyTheme() {
+            const dark = localStorage.getItem('theme') === 'dark';
+            document.body.classList.toggle('dark-mode', dark);
+            document.getElementById('themeIcon').textContent = dark ? '☀' : '☾';
+        }
+
+        function toggleTheme() {
+            const dark = !document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', dark ? 'dark' : 'light');
+            applyTheme();
+        }
+
+        applyTheme();
 
         function openClubMembers() {
             const modal = document.getElementById('clubMembersModal');
