@@ -538,6 +538,35 @@ def create_app():
         genres = [g[0] for g in db.session.query(Book.genre).filter_by(school_id=sid).distinct().all() if g[0]]
         return render_template("student_library.html", books=q.all(), genres=genres, current_genre=gf)
 
+    
+    @app.route("/clubs/manage")
+    def manage_clubs():
+        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        clubs = Club.query.filter_by(school_id=session['school_id']).all()
+        teachers = Teacher.query.filter_by(school_id=session['school_id']).all()
+        return render_template("manage_clubs.html", clubs=clubs, teachers=teachers)
+
+    @app.route("/clubs/add", methods=["POST"])
+    def add_club():
+        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        db.session.add(Club(
+            name=sanitize_input(request.form.get('name')),
+            description=sanitize_input(request.form.get('description')),
+            teacher_id=request.form.get('teacher_id', type=int),
+            max_students=request.form.get('max_students', type=int),
+            schedule=sanitize_input(request.form.get('schedule')),
+            school_id=session['school_id']
+        ))
+        db.session.commit()
+        return redirect(url_for('manage_clubs'))
+
+    @app.route("/clubs/delete/<int:club_id>")
+    def delete_club(club_id):
+        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first_or_404()
+        db.session.delete(club); db.session.commit()
+        return redirect(url_for('manage_clubs'))
+
     @app.route("/news/manage")
     def manage_news():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
@@ -727,6 +756,8 @@ def create_app():
         session.clear(); return redirect(url_for('home'))
         
     return app
+
+    
 
 # Gunicorn uchun app obyektini yaratish
 app = create_app()

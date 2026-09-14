@@ -217,3 +217,15 @@ class News(db.Model):
 
     def __repr__(self):
         return f'<News {self.title}>'
+
+class Club(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=False)
+    max_students = db.Column(db.Integer, default=20)
+    schedule = db.Column(db.String(100)) # Masalan: "Dushanba, 15:00"
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
+    
+    # Munosabatlar
+    teacher = db.relationship('Teacher', backref=db.backref('clubs', lazy=True))

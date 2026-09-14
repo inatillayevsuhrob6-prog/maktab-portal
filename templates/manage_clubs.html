@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>To'garaklarni Boshqarish</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body { background: #f8fafc; padding: 20px; font-family: sans-serif; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        h2 { color: #1e293b; margin-bottom: 20px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; }
+        button { background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .club-list { margin-top: 30px; }
+        .club-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f1f5f9; }
+        .club-info h4 { margin: 0 0 5px; color: #0f172a; }
+        .club-info p { margin: 0; color: #64748b; font-size: 0.9rem; }
+        .btn-delete { background: #ef4444; padding: 8px 16px; font-size: 0.85rem; text-decoration: none; color: white; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2>To'garaklarni Boshqarish</h2>
+            <a href="/dashboard" style="color:#64748b; text-decoration:none;">← Dashboard</a>
+        </div>
+        <form action="/clubs/add" method="POST" style="background:#f8fafc; padding:20px; border-radius:12px; margin-bottom:30px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="text" name="name" placeholder="To'garak nomi (Masalan: Futbol, Robototexnika)" required>
+            <textarea name="description" placeholder="Qisqacha tavsif..." rows="2"></textarea>
+            <div class="form-row">
+                <select name="teacher_id" required>
+                    <option value="">O'qituvchini tanlang...</option>
+                    {% for t in teachers %}
+                    <option value="{{ t.id }}">{{ t.first_name }} {{ t.last_name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="schedule" placeholder="Vaqt (Masalan: Dushanba, 15:00)">
+            </div>
+            <div class="form-row">
+                <input type="number" name="max_students" placeholder="Maksimal o'quvchilar soni" value="20">
+                <button type="submit">To'garak Qo'shish</button>
+            </div>
+        </form>
+        <div class="club-list">
+            <h3>Mavjud To'garaklar</h3>
+            {% for c in clubs %}
+            <div class="club-item">
+                <div class="club-info">
+                    <h4>{{ c.name }}</h4>
+                    <p>O'qituvchi: {{ c.teacher.first_name }} {{ c.teacher.last_name }} | Vaqt: {{ c.schedule }}</p>
+                </div>
+                <a href="/clubs/delete/{{ c.id }}" class="btn-delete" onclick="return confirm('O\'chirilsinmi?')">O'chirish</a>
+            </div>
+            {% else %}
+            <p style="color:#94a3b8; text-align:center; padding:20px;">Hozircha to'garaklar yo'q.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
