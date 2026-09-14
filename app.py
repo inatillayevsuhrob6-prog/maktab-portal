@@ -263,7 +263,8 @@ def create_app():
             if s.day_of_week in grouped:
                 grouped[s.day_of_week].append(s)
                 if s.student_class: unique_classes.add(s.student_class)
-        return render_template("teacher_dashboard.html", teacher=teacher, schedule=grouped, my_classes=list(unique_classes))
+            clubs = Club.query.filter_by(school_id=session['school_id']).all()
+            return render_template("teacher_dashboard.html", teacher=teacher, schedule=grouped, my_classes=list(unique_classes), clubs=clubs)
 
     # --- O'QITUVCHI-O'QUVCHI ICHKI CHAT ---
     @app.route("/chat")
@@ -771,18 +772,25 @@ def create_app():
 
     @app.route("/clubs/manage")
     def manage_clubs():
-        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}: return redirect(url_for('home'))
         clubs = Club.query.filter_by(school_id=session['school_id']).all()
         teachers = Teacher.query.filter_by(school_id=session['school_id']).all()
-        return render_template("manage_clubs.html", clubs=clubs, teachers=teachers)
+        return render_template("manage_clubs.html", clubs=clubs, teachers=teachers, current_role=session.get('user_role'), current_teacher_id=session.get('teacher_id'))
 
     @app.route("/clubs/add", methods=["POST"])
     def add_club():
-        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        role = session.get('user_role')
+        if 'school_id' not in session or role not in {'admin', 'teacher'}: return redirect(url_for('home'))
+        teacher_id = request.form.get('teacher_id', type=int)
+        if role == 'teacher':
+            teacher_id = session['teacher_id']
+        if not Teacher.query.filter_by(id=teacher_id, school_id=session['school_id']).first():
+            flash("O'qituvchi topilmadi.", "danger")
+            return redirect(url_for('manage_clubs'))
         db.session.add(Club(
             name=sanitize_input(request.form.get('name')),
             description=sanitize_input(request.form.get('description')),
-            teacher_id=request.form.get('teacher_id', type=int),
+            teacher_id=teacher_id,
             max_students=request.form.get('max_students', type=int),
             schedule=sanitize_input(request.form.get('schedule')),
             school_id=session['school_id']
@@ -792,8 +800,12 @@ def create_app():
 
     @app.route("/clubs/delete/<int:club_id>")
     def delete_club(club_id):
-        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        role = session.get('user_role')
+        if 'school_id' not in session or role not in {'admin', 'teacher'}: return redirect(url_for('home'))
         club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first_or_404()
+        if role == 'teacher' and club.teacher_id != session['teacher_id']:
+            flash("Faqat o'zingiz boshqaradigan to'garakni o'chira olasiz.", "danger")
+            return redirect(url_for('manage_clubs'))
         
         # 1. Avval shu to'garakdagi barcha a'zolarni o'chirish
         StudentClub.query.filter_by(club_id=club.id).delete()

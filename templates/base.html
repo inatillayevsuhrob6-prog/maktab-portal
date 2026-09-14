@@ -36,6 +36,7 @@
                     <a href="/teacher_dashboard" class="{% if request.path == '/teacher_dashboard' %}active{% endif %}"><span>⌂</span>Kabinet</a>
                     <a href="/teacher_profile" class="{% if request.path.startswith('/teacher_profile') %}active{% endif %}"><span>◉</span>Profil sozlamalari</a>
                     <a href="/schedule/view"><span>◫</span>Dars jadvali</a>
+                    <a href="/clubs/manage" class="{% if request.path.startswith('/clubs') %}active{% endif %}"><span>🎯</span>To‘garaklar</a>
                     <a href="/library"><span>▥</span>Kutubxona</a>
                     <a href="/ai_chat"><span>✦</span>AI yordamchi</a>
                     <a href="/chat" class="{% if request.path.startswith('/chat') %}active{% endif %}"><span>◌</span>Ichki chat</a>

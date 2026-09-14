@@ -22,7 +22,7 @@
     <div class="container">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
             <h2>To'garaklarni Boshqarish</h2>
-            <a href="/dashboard" style="color:#64748b; text-decoration:none;">← Dashboard</a>
+            <a href="{% if current_role == 'teacher' %}/teacher_dashboard{% else %}/dashboard{% endif %}" style="color:#64748b; text-decoration:none;">← Dashboard</a>
         </div>
 
         <!-- Yangi To'garak Qo'shish -->
@@ -32,12 +32,15 @@
             <textarea name="description" placeholder="Qisqacha tavsif..." rows="2"></textarea>
             
             <div class="form-row">
+                {% if current_role == 'teacher' %}
+                <input type="hidden" name="teacher_id" value="{{ current_teacher_id }}">
+                <div style="padding:12px; margin-bottom:10px; border:1px solid #e2e8f0; border-radius:8px; color:#475569; background:#f8fafc;">To‘garak rahbari: Siz</div>
+                {% else %}
                 <select name="teacher_id" required>
                     <option value="">O'qituvchini tanlang...</option>
-                    {% for t in teachers %}
-                    <option value="{{ t.id }}">{{ t.first_name }} {{ t.last_name }}</option>
-                    {% endfor %}
+                    {% for t in teachers %}<option value="{{ t.id }}">{{ t.first_name }} {{ t.last_name }}</option>{% endfor %}
                 </select>
+                {% endif %}
                 <input type="text" name="schedule" placeholder="Vaqt (Masalan: Dushanba, 15:00)">
             </div>
             
@@ -56,7 +59,7 @@
                     <h4>{{ c.name }}</h4>
                     <p>O'qituvchi: {{ c.teacher.first_name }} {{ c.teacher.last_name }} | Vaqt: {{ c.schedule }}</p>
                 </div>
-                <a href="/clubs/delete/{{ c.id }}" class="btn-delete" onclick="return confirm('O\'chirilsinmi?')">O'chirish</a>
+                {% if current_role == 'admin' or c.teacher_id == current_teacher_id %}<a href="/clubs/delete/{{ c.id }}" class="btn-delete" onclick="return confirm('O\'chirilsinmi?')">O'chirish</a>{% endif %}
             </div>
             {% else %}
             <p style="color:#94a3b8; text-align:center; padding:20px;">Hozircha to'garaklar yo'q.</p>

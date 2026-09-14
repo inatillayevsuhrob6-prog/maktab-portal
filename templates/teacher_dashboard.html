@@ -84,8 +84,20 @@
                 
                 <div class="card" style="padding:20px; margin-top:20px;">
                     <h4 style="margin-top:0; color:#2c3e50;">Tezkor Havolalar</h4>
+                    <a href="/clubs/manage" style="display:block; background:#f59e0b; color:white; padding:10px; border-radius:6px; text-decoration:none; text-align:center; margin-bottom:10px;">🎯 To‘garaklarni boshqarish</a>
                     <a href="/ai_chat" style="display:block; background:#667eea; color:white; padding:10px; border-radius:6px; text-decoration:none; text-align:center; margin-bottom:10px;">🤖 AI Yordamchi</a>
                     <a href="/library" style="display:block; background:#1abc9c; color:white; padding:10px; border-radius:6px; text-decoration:none; text-align:center;">📚 Kutubxona</a>
+                </div>
+
+                <div class="card" style="padding:20px; margin-top:20px;">
+                    <h4 style="margin-top:0; color:#2c3e50;">🎯 To‘garaklar statistikasi</h4>
+                    {% for club in clubs %}
+                    <div style="padding:10px 0; border-bottom:1px solid #eef2f7;">
+                        <strong>{{ club.name }}</strong>
+                        <small style="display:block; color:#7f8c8d; margin-top:3px;">{{ club.members|length }} a’zo | {{ club.schedule or 'Vaqt belgilanmagan' }}</small>
+                        {% if club.members %}<span style="display:block; color:#64748b; font-size:12px; margin-top:5px;">{% for membership in club.members %}{{ membership.student.first_name }} {{ membership.student.last_name }} ({{ membership.student.student_class.name }}){% if not loop.last %}, {% endif %}{% endfor %}</span>{% endif %}
+                    </div>
+                    {% else %}<p style="color:#999; font-size:14px;">Hozircha to‘garaklar yo‘q.</p>{% endfor %}
                 </div>
             </div>
         </div>
