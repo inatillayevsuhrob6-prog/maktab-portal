@@ -123,19 +123,11 @@
         <a href="/clubs/manage" style="color:#2563eb; text-decoration:none; font-weight:600; font-size:0.9rem;">Boshqarish →</a>
     </div>
     
-    <div id="clubs-stats-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
-        <!-- Ma'lumotlar JS orqali yuklanadi -->
-        <div style="background:#f8fafc; padding:20px; border-radius:12px; text-align:center;">
-            <div style="font-size:1.5rem; font-weight:800; color:#1e293b;" id="stat-members">...</div>
-            <div style="color:#64748b; font-size:0.85rem; margin-top:5px;">Jami a'zolar</div>
-        </div>
-        <div style="background:#f8fafc; padding:20px; border-radius:12px; text-align:center;">
-            <div style="font-size:1.5rem; font-weight:800; color:#1e293b;" id="stat-active">...</div>
-            <div style="color:#64748b; font-size:0.85rem; margin-top:5px;">Faol to'garaklar</div>
-        </div>
-        <div style="background:#f8fafc; padding:20px; border-radius:12px; text-align:center;">
-            <div style="font-size:1rem; font-weight:700; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="stat-popular">...</div>
-            <div style="color:#64748b; font-size:0.85rem; margin-top:5px;">Eng mashhuri</div>
+    <div id="clubs-stats-container" style="display: flex; justify-content: center;">
+        <!-- Faqat Jami a'zolar kartasi -->
+        <div style="background:#f8fafc; padding:30px; border-radius:16px; text-align:center; width: 100%; max-width: 300px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div style="font-size:3rem; font-weight:800; color:#2563eb;" id="stat-members">0</div>
+            <div style="color:#64748b; font-size:1rem; margin-top:10px; font-weight: 600;">Jami a'zolar</div>
         </div>
     </div>
 </div>
@@ -144,9 +136,8 @@
     fetch('/clubs/stats')
         .then(r => r.json())
         .then(data => {
-            document.getElementById('stat-members').innerText = data.total_members || 0;
-            document.getElementById('stat-active').innerText = data.active_clubs || 0;
-            document.getElementById('stat-popular').innerText = data.popular_club || "-";
+            const membersEl = document.getElementById('stat-members');
+            if (membersEl) membersEl.innerText = data.total_members || 0;
         })
         .catch(e => console.log("Clubs stats error:", e));
 </script>
