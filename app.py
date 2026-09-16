@@ -647,8 +647,23 @@ def create_app():
     @app.route("/library/add", methods=["POST"])
     def add_book():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        db.session.add(Book(title=sanitize_input(request.form.get('title')), author=sanitize_input(request.form.get('author')), genre=request.form.get('genre'), description=sanitize_input(request.form.get('description')), cover_url=sanitize_input(request.form.get('cover_url')), file_url=sanitize_input(request.form.get('file_url')), school_id=session['school_id']))
-        db.session.commit(); return redirect(url_for('manage_library'))
+        try:
+            db.session.add(Book(
+                title=sanitize_input(request.form.get('title')), 
+                author=sanitize_input(request.form.get('author')), 
+                genre=request.form.get('genre'), 
+                description=sanitize_input(request.form.get('description')), 
+                cover_url=sanitize_input(request.form.get('cover_url')), 
+                file_url=sanitize_input(request.form.get('file_url')), 
+                school_id=session['school_id']
+            ))
+            db.session.commit()
+            return redirect(url_for('manage_library'))
+        except Exception as e:
+            db.session.rollback()
+            print(f"Kitob qo'shishda xato: {e}")
+            flash(f"Xatolik yuz berdi: {e}", "danger")
+            return redirect(url_for('manage_library'))
 
     @app.route("/library")
     def student_library():
