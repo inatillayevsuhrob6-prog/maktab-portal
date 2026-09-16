@@ -37,10 +37,10 @@ def create_app():
     
     with app.app_context():
         from sqlalchemy import text
-        
+
         # 1. Bazani yaratish (agar yo'q bo'lsa)
         db.create_all()
-        
+
         # 2. NEWS jadvalidagi image_url ustunini tekshirish va qo'shish
         try:
             result = db.session.execute(text(
@@ -79,6 +79,33 @@ def create_app():
     def sanitize_input(text):
         if text: return bleach.clean(text, tags=[], attributes={}, strip=True)
         return text
+
+    def remove_student_records(student_id):
+        StudentClub.query.filter_by(student_id=student_id).delete(synchronize_session=False)
+        StudentAchievement.query.filter_by(student_id=student_id).delete(synchronize_session=False)
+        TestResult.query.filter_by(student_id=student_id).delete(synchronize_session=False)
+        ChatMessage.query.filter(
+            or_(
+                and_(ChatMessage.sender_type == 'student', ChatMessage.sender_id == student_id),
+                and_(ChatMessage.recipient_type == 'student', ChatMessage.recipient_id == student_id)
+            )
+        ).delete(synchronize_session=False)
+
+    def remove_teacher_records(teacher_id, school_id):
+        clubs = Club.query.filter_by(teacher_id=teacher_id, school_id=school_id).all()
+        for club in clubs:
+            StudentClub.query.filter_by(club_id=club.id).delete(synchronize_session=False)
+            db.session.delete(club)
+        TeacherClassAssignment.query.filter_by(teacher_id=teacher_id).delete(synchronize_session=False)
+        Schedule.query.filter_by(teacher_id=teacher_id, school_id=school_id).update(
+            {Schedule.teacher_id: None}, synchronize_session=False
+        )
+        ChatMessage.query.filter(
+            or_(
+                and_(ChatMessage.sender_type == 'teacher', ChatMessage.sender_id == teacher_id),
+                and_(ChatMessage.recipient_type == 'teacher', ChatMessage.recipient_id == teacher_id)
+            )
+        ).delete(synchronize_session=False)
 
     def save_teacher_profile_image(uploaded_file, teacher_id):
         if not uploaded_file or not uploaded_file.filename:
@@ -856,17 +883,34 @@ def create_app():
     @app.route("/delete_class/<int:cid>")
     def delete_class(cid):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        c = Class.query.filter_by(id=cid, school_id=session['school_id']).first_or_404(); db.session.delete(c); db.session.commit(); return redirect(url_for('classes'))
+        c = Class.query.filter_by(id=cid, school_id=session['school_id']).first_or_404()
+        for student in Student.query.filter_by(class_id=c.id, school_id=session['school_id']).all():
+            remove_student_records(student.id)
+            db.session.delete(student)
+        Schedule.query.filter_by(class_id=c.id, school_id=session['school_id']).delete(synchronize_session=False)
+        TeacherClassAssignment.query.filter_by(class_id=c.id).delete(synchronize_session=False)
+        Test.query.filter_by(class_id=c.id, school_id=session['school_id']).update({Test.class_id: None}, synchronize_session=False)
+        db.session.delete(c)
+        db.session.commit()
+        return redirect(url_for('classes'))
 
     @app.route("/delete_student/<int:sid>")
     def delete_student(sid):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        s = Student.query.filter_by(id=sid, school_id=session['school_id']).first_or_404(); db.session.delete(s); db.session.commit(); return redirect(url_for('students'))
+        s = Student.query.filter_by(id=sid, school_id=session['school_id']).first_or_404()
+        remove_student_records(s.id)
+        db.session.delete(s)
+        db.session.commit()
+        return redirect(url_for('students'))
 
     @app.route("/delete_teacher/<int:tid>")
     def delete_teacher(tid):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        t = Teacher.query.filter_by(id=tid, school_id=session['school_id']).first_or_404(); db.session.delete(t); db.session.commit(); return redirect(url_for('teachers'))
+        t = Teacher.query.filter_by(id=tid, school_id=session['school_id']).first_or_404()
+        remove_teacher_records(t.id, session['school_id'])
+        db.session.delete(t)
+        db.session.commit()
+        return redirect(url_for('teachers'))
 
     @app.route("/delete_test/<int:test_id>")
     def delete_test(test_id):
