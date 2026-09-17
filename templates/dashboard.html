@@ -35,7 +35,13 @@
                 <button class="menu-toggle" onclick="toggleDashboardSidebar()" aria-label="Menyuni ochish">☰</button>
                 <div class="dashboard-breadcrumb"><span>Boshqaruv paneli</span><strong>{{ school.name }}</strong></div>
                 <form action="/search" method="GET" class="topbar-search"><span>⌕</span><input type="text" name="q" placeholder="Qidirish..."></form>
-                <a href="/chat" class="notification-button" aria-label="Bildirishnomalar"><span>♢</span></a>
+                <div class="notification-wrap">
+                    <button type="button" class="notification-button" onclick="toggleNotifications(event)" aria-label="Bildirishnomalar"><span>♢</span>{% if header_notification_count %}<b>{{ header_notification_count }}</b>{% endif %}</button>
+                    <div class="notification-panel" id="notificationPanel">
+                        <div class="notification-heading"><strong>Bildirishnomalar</strong><a href="/chat">Chatni ochish</a></div>
+                        {% for item in header_notifications %}<a class="notification-item" href="/chat"><strong>{{ item.sender }}</strong><p>{{ item.body[:90] }}{% if item.body|length > 90 %}...{% endif %}</p><small>{{ item.time }}</small></a>{% else %}<div class="notification-empty">Hozircha bildirishnoma yo‘q.</div>{% endfor %}
+                    </div>
+                </div>
                 <button class="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Tungi rejimni almashtirish"><span id="themeIcon">☾</span><span class="theme-label">Rejim</span></button>
                 <div class="topbar-status"><span></span> Tizim faol</div>
             </header>
@@ -124,6 +130,16 @@
             localStorage.setItem('theme', dark ? 'dark' : 'light');
             applyTheme();
         }
+
+        function toggleNotifications(event) {
+            event.stopPropagation();
+            document.getElementById('notificationPanel').classList.toggle('open');
+        }
+
+        document.addEventListener('click', function(event) {
+            const panel = document.getElementById('notificationPanel');
+            if (panel && !event.target.closest('.notification-wrap')) panel.classList.remove('open');
+        });
 
         applyTheme();
 

@@ -98,16 +98,43 @@ def create_app():
     @app.context_processor
     def header_notifications():
         unread_count = 0
+        notification_items = []
         role = session.get('user_role')
         school_id = session.get('school_id')
-        if school_id and role in {'student', 'teacher'}:
-            user_id = session.get('student_id') if role == 'student' else session.get('teacher_id')
-            unread_count = ChatMessage.query.filter(
-                ChatMessage.school_id == school_id,
-                ChatMessage.recipient_type == role,
-                ChatMessage.recipient_id == user_id
-            ).count()
-        return {'header_notification_count': unread_count}
+        if school_id and role in {'admin', 'student', 'teacher'}:
+            if role == 'admin':
+                messages = ChatMessage.query.filter_by(school_id=school_id).order_by(ChatMessage.created_at.desc()).limit(8).all()
+                unread_count = ChatMessage.query.filter_by(school_id=school_id).count()
+            else:
+                user_id = session.get('student_id') if role == 'student' else session.get('teacher_id')
+                messages = ChatMessage.query.filter(
+                    ChatMessage.school_id == school_id,
+                    ChatMessage.recipient_type == role,
+                    ChatMessage.recipient_id == user_id
+                ).order_by(ChatMessage.created_at.desc()).limit(8).all()
+                unread_count = ChatMessage.query.filter(
+                    ChatMessage.school_id == school_id,
+                    ChatMessage.recipient_type == role,
+                    ChatMessage.recipient_id == user_id
+                ).count()
+
+            teacher_ids = {item.sender_id for item in messages if item.sender_type == 'teacher'}
+            student_ids = {item.sender_id for item in messages if item.sender_type == 'student'}
+            teachers = {item.id: f"{item.first_name} {item.last_name}" for item in Teacher.query.filter(Teacher.id.in_(teacher_ids)).all()} if teacher_ids else {}
+            students = {item.id: f"{item.first_name} {item.last_name}" for item in Student.query.filter(Student.id.in_(student_ids)).all()} if student_ids else {}
+            for item in messages:
+                if item.sender_type == 'admin':
+                    sender_name = 'Admin'
+                elif item.sender_type == 'teacher':
+                    sender_name = teachers.get(item.sender_id, 'O‘qituvchi')
+                else:
+                    sender_name = students.get(item.sender_id, 'O‘quvchi')
+                notification_items.append({
+                    'sender': sender_name,
+                    'body': item.body,
+                    'time': item.created_at.strftime('%d.%m.%Y %H:%M')
+                })
+        return {'header_notification_count': unread_count, 'header_notifications': notification_items}
 
     def remove_student_records(student_id):
         StudentClub.query.filter_by(student_id=student_id).delete(synchronize_session=False)
