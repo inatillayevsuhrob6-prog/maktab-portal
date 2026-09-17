@@ -297,12 +297,17 @@ def create_app():
         schedule_items = Schedule.query.filter_by(school_id=sid).all()
         day_names = ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"]
         schedule_counts = [sum(item.day_of_week == day for item in schedule_items) for day in day_names]
-        club_class_rows = db.session.query(Class.name, func.count(StudentClub.id)) \
-            .join(Student, Student.class_id == Class.id) \
-            .join(StudentClub, Student.id == StudentClub.student_id) \
-            .filter(Student.school_id == sid) \
-            .group_by(Class.name) \
-            .order_by(Class.name).all()
+        try:
+            club_class_rows = db.session.query(Class.name, func.count(StudentClub.id)) \
+                .join(Student, Student.class_id == Class.id) \
+                .join(StudentClub, Student.id == StudentClub.student_id) \
+                .filter(Student.school_id == sid) \
+                .group_by(Class.name) \
+                .order_by(Class.name).all()
+        except Exception as error:
+            app.logger.warning("To'garak statistikasi yuklanmadi: %s", error)
+            db.session.rollback()
+            club_class_rows = []
         results = TestResult.query.join(Student).filter(Student.school_id == sid).all()
         average_score = round(sum(item.percentage or 0 for item in results) / len(results), 1) if results else 0
         passed_results = sum((item.percentage or 0) >= 60 for item in results)
@@ -346,8 +351,8 @@ def create_app():
             if s.day_of_week in grouped:
                 grouped[s.day_of_week].append(s)
                 if s.student_class: unique_classes.add(s.student_class)
-            clubs = Club.query.filter_by(school_id=session['school_id']).all()
-            return render_template("teacher_dashboard.html", teacher=teacher, schedule=grouped, my_classes=list(unique_classes), clubs=clubs)
+        clubs = Club.query.filter_by(school_id=session['school_id']).all()
+        return render_template("teacher_dashboard.html", teacher=teacher, schedule=grouped, my_classes=list(unique_classes), clubs=clubs)
 
     # --- O'QITUVCHI-O'QUVCHI ICHKI CHAT ---
     @app.route("/chat")
@@ -603,6 +608,9 @@ def create_app():
     def student_dashboard():
         if 'school_id' not in session or session.get('user_role') != 'student': return redirect(url_for('home'))
         st = Student.query.get(session['student_id'])
+        if not st or st.school_id != session['school_id']:
+            session.clear()
+            return redirect(url_for('home'))
         res = TestResult.query.filter_by(student_id=st.id).order_by(TestResult.submitted_at.desc()).limit(5).all()
         ach = StudentAchievement.query.filter_by(student_id=st.id).all()
         nws = News.query.filter_by(school_id=st.school_id).order_by(News.created_at.desc()).limit(3).all()
