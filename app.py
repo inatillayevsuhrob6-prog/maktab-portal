@@ -3,7 +3,7 @@ from config import Config
 from extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from backend.models import School, Class, Student, Teacher, TeacherClassAssignment, Subject, Test, TestQuestion, TestResult, Achievement, StudentAchievement, Schedule, Book, News, Club, StudentClub, ChatMessage
+from backend.models import School, Class, Student, Teacher, TeacherClassAssignment, Subject, Test, TestQuestion, TestResult, Achievement, StudentAchievement, Schedule, Book, News, Club, StudentClub, ChatMessage, Presentation
 from sqlalchemy.orm import joinedload
 from sqlalchemy import text, func, and_, or_
 from flask_wtf.csrf import CSRFProtect, CSRFError
@@ -55,6 +55,21 @@ def create_app():
         except Exception as e:
             print(f"❌ Bazani yangilashda xatolik: {e}")
             db.session.rollback()
+
+        try:
+            if db.engine.dialect.name == 'sqlite':
+                columns = [row[1] for row in db.session.execute(text("PRAGMA table_info(tests)"))]
+                if 'created_by_teacher_id' not in columns:
+                    db.session.execute(text("ALTER TABLE tests ADD COLUMN created_by_teacher_id INTEGER"))
+                    db.session.commit()
+            else:
+                result = db.session.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name='tests' AND column_name='created_by_teacher_id'")).fetchone()
+                if not result:
+                    db.session.execute(text("ALTER TABLE tests ADD COLUMN created_by_teacher_id INTEGER REFERENCES teachers(id)"))
+                    db.session.commit()
+        except Exception as e:
+            print(f"Test ustunini yangilashda xatolik: {e}")
+            db.session.rollback()
             
         # 3. CLUB jadvalini yaratish
         try:
@@ -79,6 +94,20 @@ def create_app():
     def sanitize_input(text):
         if text: return bleach.clean(text, tags=[], attributes={}, strip=True)
         return text
+
+    @app.context_processor
+    def header_notifications():
+        unread_count = 0
+        role = session.get('user_role')
+        school_id = session.get('school_id')
+        if school_id and role in {'student', 'teacher'}:
+            user_id = session.get('student_id') if role == 'student' else session.get('teacher_id')
+            unread_count = ChatMessage.query.filter(
+                ChatMessage.school_id == school_id,
+                ChatMessage.recipient_type == role,
+                ChatMessage.recipient_id == user_id
+            ).count()
+        return {'header_notification_count': unread_count}
 
     def remove_student_records(student_id):
         StudentClub.query.filter_by(student_id=student_id).delete(synchronize_session=False)
@@ -495,22 +524,24 @@ def create_app():
 
     @app.route("/tests")
     def tests():
-        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}: return redirect(url_for('home'))
         return render_template("tests.html", tests=Test.query.filter_by(school_id=session['school_id']).all())
 
     @app.route("/create_test", methods=["GET", "POST"])
     def create_test():
-        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}: return redirect(url_for('home'))
         sid = session['school_id']
         if request.method == "POST":
-            t = Test(title=sanitize_input(request.form.get('title')), school_id=sid, subject_id=request.form.get('subject_id'), class_id=request.form.get('class_id'))
+            t = Test(title=sanitize_input(request.form.get('title')), school_id=sid, subject_id=request.form.get('subject_id'), class_id=request.form.get('class_id'), created_by_teacher_id=session.get('teacher_id'))
             db.session.add(t); db.session.commit(); return redirect(url_for('add_question', test_id=t.id))
         return render_template("create_test.html", subjects=Subject.query.filter_by(school_id=sid).all(), classes=Class.query.filter_by(school_id=sid).all())
 
     @app.route("/add_question/<int:test_id>", methods=["GET", "POST"])
     def add_question(test_id):
-        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
+        if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}: return redirect(url_for('home'))
         test = Test.query.filter_by(id=test_id, school_id=session['school_id']).first_or_404()
+        if session.get('user_role') == 'teacher' and test.created_by_teacher_id != session.get('teacher_id'):
+            return redirect(url_for('tests'))
         if request.method == "POST":
             db.session.add(TestQuestion(test_id=test_id, question_text=sanitize_input(request.form.get('question_text')), option_a=sanitize_input(request.form.get('option_a')), option_b=sanitize_input(request.form.get('option_b')), option_c=sanitize_input(request.form.get('option_c')), option_d=sanitize_input(request.form.get('option_d')), correct_answer=request.form.get('correct_answer'), topic=sanitize_input(request.form.get('topic')), subtopic=sanitize_input(request.form.get('subtopic'))))
             db.session.commit()
@@ -670,6 +701,41 @@ def create_app():
     def manage_library():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
         return render_template("manage_library.html", books=Book.query.filter_by(school_id=session['school_id']).all())
+
+    @app.route("/presentations")
+    def presentations():
+        if 'school_id' not in session or session.get('user_role') not in {'admin', 'student', 'teacher'}:
+            return redirect(url_for('home'))
+        items = Presentation.query.filter_by(school_id=session['school_id']).order_by(Presentation.created_at.desc()).all()
+        return render_template("presentations.html", presentations=items, current_role=session.get('user_role'))
+
+    @app.route("/presentations/upload", methods=["POST"])
+    def upload_presentation():
+        if 'school_id' not in session or session.get('user_role') != 'teacher':
+            return redirect(url_for('home'))
+        uploaded = request.files.get('presentation_file')
+        if not uploaded or not uploaded.filename:
+            flash("Taqdimot faylini tanlang.", "warning")
+            return redirect(url_for('presentations'))
+        filename = secure_filename(uploaded.filename)
+        extension = os.path.splitext(filename)[1].lower()
+        if extension not in {'.pdf', '.ppt', '.pptx'}:
+            flash("Faqat PDF, PPT yoki PPTX fayl yuklash mumkin.", "danger")
+            return redirect(url_for('presentations'))
+        upload_dir = os.path.join(app.static_folder, 'uploads', 'presentations')
+        os.makedirs(upload_dir, exist_ok=True)
+        saved_name = f"{session['teacher_id']}_{int(datetime.now().timestamp())}_{filename}"
+        uploaded.save(os.path.join(upload_dir, saved_name))
+        db.session.add(Presentation(
+            title=sanitize_input(request.form.get('title')) or filename,
+            description=sanitize_input(request.form.get('description')),
+            file_url=url_for('static', filename=f'uploads/presentations/{saved_name}'),
+            school_id=session['school_id'],
+            teacher_id=session['teacher_id']
+        ))
+        db.session.commit()
+        flash("Taqdimot muvaffaqiyatli yuklandi.", "success")
+        return redirect(url_for('presentations'))
 
     @app.route("/library/add", methods=["POST"])
     def add_book():

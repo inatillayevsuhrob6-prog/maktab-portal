@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Taqdimotlar{% endblock %}
+{% block content %}
+<div class="presentations-page">
+    <div class="page-heading-row"><div><span class="page-kicker">O‘QUV MATERIALLARI</span><h1>Taqdimotlar</h1><p>O‘qituvchilar yuklagan dars taqdimotlari.</p></div><span class="presentation-count">{{ presentations|length }} ta material</span></div>
+    {% if current_role == 'teacher' %}
+    <form class="presentation-upload" action="{{ url_for('upload_presentation') }}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input name="title" placeholder="Taqdimot nomi" required>
+        <input name="description" placeholder="Qisqacha tavsif">
+        <input type="file" name="presentation_file" accept=".pdf,.ppt,.pptx" required>
+        <button type="submit">Yuklash</button>
+    </form>
+    {% endif %}
+    <div class="presentation-grid">
+        {% for item in presentations %}
+        <article class="presentation-card"><div class="presentation-icon">▤</div><div class="presentation-body"><h2>{{ item.title }}</h2><p>{{ item.description or 'Dars uchun taqdimot' }}</p><small>{{ item.teacher.first_name }} {{ item.teacher.last_name }} · {{ item.created_at.strftime('%d.%m.%Y') }}</small><a href="{{ item.file_url }}" target="_blank" rel="noopener">Ochish / yuklab olish →</a></div></article>
+        {% else %}<div class="presentation-empty">Hozircha taqdimotlar yuklanmagan.</div>{% endfor %}
+    </div>
+</div>
+{% endblock %}

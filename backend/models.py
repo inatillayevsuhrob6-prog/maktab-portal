@@ -103,6 +103,7 @@ class Test(db.Model):
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'))
     class_id = db.Column(db.Integer, db.ForeignKey('classes.id'))
+    created_by_teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     subject = db.relationship('Subject', backref='tests', lazy=True)
@@ -251,3 +252,16 @@ class ChatMessage(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     school = db.relationship('School', backref=db.backref('chat_messages', lazy=True))
+
+class Presentation(db.Model):
+    __tablename__ = 'presentations'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    file_url = db.Column(db.String(500), nullable=False)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    school = db.relationship('School', backref=db.backref('presentations', lazy=True))
+    teacher = db.relationship('Teacher', backref=db.backref('presentations', lazy=True))

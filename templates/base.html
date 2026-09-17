@@ -36,15 +36,18 @@
                     <a href="/teacher_dashboard" class="{% if request.path == '/teacher_dashboard' %}active{% endif %}"><span>⌂</span>Kabinet</a>
                     <a href="/teacher_profile" class="{% if request.path.startswith('/teacher_profile') %}active{% endif %}"><span>◉</span>Profil sozlamalari</a>
                     <a href="/schedule/view"><span>◫</span>Dars jadvali</a>
+                    <a href="/tests" class="{% if request.path.startswith('/tests') %}active{% endif %}"><span>▣</span>Testlar</a>
                     <a href="/clubs/manage" class="{% if request.path.startswith('/clubs') %}active{% endif %}"><span>🎯</span>To‘garaklar</a>
                     <a href="/library"><span>▥</span>Kutubxona</a>
                     <a href="/ai_chat"><span>✦</span>AI yordamchi</a>
+                    <a href="/presentations" class="{% if request.path.startswith('/presentations') %}active{% endif %}"><span>▧</span>Taqdimotlar</a>
                     <a href="/chat" class="{% if request.path.startswith('/chat') %}active{% endif %}"><span>◌</span>Ichki chat</a>
                 {% else %}
                     <a href="/student_dashboard" class="{% if request.path == '/student_dashboard' %}active{% endif %}"><span>⌂</span>Kabinet</a>
                     <a href="/student_profile" class="{% if request.path.startswith('/student_profile') %}active{% endif %}"><span>◉</span>Mening profilim</a>
                     <a href="/schedule/view" class="{% if request.path.startswith('/schedule') %}active{% endif %}"><span>◫</span>Dars jadvali</a>
                     <a href="/my_tests" class="{% if request.path.startswith('/my_tests') %}active{% endif %}"><span>▣</span>Testlarim</a>
+                    <a href="/presentations" class="{% if request.path.startswith('/presentations') %}active{% endif %}"><span>▧</span>Taqdimotlar</a>
                     <a href="/library" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kitobxona</a>
                     <a href="/news" class="{% if request.path.startswith('/news') %}active{% endif %}"><span>▰</span>Yangiliklar</a>
                     <a href="/ai_chat"><span>✦</span>AI yordamchi</a>
@@ -59,6 +62,7 @@
                 <form action="/search" method="GET" class="topbar-search">
                     <span>⌕</span><input type="text" name="q" placeholder="Qidirish..." value="{{ request.args.get('q', '') }}">
                 </form>
+                <a href="/chat" class="notification-button" aria-label="Bildirishnomalar"><span>♢</span>{% if header_notification_count %}<b>{{ header_notification_count }}</b>{% endif %}</a>
                 <button class="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Tungi rejimni almashtirish"><span id="themeIcon">☾</span><span class="theme-label">Rejim</span></button>
                 <div class="topbar-status"><span></span> Tizim faol</div>
             </header>
