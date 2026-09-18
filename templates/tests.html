@@ -2,55 +2,70 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Testlar</title>
+    <title>Testlar Ro'yxati</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        .page-navbar { background-color: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .page-navbar h3 { margin: 0; font-size: 18px; font-weight: 600; }
-        .nav-actions { display: flex; gap: 15px; align-items: center; }
-        .nav-link { color: white !important; text-decoration: none; font-weight: 500; }
-        .btn-logout-nav { background-color: #e74c3c; color: white !important; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background-color: #f8f9fa; color: #2c3e50; font-weight: 600; }
-        .btn-edit { background: #f39c12; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; }
-        .btn-delete { background: #e74c3c; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; }
-        .btn-view { background: #3498db; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; }
+        body { background: #f8fafc; font-family: sans-serif; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        h2 { color: #1e293b; margin: 0; }
+        .btn { padding: 10px 20px; border-radius: 8px; text-decoration: none; color: white; font-weight: 600; display: inline-block; }
+        .btn-primary { background: #2563eb; }
+        .btn-success { background: #10b981; }
+        .btn-danger { background: #ef4444; }
+        .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f1f5f9; color: #64748b; font-size: 0.85rem; text-transform: uppercase; }
+        .actions { white-space: nowrap; }
+        .actions a { margin-right: 5px; }
     </style>
 </head>
-<body class="legacy-admin-page" style="background-color: #f4f6f9; padding: 20px;">
-    {% include "admin_sidebar.html" %}
-    <div class="page-navbar">
-        <h3>Testlar Bo'limi</h3>
-        <div class="nav-actions">
-            <a href="/dashboard" class="nav-link">← Bosh sahifa</a>
-            <a href="/logout" class="btn-logout-nav">Chiqish</a>
-        </div>
-    </div>
-
-    <div style="max-width: 1200px; margin: 0 auto;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h1 style="color: #2c3e50; margin: 0;">Testlar Ro'yxati</h1>
-            <a href="/create_test" class="btn-primary" style="width:auto; padding:10px 20px; text-decoration:none; display:inline-block;">+ Yangi Test</a>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>📝 Testlar Ro'yxati</h2>
+            <a href="/create_test" class="btn btn-primary">+ Yangi Test</a>
         </div>
 
+        {% if tests %}
         <table>
-            <thead><tr><th>Nomi</th><th>Fan</th><th>Sinf</th><th>Savollar</th><th>Amallar</th></tr></thead>
-            <tbody>
-                {% for t in tests %}
+            <thead>
                 <tr>
-                    <td style="white-space: nowrap;">
-            <a href="/add_question/{{ test.id }}" class="btn btn-sm btn-primary" style="margin-right:5px;">+ Savol qo'shish</a>
-            <a href="{% if session.get('user_role') == 'teacher' %}/teacher/test_results/{% else %}/test_results/{% endif %}{{ test.id }}" class="btn btn-sm btn-success" style="margin-right:5px;">Natijalar</a>
-            <a href="/delete_test/{{ test.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Rostdan ham o'chirmoqchimisiz?')">O'chirish</a>
-        </td>
+                    <th>NOMI</th>
+                    <th>FAN</th>
+                    <th>SINF</th>
+                    <th>SAVOLLAR</th>
+                    <th>AMALLAR</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test in tests %}
+                <tr>
+                    <td><b>{{ test.title }}</b></td>
+                    <td>{{ test.subject.name if test.subject else '-' }}</td>
+                    <td>{{ test.student_class.name if test.student_class else '-' }}</td>
+                    <td>{{ test.questions|length }}</td>
+                    <td class="actions">
+                        <a href="/add_question/{{ test.id }}" class="btn btn-sm btn-primary">+ Savol</a>
+                        
+                        {% if session.get('user_role') == 'teacher' %}
+                            <a href="/teacher/test_results/{{ test.id }}" class="btn btn-sm btn-success">Natijalar</a>
+                        {% else %}
+                            <a href="/test_results/{{ test.id }}" class="btn btn-sm btn-success">Natijalar</a>
+                        {% endif %}
+                        
+                        <a href="/delete_test/{{ test.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Rostdan ham o'chirmoqchimisiz?')">O'chirish</a>
+                    </td>
                 </tr>
                 {% endfor %}
-                {% if tests|length == 0 %}
-                <tr><td colspan="5" style="text-align:center; padding:30px; color:#777;">Hozircha testlar yo'q.</td></tr>
-                {% endif %}
             </tbody>
         </table>
+        {% else %}
+        <div style="text-align:center; padding:40px; background:white; border-radius:12px;">
+            <p style="color:#64748b; font-size:1.1rem;">Hozircha testlar mavjud emas.</p>
+        </div>
+        {% endif %}
     </div>
 </body>
 </html>
