@@ -103,5 +103,45 @@
             </div>
         </div>
     </div>
+
+<!-- TO'GARAK YARATISH MODALI -->
+<div id="clubModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+    <div style="background:white; width:90%; max-width:500px; border-radius:16px; padding:25px; position:relative;">
+        <button onclick="closeClubModal()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+        <h3 style="margin-top:0;">Yangi To'garak Yaratish</h3>
+        <form method="POST" action="/clubs/add">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div style="margin-bottom:15px;">
+                <label>To'garak nomi</label>
+                <input type="text" name="name" required style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+            </div>
+            <div style="margin-bottom:15px;">
+                <label>Tavsif</label>
+                <textarea name="description" rows="3" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></textarea>
+            </div>
+            <!-- Admin uchun o'qituvchi tanlash, o'qituvchi uchun yashirin -->
+            {% if session.get('user_role') == 'admin' %}
+            <div style="margin-bottom:15px;">
+                <label>Rahbar o'qituvchi</label>
+                <select name="teacher_id" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                    {% for t in teachers %}
+                        <option value="{{ t.id }}">{{ t.first_name }} {{ t.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <button type="submit" style="width:100%; background:#2563eb; color:white; padding:12px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Saqlash</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function openClubModal() { document.getElementById('clubModal').style.display = 'flex'; }
+function closeClubModal() { document.getElementById('clubModal').style.display = 'none'; }
+window.onclick = function(event) { 
+    if (event.target == document.getElementById('clubModal')) closeClubModal(); 
+}
+</script>
+
 </body>
 </html>
