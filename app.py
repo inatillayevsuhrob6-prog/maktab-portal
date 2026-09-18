@@ -258,7 +258,7 @@ def create_app():
                 
         return render_template("register.html")
 
-    @app.route("/login", methods=["POST"])
+    @app.route("/login", methods=["GET", "POST"])
     @limiter.limit("10 per minute")
     def login():
         login_input = sanitize_input(request.form.get('username'))
