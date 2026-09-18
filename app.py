@@ -340,7 +340,54 @@ def create_app():
         </body>
         </html>
         """
-        return error_html, 401
+    return """
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACCESS DENIED // SYSTEM ERROR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon-cyan: #00f3ff; --neon-red: #ff003c; --bg-dark: #050505; }
+        body { margin: 0; padding: 0; background-color: var(--bg-dark); color: #fff; font-family: 'Rajdhani', sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; perspective: 1000px; }
+        #matrix-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.15; }
+        .hud-container { position: relative; width: 600px; max-width: 90%; padding: 40px; background: rgba(10, 10, 15, 0.85); border: 1px solid rgba(0, 243, 255, 0.3); box-shadow: 0 0 50px rgba(0, 243, 255, 0.1); backdrop-filter: blur(5px); animation: float 6s ease-in-out infinite; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%); }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .error-icon-wrapper { text-align: center; margin-bottom: 20px; }
+        .shield-svg { width: 80px; height: 80px; fill: none; stroke: var(--neon-red); stroke-width: 2; filter: drop-shadow(0 0 10px var(--neon-red)); animation: pulse-red 2s infinite; }
+        @keyframes pulse-red { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
+        h1 { font-family: 'Orbitron', sans-serif; text-align: center; font-size: 2.5rem; margin: 0 0 10px; color: #fff; text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        p { text-align: center; color: #aaa; font-size: 1.1rem; margin-bottom: 40px; border-top: 1px solid rgba(255, 255, 255, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding: 15px 0; background: rgba(0, 0, 0, 0.3); }
+        .btn-retry { display: block; width: 100%; padding: 15px; background: transparent; color: var(--neon-cyan); border: 1px solid var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; transition: all 0.3s; text-decoration: none; text-align: center; box-sizing: border-box; }
+        .btn-retry:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 30px var(--neon-cyan); }
+        .scanline { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.1) 51%); background-size: 100% 4px; pointer-events: none; z-index: 10; }
+    </style>
+</head>
+<body>
+    <canvas id="matrix-canvas"></canvas>
+    <div class="scanline"></div>
+    <div class="hud-container">
+        <div class="error-icon-wrapper">
+            <svg class="shield-svg" viewBox="0 0 24 24"><path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V8.27l7-3.89v8.61z"/><path d="M12 12l-3-3 1.41-1.41L12 9.17l4.59-4.59L18 6l-6 6z" fill="var(--neon-red)" stroke="none"/></svg>
+        </div>
+        <h1>KIRISH RAD ETILDI</h1>
+        <p>[SYSTEM ALERT]: Login yoki parol noto'g'ri.<br>Xavfsizlik protokoli faollashtirildi.</p>
+        <a href="/login" class="btn-retry">QAYTA URINISH >></a>
+    </div>
+    <script>
+        const canvas = document.getElementById('matrix-canvas'); const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const fontSize = 16; const columns = canvas.width/fontSize; const drops = [];
+        for(let x=0; x<columns; x++) drops[x]=1;
+        function draw() { ctx.fillStyle='rgba(5,5,5,0.05)'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#0F0'; ctx.font=fontSize+'px monospace';
+        for(let i=0; i<drops.length; i++) { const text=chars.charAt(Math.floor(Math.random()*chars.length)); ctx.fillText(text,i*fontSize,drops[i]*fontSize); if(drops[i]*fontSize>canvas.height && Math.random()>0.975) drops[i]=0; drops[i]++; } }
+        setInterval(draw, 30); window.addEventListener('resize', ()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
+    </script>
+</body>
+</html>
+""", 401
 
     # --- ADMIN DASHBOARD ---
     @app.route("/dashboard")
