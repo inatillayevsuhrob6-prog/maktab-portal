@@ -284,7 +284,63 @@ def create_app():
             session['last_activity'] = datetime.now(timezone.utc)
             return redirect(url_for('teacher_dashboard'))
             
-        return "Login yoki parol xato!", 401
+        # Futuristik Xato Sahifasi
+        error_html = """
+        <!DOCTYPE html>
+        <html lang="uz">
+        <head>
+            <meta charset="UTF-8">
+            <title>Kirish Rad Etildi</title>
+            <style>
+                body { 
+                    margin: 0; padding: 0; height: 100vh; display: flex; justify-content: center; align-items: center; 
+                    background: #0f172a; font-family: 'Segoe UI', sans-serif; overflow: hidden; color: white;
+                }
+                .error-container { text-align: center; position: relative; z-index: 10; }
+                .glitch-text { 
+                    font-size: 2rem; font-weight: 800; color: #ef4444; text-transform: uppercase; 
+                    letter-spacing: 2px; animation: glitch 1s infinite;
+                }
+                .sub-text { color: #94a3b8; margin-top: 10px; font-size: 1rem; }
+                .btn-retry { 
+                    margin-top: 30px; padding: 12px 30px; background: linear-gradient(45deg, #3b82f6, #8b5cf6); 
+                    border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; 
+                    transition: 0.3s; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+                }
+                .btn-retry:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(139, 92, 246, 0.7); }
+                
+                @keyframes glitch {
+                    0% { transform: translate(0); }
+                    20% { transform: translate(-2px, 2px); }
+                    40% { transform: translate(-2px, -2px); }
+                    60% { transform: translate(2px, 2px); }
+                    80% { transform: translate(2px, -2px); }
+                    100% { transform: translate(0); }
+                }
+                
+                /* Orqa fon effektlari */
+                .bg-grid { 
+                    position: absolute; width: 200%; height: 200%; top: -50%; left: -50%; 
+                    background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+                    background-size: 50px 50px; transform: perspective(500px) rotateX(60deg); 
+                    animation: moveGrid 10s linear infinite;
+                }
+                @keyframes moveGrid { 0% { transform: perspective(500px) rotateX(60deg) translateY(0); } 100% { transform: perspective(500px) rotateX(60deg) translateY(50px); } }
+            </style>
+        </head>
+        <body>
+            <div class="bg-grid"></div>
+            <div class="error-container">
+                <div style="font-size: 4rem; margin-bottom: 20px;">🛡️</div>
+                <div class="glitch-text">KIRISH RAD ETILDI</div>
+                <p class="sub-text">Tizim xavfsizligi: Login yoki parol noto'g'ri kiritildi.</p>
+                <button onclick="window.history.back()" class="btn-retry">Qayta Urinish </button>
+            </div>
+        </body>
+        </html>
+        """
+        return error_html, 401
 
     # --- ADMIN DASHBOARD ---
     @app.route("/dashboard")
