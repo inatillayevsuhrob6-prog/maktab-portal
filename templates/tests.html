@@ -39,15 +39,11 @@
             <tbody>
                 {% for t in tests %}
                 <tr>
-                    <td><strong>{{ t.title }}</strong></td>
-                    <td>{{ t.subject.name if t.subject else '-' }}</td>
-                    <td>{{ t.test_class.name if t.test_class else '-' }}</td>
-                    <td>{{ t.questions|length }}</td>
-                    <td>
-                        <a href="/add_question/{{ t.id }}" class="btn-view">➕ Savol qo'shish</a>
-                        <a href="/test_results/{{ t.id }}" class="btn-edit" style="background:#27ae60;">📊 Natijalar</a>
-                        <a href="/delete_test/{{ t.id }}" class="btn-delete" onclick="return confirm('Rostdan ham o\'chirmoqchimisiz?')">🗑 O'chirish</a>
-                    </td>
+                    <td style="white-space: nowrap;">
+            <a href="/add_question/{{ test.id }}" class="btn btn-sm btn-primary" style="margin-right:5px;">+ Savol qo'shish</a>
+            <a href="{% if session.get('user_role') == 'teacher' %}/teacher/test_results/{% else %}/test_results/{% endif %}{{ test.id }}" class="btn btn-sm btn-success" style="margin-right:5px;">Natijalar</a>
+            <a href="/delete_test/{{ test.id }}" class="btn btn-sm btn-danger" onclick="return confirm('Rostdan ham o'chirmoqchimisiz?')">O'chirish</a>
+        </td>
                 </tr>
                 {% endfor %}
                 {% if tests|length == 0 %}
