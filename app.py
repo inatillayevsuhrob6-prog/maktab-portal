@@ -598,6 +598,33 @@ def create_app():
         analyzed.sort(key=lambda x: x['pct'])
         return render_template("test_results.html", test=test, results=results, analyzed_topics=analyzed, total_students=total)
 
+    @app.route("/teacher/test_results/<int:test_id>")
+    def teacher_test_results(test_id):
+        if 'school_id' not in session or session.get('user_role') != 'teacher': 
+            return redirect(url_for('home'))
+        
+        test = Test.query.filter_by(id=test_id, school_id=session['school_id']).first_or_404()
+        results = TestResult.query.filter_by(test_id=test_id).all()
+        
+        # Statistika hisoblash
+        stats = {}
+        total = len(results)
+        for r in results:
+            if r.topic_analysis:
+                try:
+                    d = json.loads(r.topic_analysis)
+                    for k,v in d.items():
+                        if k not in stats: stats[k] = {'c':0,'t':0}
+                        stats[k]['c'] += v.get('correct', v.get('c', 0))
+                        stats[k]['t'] += v.get('total', v.get('t', 0))
+                except: pass
+                
+        analyzed = [{'name':k, 'pct': round((v['c']/v['t']*100) if v['t']>0 else 0, 1)} for k,v in stats.items()]
+        analyzed.sort(key=lambda x: x['pct'])
+        
+        return render_template("teacher_test_results.html", test=test, results=results, analyzed_topics=analyzed, total_students=total)
+
+
     @app.route("/test_results")
     def all_test_results():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))

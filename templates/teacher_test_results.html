@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Natijalari</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body { background: #f8fafc; font-family: sans-serif; }
+        .container { max-width: 900px; margin: 40px auto; padding: 20px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h2 { color: #1e293b; margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { color: #64748b; font-size: 0.85rem; text-transform: uppercase; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .bg-green { background: #dcfce7; color: #166534; }
+        .bg-yellow { background: #fef9c3; color: #854d0e; }
+        .bg-red { background: #fee2e2; color: #991b1b; }
+        .back-btn { display: inline-block; margin-bottom: 20px; color: #64748b; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/teacher_dashboard" class="back-btn">← Kabinetga qaytish</a>
+        
+        <div class="card">
+            <h2>📊 {{ test.title }} - Natijalar</h2>
+            <p style="color:#64748b;">Jami topshirilgan: {{ total_students }} ta</p>
+            
+            {% if analyzed_topics %}
+            <h3 style="margin-top:30px; font-size:1rem;">Mavzular bo'yicha tahlil:</h3>
+            <table>
+                <thead><tr><th>Mavzu</th><th>O'rtacha Natija</th></tr></thead>
+                <tbody>
+                {% for t in analyzed_topics %}
+                    <tr>
+                        <td>{{ t.name }}</td>
+                        <td>
+                            <span class="badge {% if t.pct >= 80 %}bg-green{% elif t.pct >= 60 %}bg-yellow{% else %}bg-red{% endif %}">
+                                {{ t.pct }}%
+                            </span>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+
+            <h3 style="margin-top:30px; font-size:1rem;">O'quvchilar ro'yxati:</h3>
+            <table>
+                <thead><tr><th>Ism-Familiya</th><th>Ball</th><th>Foiz</th><th>Sana</th></tr></thead>
+                <tbody>
+                {% for r in results %}
+                    <tr>
+                        <td>{{ r.student.first_name }} {{ r.student.last_name }}</td>
+                        <td>{{ r.score }} / {{ r.total_questions }}</td>
+                        <td>
+                            <span class="badge {% if r.percentage >= 80 %}bg-green{% elif r.percentage >= 60 %}bg-yellow{% else %}bg-red{% endif %}">
+                                {{ r.percentage }}%
+                            </span>
+                        </td>
+                        <td style="font-size:0.85rem; color:#64748b;">{{ r.submitted_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
