@@ -559,84 +559,85 @@ def create_app():
         if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}: return redirect(url_for('home'))
         return render_template("tests.html", tests=Test.query.filter_by(school_id=session['school_id']).all())
 
-    
-    @app.route("/add_question/<int:test_id>", methods=["GET", "POST"])
-    # def add_question(test_id):
-#         if 'school_id' not in session: return redirect(url_for('home'))
-#         
-#         test = Test.query.filter_by(id=test_id, school_id=session['school_id']).first_or_404()
-#         
-#         if request.method == "POST":
-#             try:
-#                 # Yangi savolni bazaga qo'shish
-#                 new_q = TestQuestion(
-#                     test_id=test_id,
-#                     question_text=sanitize_input(request.form.get('question_text')),
-#                     option_a=sanitize_input(request.form.get('option_a')),
-#                     option_b=sanitize_input(request.form.get('option_b')),
-#                     option_c=sanitize_input(request.form.get('option_c')),
-#                     option_d=sanitize_input(request.form.get('option_d')),
-#                     correct_answer=request.form.get('correct_answer'),
-#                     topic=sanitize_input(request.form.get('topic', '')),
-#                     subtopic=sanitize_input(request.form.get('subtopic', ''))
-#                 )
-#                 db.session.add(new_q)
-#                 db.session.commit()
-#                 flash("Savol muvaffaqiyatli saqlandi!", "success")
-#             except Exception as e:
-#                 db.session.rollback()
-#                 flash(f"Xatolik yuz berdi: {str(e)}", "danger")
-#             
-#             # Sahifani yangilash
-#             return redirect(url_for('add_question', test_id=test_id))
-#             
-#         return render_template("add_question.html", test=test)
-# 
-# 
-#     @app.route("/delete_test/<int:test_id>")
-    # def delete_test(test_id):
-#         if 'school_id' not in session: return redirect(url_for('home'))
-#         
-#         test = Test.query.filter_by(id=test_id, school_id=session['school_id']).first_or_404()
-#         
-#         try:
-#             # Avval test natijalarini o'chirish
-#             TestResult.query.filter_by(test_id=test.id).delete()
-#             # Keyin savollarni o'chirish
-#             TestQuestion.query.filter_by(test_id=test.id).delete()
-#             # Oxirida testning o'zini o'chirish
-#             db.session.delete(test)
-#             db.session.commit()
-#             flash("Test va unga tegishli barcha ma'lumotlar o'chirildi.", "success")
-#         except Exception as e:
-#             db.session.rollback()
-#             flash(f"O'chirishda xatolik: {str(e)}", "danger")
-#             
-#         return redirect(url_for('tests'))
-# 
-# 
-#     @app.route("/create_test", methods=["GET", "POST"])
+
+    @app.route("/create_test", methods=["GET", "POST"])
     def create_test():
-        if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}: return redirect(url_for('home'))
-        sid = session['school_id']
+        if 'school_id' not in session: return redirect(url_for('home'))
+        role = session.get('user_role')
+        if role not in ['admin', 'teacher']: return redirect(url_for('home'))
+        
         if request.method == "POST":
-            t = Test(title=sanitize_input(request.form.get('title')), school_id=sid, subject_id=request.form.get('subject_id'), class_id=request.form.get('class_id'), created_by_teacher_id=session.get('teacher_id'))
-            db.session.add(t); db.session.commit(); return redirect(url_for('add_question', test_id=t.id))
-        return render_template("create_test.html", subjects=Subject.query.filter_by(school_id=sid).all(), classes=Class.query.filter_by(school_id=sid).all())
+            try:
+                title = sanitize_input(request.form.get('title'))
+                subject_id = request.form.get('subject_id', type=int)
+                class_id = request.form.get('class_id', type=int)
+                teacher_id = session.get('teacher_id') if role == 'teacher' else None
+                
+                new_test = Test(
+                    title=title, 
+                    school_id=session['school_id'], 
+                    subject_id=subject_id, 
+                    class_id=class_id,
+                    teacher_id=teacher_id
+                )
+                db.session.add(new_test)
+                db.session.commit()
+                flash("Test muvaffaqiyatli yaratildi!", "success")
+                return redirect(url_for('add_question', test_id=new_test.id))
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Xatolik: {e}", "danger")
+                
+        subjects = Subject.query.filter_by(school_id=session['school_id']).all()
+        classes = Class.query.filter_by(school_id=session['school_id']).all()
+        return render_template("create_test.html", subjects=subjects, classes=classes)
 
     @app.route("/add_question/<int:test_id>", methods=["GET", "POST"])
     def add_question(test_id):
-        if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}: return redirect(url_for('home'))
+        if 'school_id' not in session: return redirect(url_for('home'))
         test = Test.query.filter_by(id=test_id, school_id=session['school_id']).first_or_404()
-        if session.get('user_role') == 'teacher' and test.created_by_teacher_id != session.get('teacher_id'):
-            return redirect(url_for('tests'))
+        
         if request.method == "POST":
-            db.session.add(TestQuestion(test_id=test_id, question_text=sanitize_input(request.form.get('question_text')), option_a=sanitize_input(request.form.get('option_a')), option_b=sanitize_input(request.form.get('option_b')), option_c=sanitize_input(request.form.get('option_c')), option_d=sanitize_input(request.form.get('option_d')), correct_answer=request.form.get('correct_answer'), topic=sanitize_input(request.form.get('topic')), subtopic=sanitize_input(request.form.get('subtopic'))))
-            db.session.commit()
-            flash("Savol saqlandi. Keyingi savolni kiriting.", "success")
+            try:
+                db.session.add(TestQuestion(
+                    test_id=test_id,
+                    question_text=sanitize_input(request.form.get('question_text')),
+                    option_a=sanitize_input(request.form.get('option_a')),
+                    option_b=sanitize_input(request.form.get('option_b')),
+                    option_c=sanitize_input(request.form.get('option_c')),
+                    option_d=sanitize_input(request.form.get('option_d')),
+                    correct_answer=request.form.get('correct_answer'),
+                    topic=sanitize_input(request.form.get('topic', '')),
+                    subtopic=sanitize_input(request.form.get('subtopic', ''))
+                ))
+                db.session.commit()
+                flash("Savol saqlandi!", "success")
+            except Exception as e:
+                db.session.rollback()
+                flash(f"Xatolik: {e}", "danger")
             return redirect(url_for('add_question', test_id=test_id))
+            
         return render_template("add_question.html", test=test)
 
+    @app.route("/delete_test/<int:test_id>")
+    def delete_test(test_id):
+        if 'school_id' not in session: return redirect(url_for('home'))
+        test = Test.query.filter_by(id=test_id, school_id=session['school_id']).first_or_404()
+        
+        try:
+            TestResult.query.filter_by(test_id=test.id).delete()
+            TestQuestion.query.filter_by(test_id=test.id).delete()
+            db.session.delete(test)
+            db.session.commit()
+            flash("Test o'chirildi.", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Xatolik: {e}", "danger")
+            
+        return redirect(url_for('tests'))
+
+
+    
     @app.route("/test_results/<int:test_id>")
     def test_results(test_id):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
@@ -1095,13 +1096,6 @@ def create_app():
         db.session.delete(t)
         db.session.commit()
         return redirect(url_for('teachers'))
-
-    @app.route("/delete_test/<int:test_id>")
-    def delete_test(test_id):
-        if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        t = Test.query.filter_by(id=test_id, school_id=session['school_id']).first_or_404()
-        TestResult.query.filter_by(test_id=t.id).delete(synchronize_session=False); TestQuestion.query.filter_by(test_id=t.id).delete(synchronize_session=False)
-        db.session.delete(t); db.session.commit(); return redirect(url_for('tests'))
 
     @app.route("/delete_book/<int:bid>")
     def delete_book(bid):
