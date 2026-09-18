@@ -561,61 +561,61 @@ def create_app():
 
     
     @app.route("/add_question/<int:test_id>", methods=["GET", "POST"])
-    def add_question(test_id):
-        if 'school_id' not in session: return redirect(url_for('home'))
-        
-        test = Test.query.filter_by(id=test_id, school_id=session['school_id']).first_or_404()
-        
-        if request.method == "POST":
-            try:
-                # Yangi savolni bazaga qo'shish
-                new_q = TestQuestion(
-                    test_id=test_id,
-                    question_text=sanitize_input(request.form.get('question_text')),
-                    option_a=sanitize_input(request.form.get('option_a')),
-                    option_b=sanitize_input(request.form.get('option_b')),
-                    option_c=sanitize_input(request.form.get('option_c')),
-                    option_d=sanitize_input(request.form.get('option_d')),
-                    correct_answer=request.form.get('correct_answer'),
-                    topic=sanitize_input(request.form.get('topic', '')),
-                    subtopic=sanitize_input(request.form.get('subtopic', ''))
-                )
-                db.session.add(new_q)
-                db.session.commit()
-                flash("Savol muvaffaqiyatli saqlandi!", "success")
-            except Exception as e:
-                db.session.rollback()
-                flash(f"Xatolik yuz berdi: {str(e)}", "danger")
-            
-            # Sahifani yangilash
-            return redirect(url_for('add_question', test_id=test_id))
-            
-        return render_template("add_question.html", test=test)
-
-
-    @app.route("/delete_test/<int:test_id>")
-    def delete_test(test_id):
-        if 'school_id' not in session: return redirect(url_for('home'))
-        
-        test = Test.query.filter_by(id=test_id, school_id=session['school_id']).first_or_404()
-        
-        try:
-            # Avval test natijalarini o'chirish
-            TestResult.query.filter_by(test_id=test.id).delete()
-            # Keyin savollarni o'chirish
-            TestQuestion.query.filter_by(test_id=test.id).delete()
-            # Oxirida testning o'zini o'chirish
-            db.session.delete(test)
-            db.session.commit()
-            flash("Test va unga tegishli barcha ma'lumotlar o'chirildi.", "success")
-        except Exception as e:
-            db.session.rollback()
-            flash(f"O'chirishda xatolik: {str(e)}", "danger")
-            
-        return redirect(url_for('tests'))
-
-
-    @app.route("/create_test", methods=["GET", "POST"])
+    # def add_question(test_id):
+#         if 'school_id' not in session: return redirect(url_for('home'))
+#         
+#         test = Test.query.filter_by(id=test_id, school_id=session['school_id']).first_or_404()
+#         
+#         if request.method == "POST":
+#             try:
+#                 # Yangi savolni bazaga qo'shish
+#                 new_q = TestQuestion(
+#                     test_id=test_id,
+#                     question_text=sanitize_input(request.form.get('question_text')),
+#                     option_a=sanitize_input(request.form.get('option_a')),
+#                     option_b=sanitize_input(request.form.get('option_b')),
+#                     option_c=sanitize_input(request.form.get('option_c')),
+#                     option_d=sanitize_input(request.form.get('option_d')),
+#                     correct_answer=request.form.get('correct_answer'),
+#                     topic=sanitize_input(request.form.get('topic', '')),
+#                     subtopic=sanitize_input(request.form.get('subtopic', ''))
+#                 )
+#                 db.session.add(new_q)
+#                 db.session.commit()
+#                 flash("Savol muvaffaqiyatli saqlandi!", "success")
+#             except Exception as e:
+#                 db.session.rollback()
+#                 flash(f"Xatolik yuz berdi: {str(e)}", "danger")
+#             
+#             # Sahifani yangilash
+#             return redirect(url_for('add_question', test_id=test_id))
+#             
+#         return render_template("add_question.html", test=test)
+# 
+# 
+#     @app.route("/delete_test/<int:test_id>")
+    # def delete_test(test_id):
+#         if 'school_id' not in session: return redirect(url_for('home'))
+#         
+#         test = Test.query.filter_by(id=test_id, school_id=session['school_id']).first_or_404()
+#         
+#         try:
+#             # Avval test natijalarini o'chirish
+#             TestResult.query.filter_by(test_id=test.id).delete()
+#             # Keyin savollarni o'chirish
+#             TestQuestion.query.filter_by(test_id=test.id).delete()
+#             # Oxirida testning o'zini o'chirish
+#             db.session.delete(test)
+#             db.session.commit()
+#             flash("Test va unga tegishli barcha ma'lumotlar o'chirildi.", "success")
+#         except Exception as e:
+#             db.session.rollback()
+#             flash(f"O'chirishda xatolik: {str(e)}", "danger")
+#             
+#         return redirect(url_for('tests'))
+# 
+# 
+#     @app.route("/create_test", methods=["GET", "POST"])
     def create_test():
         if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}: return redirect(url_for('home'))
         sid = session['school_id']
