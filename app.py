@@ -362,7 +362,7 @@ p{color:#aaa;margin-bottom:30px;border-top:1px solid #333;border-bottom:1px soli
 <div class="box">
 <h1>KIRISH RAD ETILDI</h1>
 <p>[SYSTEM ERROR]: Login yoki parol noto'g'ri.<br>Xavfsizlik protokoli faollashtirildi.</p>
-<a href="/login" class="btn">QAYTA URINISH >></a>
+<a href="/login" onclick="sessionStorage.clear(); localStorage.clear();" class="btn">QAYTA URINISH >></a>
 </div>
 <script>
 const c=document.getElementById('c'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
