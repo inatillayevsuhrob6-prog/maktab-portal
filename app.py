@@ -343,33 +343,287 @@ def create_app():
         return """<!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ACCESS DENIED</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYSTEM LOCKED // ACCESS DENIED</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-body{margin:0;background:#050505;color:#fff;font-family:'Rajdhani',sans-serif;height:100vh;display:flex;justify-content:center;align-items:center;overflow:hidden}
-canvas{position:absolute;top:0;left:0;z-index:-1;opacity:.2}
-.box{background:rgba(10,10,15,.9);padding:40px;border:1px solid #00f3ff;box-shadow:0 0 30px rgba(0,243,255,.2);text-align:center;max-width:500px;width:90%;animation:float 4s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-h1{font-family:'Orbitron',sans-serif;color:#ff003c;text-shadow:0 0 10px #ff003c;margin:0 0 10px;font-size:2rem}
-p{color:#aaa;margin-bottom:30px;border-top:1px solid #333;border-bottom:1px solid #333;padding:15px 0}
-.btn{display:inline-block;padding:12px 30px;background:transparent;color:#00f3ff;border:1px solid #00f3ff;text-decoration:none;font-weight:bold;text-transform:uppercase;transition:.3s}
-.btn:hover{background:#00f3ff;color:#000;box-shadow:0 0 20px #00f3ff}
+    :root {
+        --primary: #0ff;
+        --secondary: #f0f;
+        --bg: #050505;
+        --glass: rgba(10, 20, 30, 0.6);
+    }
+    
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: var(--bg);
+        color: #fff;
+        font-family: 'Share Tech Mono', monospace;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        perspective: 1000px;
+    }
+
+    /* Matrix Background Canvas */
+    #matrix {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        opacity: 0.3;
+    }
+
+    /* CRT Scanline Effect */
+    .scanlines {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+        background-size: 100% 4px;
+        pointer-events: none;
+        z-index: 10;
+        animation: scroll 10s linear infinite;
+    }
+    @keyframes scroll { 0% {background-position: 0 0;} 100% {background-position: 0 100%;} }
+
+    /* Main Card Container */
+    .card {
+        position: relative;
+        width: 500px;
+        max-width: 90%;
+        padding: 50px 40px;
+        background: var(--glass);
+        border: 1px solid var(--primary);
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.2), inset 0 0 50px rgba(0, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        transform-style: preserve-3d;
+        animation: float 6s ease-in-out infinite;
+        clip-path: polygon(
+            0 0, 
+            100% 0, 
+            100% calc(100% - 40px), 
+            calc(100% - 40px) 100%, 
+            0 100%
+        );
+    }
+
+    /* Decorative Corners */
+    .card::before {
+        content: '';
+        position: absolute;
+        top: -2px; left: -2px;
+        width: 30px; height: 30px;
+        border-top: 3px solid var(--primary);
+        border-left: 3px solid var(--primary);
+    }
+    .card::after {
+        content: '';
+        position: absolute;
+        bottom: -2px; right: -2px;
+        width: 30px; height: 30px;
+        border-bottom: 3px solid var(--primary);
+        border-right: 3px solid var(--primary);
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotateX(0deg); }
+        50% { transform: translateY(-15px) rotateX(2deg); }
+    }
+
+    /* Glitch Title */
+    h1 {
+        font-family: 'Orbitron', sans-serif;
+        text-align: center;
+        font-size: 2.5rem;
+        margin: 0 0 20px;
+        color: #fff;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        position: relative;
+        text-shadow: 2px 2px var(--secondary);
+    }
+    
+    h1::before, h1::after {
+        content: attr(data-text);
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: var(--bg);
+    }
+    
+    h1::before {
+        left: 2px;
+        text-shadow: -1px 0 #ff00c1;
+        clip: rect(44px, 450px, 56px, 0);
+        animation: glitch-anim 5s infinite linear alternate-reverse;
+    }
+    
+    h1::after {
+        left: -2px;
+        text-shadow: -1px 0 #00fff9;
+        clip: rect(44px, 450px, 56px, 0);
+        animation: glitch-anim2 5s infinite linear alternate-reverse;
+    }
+
+    @keyframes glitch-anim {
+        0% { clip: rect(12px, 9999px, 32px, 0); }
+        5% { clip: rect(85px, 9999px, 100px, 0); }
+        10% { clip: rect(10px, 9999px, 80px, 0); }
+        100% { clip: rect(12px, 9999px, 32px, 0); }
+    }
+    @keyframes glitch-anim2 {
+        0% { clip: rect(65px, 9999px, 100px, 0); }
+        5% { clip: rect(10px, 9999px, 40px, 0); }
+        10% { clip: rect(90px, 9999px, 100px, 0); }
+        100% { clip: rect(65px, 9999px, 100px, 0); }
+    }
+
+    /* Message Box */
+    .message {
+        text-align: center;
+        color: #aaa;
+        font-size: 1.1rem;
+        margin-bottom: 40px;
+        border-top: 1px solid rgba(0, 255, 255, 0.3);
+        border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+        padding: 20px 0;
+        background: rgba(0, 0, 0, 0.4);
+        position: relative;
+    }
+    
+    .message::before {
+        content: 'WARNING';
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--bg);
+        padding: 0 10px;
+        color: var(--secondary);
+        font-size: 0.8rem;
+        letter-spacing: 2px;
+    }
+
+    /* Button */
+    .btn {
+        display: block;
+        width: 100%;
+        padding: 18px;
+        background: transparent;
+        color: var(--primary);
+        border: 2px solid var(--primary);
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+        text-decoration: none;
+        text-align: center;
+        box-sizing: border-box;
+        clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    }
+
+    .btn:hover {
+        background: var(--primary);
+        color: #000;
+        box-shadow: 0 0 40px var(--primary);
+        transform: scale(1.02);
+    }
+    
+    .btn:active {
+        transform: scale(0.98);
+    }
+
+    /* Loading Bar Animation */
+    .loader {
+        height: 2px;
+        width: 100%;
+        background: #333;
+        margin-top: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+    .loader::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 50%;
+        height: 100%;
+        background: var(--primary);
+        animation: load 2s infinite ease-in-out;
+    }
+    @keyframes load {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(200%); }
+    }
+
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
-<div class="box">
-<h1>KIRISH RAD ETILDI</h1>
-<p>[SYSTEM ERROR]: Login yoki parol noto'g'ri.<br>Xavfsizlik protokoli faollashtirildi.</p>
-<button onclick="window.location.href='/login'" class="btn">QAYTA URINISH >></button>
-</div>
-<script>
-const c=document.getElementById('c'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;
-const s='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789アァカサタナハマヤャラワガザダバパイィキシチニヒミリヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン'.split(''),f=16,w=c.width/f,d=[];for(let i=0;i<w;i++)d[i]=1;
-function draw(){x.fillStyle='rgba(5,5,5,0.05)';x.fillRect(0,0,c.width,c.height);x.fillStyle='#0F0';x.font=f+'px monospace';for(let i=0;i<d.length;i++){x.fillText(s[Math.random()*s.length|0],i*f,d[i]*f);if(d[i]*f>c.height&&Math.random()>.975)d[i]=0;d[i]++}}setInterval(draw,30);
-addEventListener('resize',()=>{c.width=innerWidth;c.height=innerHeight});
-</script>
+    <canvas id="matrix"></canvas>
+    <div class="scanlines"></div>
+    
+    <div class="card">
+        <h1 data-text="KIRISH RAD ETILDI">KIRISH RAD ETILDI</h1>
+        
+        <div class="message">
+            [SYSTEM ERROR]: Login yoki parol noto'g'ri.<br>
+            Xavfsizlik protokoli faollashtirildi.
+        </div>
+        
+        <a href="/login" class="btn">KIRISHGA QAYTISH >></a>
+        
+        <div class="loader"></div>
+    </div>
+
+    <script>
+        // Matrix Rain Effect
+        const c = document.getElementById('matrix');
+        const ctx = c.getContext('2d');
+        c.width = window.innerWidth;
+        c.height = window.innerHeight;
+        
+        const chars = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const fontSize = 14;
+        const columns = c.width / fontSize;
+        const drops = [];
+        
+        for(let i = 0; i < columns; i++) drops[i] = 1;
+        
+        function draw() {
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.05)';
+            ctx.fillRect(0, 0, c.width, c.height);
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px monospace';
+            
+            for(let i = 0; i < drops.length; i++) {
+                const text = chars.charAt(Math.floor(Math.random() * chars.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if(drops[i] * fontSize > c.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 35);
+        
+        window.addEventListener('resize', () => {
+            c.width = window.innerWidth;
+            c.height = window.innerHeight;
+        });
+    </script>
 </body>
 </html>""", 401
 
