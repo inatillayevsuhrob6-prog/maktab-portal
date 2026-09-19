@@ -584,7 +584,7 @@ def create_app():
             Xavfsizlik protokoli faollashtirildi.
         </div>
         
-        <a href="/login" class="btn">KIRISHGA QAYTISH >></a>
+        <a href="/login" onclick="fetch('/logout').then(() => window.location.href='/login'); return false;" class="btn">KIRISHGA QAYTISH >></a>
         
         <div class="loader"></div>
     </div>
