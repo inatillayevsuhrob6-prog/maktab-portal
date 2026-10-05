@@ -31,20 +31,12 @@
             <input type="text" name="name" placeholder="To'garak nomi (Masalan: Futbol, Robototexnika)" required>
             <textarea name="description" placeholder="Qisqacha tavsif..." rows="2"></textarea>
             
-            <div class="form-row">
-                {% if current_role == 'teacher' %}
-                <input type="hidden" name="teacher_id" value="{{ current_teacher_id }}">
-                <div style="padding:12px; margin-bottom:10px; border:1px solid #e2e8f0; border-radius:8px; color:#475569; background:#f8fafc;">To‘garak rahbari: Siz</div>
-                {% else %}
-                <select name="teacher_id" required>
-                    <option value="">O'qituvchini tanlang...</option>
-                    {% for t in teachers %}<option value="{{ t.id }}">{{ t.first_name }} {{ t.last_name }}</option>{% endfor %}
-                </select>
-                {% endif %}
-            </div>
+            {% if current_role == 'teacher' %}<input type="hidden" name="teacher_id" value="{{ current_teacher_id }}">{% endif %}
+            <label style="display:block; color:#334155; font-weight:600;">To‘garak rahbari</label>
+            <input type="text" name="leader_name" placeholder="Rahbarning ism-familiyasi" value="{{ (current_teacher.first_name ~ ' ' ~ current_teacher.last_name) if current_teacher else '' }}" required>
             <label style="font-weight:600; color:#334155;">To‘garak kunlari</label>
             <div class="days-row">
-                {% for day in ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'] %}
+                {% for day in ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba'] %}
                 <label><input type="checkbox" name="days" value="{{ day }}">{{ day }}</label>
                 {% endfor %}
             </div>
@@ -54,8 +46,7 @@
             </div>
             
             <div class="form-row">
-                <input type="number" name="max_students" placeholder="Maksimal o'quvchilar soni" value="20">
-                <button type="submit">To'garak Qo'shish</button>
+                <button type="submit" style="grid-column:1/-1;">To'garak Qo'shish</button>
             </div>
         </form>
 
@@ -66,7 +57,7 @@
             <div class="club-item">
                 <div class="club-info">
                     <h4>{{ c.name }}</h4>
-                    <p>O'qituvchi: {{ c.teacher.first_name }} {{ c.teacher.last_name }} | Vaqt: {{ c.schedule }}</p>
+                    <p>Rahbar: {{ c.leader_name or ((c.teacher.first_name ~ ' ' ~ c.teacher.last_name) if c.teacher else 'Belgilanmagan') }} | Vaqt: {{ c.schedule or 'Belgilanmagan' }}</p>
                 </div>
                 {% if current_role == 'admin' or c.teacher_id == current_teacher_id %}<a href="/clubs/delete/{{ c.id }}" class="btn-delete" onclick="return confirm('O\'chirilsinmi?')">O'chirish</a>{% endif %}
             </div>

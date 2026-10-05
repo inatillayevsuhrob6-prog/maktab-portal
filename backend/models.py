@@ -223,9 +223,10 @@ class Club(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=True)
     max_students = db.Column(db.Integer, default=20)
     schedule = db.Column(db.String(100)) # Masalan: "Dushanba, 15:00"
+    leader_name = db.Column(db.String(100))
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
     
     # Munosabatlar

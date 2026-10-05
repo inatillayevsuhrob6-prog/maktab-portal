@@ -94,14 +94,14 @@
                 <!-- Meta qismi (O'qituvchi va A'zolar) -->
                 <div class="meta-box">
                     <div class="teacher-info">
-                        {% if c.teacher %}
-                            <img src="{{ c.teacher.profile_pic or 'https://ui-avatars.com/api/?name=' + c.teacher.first_name[0] + '+' + c.teacher.last_name[0] + '&background=random' }}" class="teacher-img" alt="Teacher">
+                        {% if c.teacher or c.leader_name %}
+                            {% if c.teacher and c.teacher.profile_pic %}<img src="{{ c.teacher.profile_pic }}" class="teacher-img" alt="Teacher">{% else %}<span class="teacher-img" style="display:grid;place-items:center;background:#dbeafe;color:#2563eb;">♟</span>{% endif %}
                             <div>
                                 <span class="teacher-label">Rahbar:</span>
-                                <span class="teacher-name">{{ c.teacher.first_name }} {{ c.teacher.last_name }}</span>
+                                <span class="teacher-name">{{ c.leader_name or (c.teacher.first_name ~ ' ' ~ c.teacher.last_name) }}</span>
                             </div>
                         {% else %}
-                            <div class="teacher-name">O'qituvchi tayinlanmagan</div>
+                            <div class="teacher-name">Rahbar ko‘rsatilmagan</div>
                         {% endif %}
                     </div>
                     <div class="members-count">👥 {{ c.members|length }} a'zo</div>

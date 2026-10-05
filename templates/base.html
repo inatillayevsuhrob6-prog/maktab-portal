@@ -9,7 +9,8 @@
 </head>
 <body>
     {% if session.get('school_id') %}
-    <div class="app-shell">
+    <div class="app-shell {% if session.get('user_role') != 'admin' %}role-shell{% endif %}">
+        {% if session.get('user_role') == 'admin' %}
         <aside class="app-sidebar" id="appSidebar">
             <a href="{% if session.get('user_role') == 'admin' %}/dashboard{% elif session.get('user_role') == 'teacher' %}/teacher_dashboard{% else %}/student_dashboard{% endif %}" class="sidebar-brand">
                 <span class="brand-mark">▦</span>
@@ -58,14 +59,24 @@
             </nav>
             <a href="/logout" class="sidebar-logout"><span>↪</span>Chiqish</a>
         </aside>
+        {% endif %}
         <main class="app-main">
             <header class="topbar">
-                <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Menyuni ochish">☰</button>
+                {% if session.get('user_role') == 'admin' %}<button class="menu-toggle" onclick="toggleSidebar()" aria-label="Menyuni ochish">☰</button>{% endif %}
                 <form action="/search" method="GET" class="topbar-search">
                     <span>⌕</span><input type="text" name="q" placeholder="Qidirish..." value="{{ request.args.get('q', '') }}">
                 </form>
+                {% if session.get('user_role') == 'teacher' %}
+                <nav class="role-nav" aria-label="O‘qituvchi menyusi">
+                    <a href="/teacher_dashboard">Kabinet</a><a href="/teacher_profile">Profil</a><a href="{{ url_for('teacher_schedule') }}">Jadval</a><a href="/clubs/manage">To‘garaklar</a><a href="/library">Kutubxona</a><a href="/presentations">Taqdimotlar</a><a href="/chat">Chat</a>
+                </nav>
+                {% elif session.get('user_role') == 'student' %}
+                <nav class="role-nav" aria-label="O‘quvchi menyusi">
+                    <a href="/student_dashboard">Kabinet</a><a href="/student_profile">Profil</a><a href="/schedule/view">Jadval</a><a href="/my_tests">Testlar</a><a href="/library">Kutubxona</a><a href="/clubs">To‘garaklar</a><a href="/chat">Chat</a>
+                </nav>
+                {% endif %}
                 <div class="notification-wrap">
-                    <button type="button" class="notification-button" onclick="toggleNotifications(event)" aria-label="Bildirishnomalar"><span>♢</span>{% if header_notification_count %}<b>{{ header_notification_count }}</b>{% endif %}</button>
+                    <button type="button" class="notification-button" onclick="toggleNotifications(event)" aria-label="Bildirishnomalar"><span class="notification-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span>{% if header_notification_count %}<b>{{ header_notification_count }}</b>{% endif %}</button>
                     <div class="notification-panel" id="notificationPanel">
                         <div class="notification-heading"><strong>Bildirishnomalar</strong><a href="/chat">Chatni ochish</a></div>
                         {% for item in header_notifications %}<a class="notification-item" href="/chat"><strong>{{ item.sender }}</strong><p>{{ item.body[:90] }}{% if item.body|length > 90 %}...{% endif %}</p><small>{{ item.time }}</small></a>{% else %}<div class="notification-empty">Hozircha bildirishnoma yo‘q.</div>{% endfor %}

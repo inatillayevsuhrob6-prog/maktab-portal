@@ -420,6 +420,13 @@ input:focus, select:focus, textarea:focus {
 .sidebar-logout { margin-top: auto; color: #fecaca; border: 1px solid rgba(254, 202, 202, .2); }
 .sidebar-logout:hover { color: #fff; background: rgba(239, 68, 68, .75); }
 .app-main { min-width: 0; flex: 1; }
+.role-shell { display: block; }
+.role-shell .app-main { width: 100%; }
+.role-nav { display:flex; align-items:center; gap:14px; min-width:0; overflow-x:auto; white-space:nowrap; }
+.role-nav a { color:#475569; text-decoration:none; font-size:.78rem; font-weight:600; }
+.role-nav a:hover { color:#2563eb; }
+.notification-icon { display:grid; place-items:center; width:20px; height:20px; }
+.notification-icon svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .topbar { height: 72px; display: flex; align-items: center; gap: 20px; padding: 0 34px; background: rgba(255,255,255,.86); border-bottom: 1px solid #e5edff; backdrop-filter: blur(14px); position: sticky; top: 0; z-index: 10; }
 .menu-toggle { display: none; border: 0; background: #eaf2ff; color: var(--dark-blue); padding: 9px 12px; border-radius: 9px; font-size: 1.2rem; cursor: pointer; }
 .topbar-search { display: flex; align-items: center; gap: 9px; width: min(100%, 420px); padding: 9px 14px; color: #94a3b8; background: #f4f7ff; border: 1px solid #e1eaff; border-radius: 11px; }
@@ -429,12 +436,22 @@ input:focus, select:focus, textarea:focus {
 .topbar-status span { display: inline-block; width: 8px; height: 8px; margin-right: 5px; border-radius: 50%; background: #22c55e; }
 .app-main .content-wrapper { max-width: 1440px; padding: 34px 38px 50px; }
 
+@media (max-width: 1100px) {
+    .role-shell .topbar { gap:12px; padding:0 18px; }
+    .role-shell .topbar-search { width:min(30%, 260px); }
+    .role-nav { flex:1; }
+}
+
 @media (max-width: 860px) {
     .app-sidebar { position: fixed; left: -270px; top: 0; transition: left .3s ease; }
     .app-sidebar.open { left: 0; }
     .menu-toggle { display: block; }
     .topbar { padding: 0 18px; }
     .app-main .content-wrapper { padding: 24px 18px 40px; }
+    .role-shell .topbar { height:auto; min-height:66px; flex-wrap:wrap; padding:10px 14px; gap:10px; }
+    .role-shell .topbar-search { order:0; flex:1 1 180px; width:auto; }
+    .role-nav { order:2; flex:1 0 100%; padding:2px 0 5px; }
+    .role-shell .topbar-status { display:none; }
 }
 
 /* --- ADMIN DASHBOARD --- */

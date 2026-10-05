@@ -91,6 +91,12 @@ def create_app():
         try:
             db.session.execute(text("CREATE TABLE IF NOT EXISTS club (id SERIAL PRIMARY KEY, name VARCHAR(200) NOT NULL, description TEXT, teacher_id INTEGER REFERENCES teachers(id), max_students INTEGER DEFAULT 20, schedule VARCHAR(100), school_id INTEGER NOT NULL REFERENCES schools(id));"))
             db.session.execute(text("CREATE TABLE IF NOT EXISTS student_club (id SERIAL PRIMARY KEY, student_id INTEGER REFERENCES students(id), club_id INTEGER REFERENCES club(id), joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"))
+            if db.engine.dialect.name == 'sqlite':
+                club_columns = [row[1] for row in db.session.execute(text("PRAGMA table_info(club)"))]
+                if 'leader_name' not in club_columns:
+                    db.session.execute(text("ALTER TABLE club ADD COLUMN leader_name VARCHAR(100)"))
+            else:
+                db.session.execute(text("ALTER TABLE club ADD COLUMN IF NOT EXISTS leader_name VARCHAR(100)"))
             db.session.commit()
             print("✅ 'club' va 'student_club' jadvallari yaratildi!")
         except Exception as e:
@@ -1056,20 +1062,19 @@ def create_app():
     def manage_clubs():
         if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}: return redirect(url_for('home'))
         clubs = Club.query.filter_by(school_id=session['school_id']).all()
-        teachers = Teacher.query.filter_by(school_id=session['school_id']).all()
-        return render_template("manage_clubs.html", clubs=clubs, teachers=teachers, current_role=session.get('user_role'), current_teacher_id=session.get('teacher_id'))
+        current_teacher = Teacher.query.filter_by(id=session.get('teacher_id'), school_id=session['school_id']).first() if session.get('user_role') == 'teacher' else None
+        return render_template("manage_clubs.html", clubs=clubs, current_role=session.get('user_role'), current_teacher_id=session.get('teacher_id'), current_teacher=current_teacher)
 
     @app.route("/clubs/add", methods=["POST"])
     def add_club():
         role = session.get('user_role')
         if 'school_id' not in session or role not in {'admin', 'teacher'}: return redirect(url_for('home'))
-        teacher_id = request.form.get('teacher_id', type=int)
-        if role == 'teacher':
-            teacher_id = session['teacher_id']
-        if not Teacher.query.filter_by(id=teacher_id, school_id=session['school_id']).first():
-            flash("O'qituvchi topilmadi.", "danger")
+        teacher_id = session.get('teacher_id') if role == 'teacher' else None
+        leader_name = sanitize_input(request.form.get('leader_name', '')).strip()
+        if not leader_name:
+            flash("To‘garak rahbarining ismini kiriting.", "warning")
             return redirect(url_for('manage_clubs'))
-        valid_days = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba']
+        valid_days = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']
         days = request.form.getlist('days')
         days = [day for day in valid_days if day in days]
         start_time = request.form.get('start_time', '').strip()
@@ -1082,7 +1087,7 @@ def create_app():
             name=sanitize_input(request.form.get('name')),
             description=sanitize_input(request.form.get('description')),
             teacher_id=teacher_id,
-            max_students=request.form.get('max_students', type=int),
+            leader_name=leader_name[:100],
             schedule=schedule,
             school_id=session['school_id']
         ))
