@@ -12,6 +12,7 @@
     <div class="app-shell {% if session.get('user_role') != 'admin' %}role-shell{% endif %}">
         {% if session.get('user_role') == 'admin' %}
         <aside class="app-sidebar" id="appSidebar">
+            <button type="button" class="sidebar-close" onclick="closeSidebar()" aria-label="Menyuni yopish">&times;</button>
             <a href="{% if session.get('user_role') == 'admin' %}/dashboard{% elif session.get('user_role') == 'teacher' %}/teacher_dashboard{% else %}/student_dashboard{% endif %}" class="sidebar-brand">
                 <span class="brand-mark">▦</span>
                 <span>{{ session.get('school_name', 'Maktab Portal') }}</span>
@@ -59,10 +60,11 @@
             </nav>
             <a href="/logout" class="sidebar-logout"><span>↪</span>Chiqish</a>
         </aside>
+        <button type="button" class="sidebar-backdrop" id="appSidebarBackdrop" onclick="closeSidebar()" aria-label="Menyuni yopish"></button>
         {% endif %}
         <main class="app-main">
             <header class="topbar">
-                {% if session.get('user_role') == 'admin' %}<button class="menu-toggle" onclick="toggleSidebar()" aria-label="Menyuni ochish">☰</button>{% endif %}
+                {% if session.get('user_role') == 'admin' %}<button class="menu-toggle" id="appMenuToggle" onclick="toggleSidebar()" aria-label="Menyuni ochish" aria-controls="appSidebar" aria-expanded="false">☰</button>{% endif %}
                 <form action="/search" method="GET" class="topbar-search">
                     <span>⌕</span><input type="text" name="q" placeholder="Qidirish..." value="{{ request.args.get('q', '') }}">
                 </form>
@@ -100,15 +102,33 @@
     {% endif %}
     <script>
         function toggleSidebar() {
-            document.getElementById('appSidebar').classList.toggle('open');
+            const sidebar = document.getElementById('appSidebar');
+            if (sidebar.classList.contains('open')) closeSidebar();
+            else {
+                sidebar.classList.add('open');
+                document.getElementById('appSidebarBackdrop').classList.add('open');
+                document.body.classList.add('sidebar-open');
+                document.getElementById('appMenuToggle').setAttribute('aria-expanded', 'true');
+            }
+        }
+        function closeSidebar() {
+            const sidebar = document.getElementById('appSidebar');
+            if (!sidebar) return;
+            sidebar.classList.remove('open');
+            document.getElementById('appSidebarBackdrop').classList.remove('open');
+            document.body.classList.remove('sidebar-open');
+            document.getElementById('appMenuToggle').setAttribute('aria-expanded', 'false');
         }
         document.addEventListener('click', function(event) {
             const sidebar = document.getElementById('appSidebar');
             const toggle = document.querySelector('.menu-toggle');
             if (sidebar && toggle && !sidebar.contains(event.target) && !toggle.contains(event.target)) {
-                sidebar.classList.remove('open');
+                closeSidebar();
             }
         });
+        document.querySelectorAll('#appSidebar .sidebar-nav a, #appSidebar .sidebar-logout').forEach(link => link.addEventListener('click', closeSidebar));
+        document.addEventListener('keydown', event => { if (event.key === 'Escape') closeSidebar(); });
+        window.addEventListener('resize', () => { if (window.innerWidth > 860) closeSidebar(); });
         function applyTheme() {
             const dark = localStorage.getItem('theme') === 'dark';
             document.body.classList.toggle('dark-mode', dark);

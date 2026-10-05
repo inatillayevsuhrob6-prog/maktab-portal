@@ -165,7 +165,7 @@
         .news-card:hover { transform: translateY(-5px); box-shadow: 0 18px 35px rgba(15, 23, 42, .1); }
         .news-image-wrapper {
             width: 100%;
-            aspect-ratio: 3 / 4;
+            aspect-ratio: 16 / 10;
             height: auto;
             display: flex;
             align-items: center;
@@ -173,7 +173,7 @@
             overflow: hidden;
             background: #e2e8f0;
         }
-        .news-image { display: block; width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+        .news-image { display: block; width: 100%; height: 100%; object-fit: cover; }
         .news-content { padding: 24px 25px 28px; }.news-summary { color: #64748b; font-size: .95rem; line-height: 1.6; }.news-full { display: none; }.news-card.expanded .news-summary { display: none; }.news-card.expanded .news-full { display: block; }.news-more { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; margin-top: 12px; padding: 5px 11px; border: 1px solid #bfdbfe; border-radius: 8px; color: #2563eb; background: #eff6ff; cursor: pointer; font-size: 1rem; font-weight: 800; letter-spacing: 2px; }.news-more:hover { background: #dbeafe; }
         .news-date { font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; display: block; }
         .news-card h3 { font-size: 1.2rem; margin-bottom: 10px; color: #0f172a; }
@@ -195,7 +195,7 @@
             .school-scene { margin: 24px auto 0; }
             .business-orbit { right: 5%; top: 12%; }
         }
-        @media (max-width: 640px) { .news-grid { grid-template-columns: 1fr; max-width: 460px; }.news-image-wrapper { aspect-ratio: 3 / 4; }.login-float-item { display:none; }.right-side::before { width:180px;height:180px;top:3%;left:-60px; } }
+        @media (max-width: 640px) { .news-grid { grid-template-columns: 1fr; max-width: 460px; }.news-image-wrapper { aspect-ratio: 4 / 3; }.login-float-item { display:none; }.right-side::before { width:180px;height:180px;top:3%;left:-60px; } }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; } }
     </style>
 </head>
@@ -319,7 +319,7 @@
                     <div class="news-card">
                         <div class="news-image-wrapper">
                             {% if n.image_url %}
-                                <img src="{{ n.image_url }}" class="news-image">
+                                <img src="{{ n.image_url }}" class="news-image" alt="{{ n.title }} yangilik rasmi" loading="lazy">
                             {% else %}
                                 <div class="news-image" style="display:flex; align-items:center; justify-content:center; background:#f1f5f9; color:#94a3b8;">📰</div>
                             {% endif %}

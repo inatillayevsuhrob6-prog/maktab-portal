@@ -2,12 +2,17 @@
 {% block title %}Yangiliklar{% endblock %}
 {% block extra_css %}
 <style>
-        .news-feed { max-width: 800px; margin: 0 auto; }
-        .news-card { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .news-feed { max-width: 860px; margin: 0 auto; display:grid; gap:20px; }
+        .news-card { overflow:hidden; background: white; padding: 0; margin:0; border:1px solid #e3ebfa; border-radius: 16px; box-shadow: 0 10px 28px rgba(30,64,175,.08); animation: newsCardIn .45s ease both; }
         .news-card.highlight { border-top: 4px solid #e74c3c; }
-        .news-date { font-size: 12px; color: #95a5a6; margin-bottom: 8px; }
-        .news-title { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
-        .news-text { color: #555; line-height: 1.6; }
+        .news-photo { display:block; width:100%; max-height:420px; aspect-ratio:16/9; object-fit:cover; background:#edf3fc; }
+        .news-body { padding:22px 24px 24px; }
+        .news-date { font-size: 12px; color: #8291a8; margin-bottom: 8px; }
+        .news-title { font-size: 20px; font-weight: 750; color: #1e3a66; margin:0 0 10px; }
+        .news-text { color: #52627a; line-height: 1.7; white-space:pre-line; }
+        @keyframes newsCardIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        @media(max-width:600px) { .news-body {padding:18px;} .news-photo {aspect-ratio:4/3;} }
+        @media(prefers-reduced-motion:reduce) { .news-card {animation:none;} }
     </style>
 {% endblock %}
 {% block content %}
@@ -20,9 +25,12 @@
         <div class="news-feed">
             {% for n in news %}
             <div class="news-card {% if n.is_announcement %}highlight{% endif %}">
+                {% if n.image_url %}<img class="news-photo" src="{{ n.image_url }}" alt="{{ n.title }} yangilik rasmi" loading="lazy">{% endif %}
+                <div class="news-body">
                 <div class="news-date">{{ n.created_at.strftime('%d %B, %Y') }}</div>
                 <div class="news-title">{{ n.title }}</div>
                 <div class="news-text">{{ n.content }}</div>
+                </div>
             </div>
             {% endfor %}
             {% if not news %}

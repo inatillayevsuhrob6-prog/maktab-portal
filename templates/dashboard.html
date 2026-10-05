@@ -10,6 +10,7 @@
 <body class="dashboard-page">
     <div class="app-shell">
         <aside class="app-sidebar" id="dashboardSidebar">
+            <button type="button" class="sidebar-close" onclick="closeDashboardSidebar()" aria-label="Menyuni yopish">&times;</button>
             <a href="/dashboard" class="sidebar-brand"><span class="brand-mark">▦</span><span>{{ school.name }}</span></a>
             <div class="sidebar-user"><span class="sidebar-user-dot"></span><span>Administrator paneli</span></div>
             <nav class="sidebar-nav">
@@ -29,10 +30,11 @@
             </nav>
             <a href="/logout" class="sidebar-logout"><span>↪</span>Chiqish</a>
         </aside>
+        <button type="button" class="sidebar-backdrop" id="dashboardSidebarBackdrop" onclick="closeDashboardSidebar()" aria-label="Menyuni yopish"></button>
 
         <main class="app-main">
             <header class="topbar">
-                <button class="menu-toggle" onclick="toggleDashboardSidebar()" aria-label="Menyuni ochish">☰</button>
+                <button class="menu-toggle" id="dashboardMenuToggle" onclick="toggleDashboardSidebar()" aria-label="Menyuni ochish" aria-controls="dashboardSidebar" aria-expanded="false">☰</button>
                 <div class="dashboard-breadcrumb"><span>Boshqaruv paneli</span><strong>{{ school.name }}</strong></div>
                 <form action="/search" method="GET" class="topbar-search"><span>⌕</span><input type="text" name="q" placeholder="Qidirish..."></form>
                 <div class="notification-wrap">
@@ -127,8 +129,28 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         function toggleDashboardSidebar() {
-            document.getElementById('dashboardSidebar').classList.toggle('open');
+            const sidebar = document.getElementById('dashboardSidebar');
+            if (sidebar.classList.contains('open')) closeDashboardSidebar();
+            else {
+                sidebar.classList.add('open');
+                document.getElementById('dashboardSidebarBackdrop').classList.add('open');
+                document.body.classList.add('sidebar-open');
+                document.getElementById('dashboardMenuToggle').setAttribute('aria-expanded', 'true');
+            }
         }
+
+        function closeDashboardSidebar() {
+            const sidebar = document.getElementById('dashboardSidebar');
+            if (!sidebar) return;
+            sidebar.classList.remove('open');
+            document.getElementById('dashboardSidebarBackdrop').classList.remove('open');
+            document.body.classList.remove('sidebar-open');
+            document.getElementById('dashboardMenuToggle').setAttribute('aria-expanded', 'false');
+        }
+
+        document.querySelectorAll('#dashboardSidebar .sidebar-nav a, #dashboardSidebar .sidebar-logout').forEach(link => link.addEventListener('click', closeDashboardSidebar));
+        document.addEventListener('keydown', event => { if (event.key === 'Escape') closeDashboardSidebar(); });
+        window.addEventListener('resize', () => { if (window.innerWidth > 860) closeDashboardSidebar(); });
 
         function applyTheme() {
             const dark = localStorage.getItem('theme') === 'dark';

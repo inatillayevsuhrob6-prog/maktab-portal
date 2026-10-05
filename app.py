@@ -12,6 +12,7 @@ from flask_limiter.util import get_remote_address
 import json
 import bleach
 import os
+import uuid
 from openai import OpenAI
 from datetime import datetime, timedelta, timezone
 
@@ -117,6 +118,44 @@ def create_app():
     def sanitize_input(text):
         if text: return bleach.clean(text, tags=[], attributes={}, strip=True)
         return text
+
+    def save_news_image(uploaded_file):
+        """Save one validated news image under a collision-resistant name."""
+        filename = secure_filename(uploaded_file.filename or '')
+        extension = os.path.splitext(filename)[1].lower()
+        if extension not in {'.jpg', '.jpeg', '.png', '.gif', '.webp'}:
+            raise ValueError("Rasm formati noto‘g‘ri. JPG, PNG, GIF yoki WEBP tanlang.")
+        uploaded_file.stream.seek(0, os.SEEK_END)
+        size = uploaded_file.stream.tell()
+        uploaded_file.stream.seek(0)
+        if size > 5 * 1024 * 1024:
+            raise ValueError("Yangilik rasmi 5 MB dan kichik bo‘lishi kerak.")
+        upload_dir = os.path.join(app.static_folder, 'uploads', 'news')
+        os.makedirs(upload_dir, exist_ok=True)
+        saved_name = f"{uuid.uuid4().hex}{extension}"
+        disk_path = os.path.join(upload_dir, saved_name)
+        uploaded_file.save(disk_path)
+        return url_for('static', filename=f'uploads/news/{saved_name}'), disk_path
+
+    def local_news_image_path(image_url):
+        """Resolve only files inside our news upload directory."""
+        prefix = '/static/uploads/news/'
+        if not image_url or not image_url.startswith(prefix):
+            return None
+        upload_dir = os.path.realpath(os.path.join(app.static_folder, 'uploads', 'news'))
+        filename = os.path.basename(image_url.split('?', 1)[0])
+        path = os.path.realpath(os.path.join(upload_dir, filename))
+        if filename and os.path.commonpath([upload_dir, path]) == upload_dir:
+            return path
+        return None
+
+    def remove_news_image(image_url):
+        path = local_news_image_path(image_url)
+        if path and os.path.isfile(path):
+            try:
+                os.remove(path)
+            except OSError:
+                app.logger.warning('Yangilik rasmi o‘chirilmadi: %s', path)
 
     @app.context_processor
     def header_notifications():
@@ -964,15 +1003,24 @@ def create_app():
         image_path = None
         uploaded_file = request.files.get('news_image')
         if uploaded_file and uploaded_file.filename:
-            import time
-            upload_dir = os.path.join(app.static_folder, 'uploads', 'news')
-            os.makedirs(upload_dir, exist_ok=True)
-            filename = secure_filename(uploaded_file.filename)
-            unique_name = f"{int(time.time())}_{filename}"
-            uploaded_file.save(os.path.join(upload_dir, unique_name))
-            image_path = url_for('static', filename=f'uploads/news/{unique_name}')
-        db.session.add(News(title=sanitize_input(request.form.get('title')), content=sanitize_input(request.form.get('content')), image_url=image_path, is_announcement=(request.form.get('is_announcement')=='on'), school_id=session['school_id']))
-        db.session.commit(); return redirect(url_for('manage_news'))
+            try:
+                image_path, _ = save_news_image(uploaded_file)
+            except ValueError as error:
+                flash(str(error), 'danger')
+                return redirect(url_for('manage_news'))
+        news_item = News(title=sanitize_input(request.form.get('title')), content=sanitize_input(request.form.get('content')), image_url=image_path, is_announcement=(request.form.get('is_announcement')=='on'), school_id=session['school_id'])
+        db.session.add(news_item)
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            if image_path:
+                remove_news_image(image_path)
+            app.logger.exception('Yangilikni saqlashda xatolik')
+            flash("Yangilikni saqlashda xatolik yuz berdi.", 'danger')
+        else:
+            flash("Yangilik muvaffaqiyatli joylandi.", 'success')
+        return redirect(url_for('manage_news'))
 
     @app.route("/news")
     def student_news():
@@ -1203,7 +1251,12 @@ def create_app():
     @app.route("/delete_news/<int:nid>")
     def delete_news(nid):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        n = News.query.filter_by(id=nid, school_id=session['school_id']).first_or_404(); db.session.delete(n); db.session.commit(); return redirect(url_for('manage_news'))
+        n = News.query.filter_by(id=nid, school_id=session['school_id']).first_or_404()
+        image_url = n.image_url
+        db.session.delete(n)
+        db.session.commit()
+        remove_news_image(image_url)
+        return redirect(url_for('manage_news'))
 
     # --- TAHRIRLASH ROUTE LARI ---
     @app.route("/edit_class/<int:cid>", methods=["GET", "POST"])
@@ -1272,8 +1325,30 @@ def create_app():
         n = News.query.filter_by(id=nid, school_id=session['school_id']).first_or_404()
         if request.method == "POST":
             n.title = sanitize_input(request.form.get('title')); n.content = sanitize_input(request.form.get('content'))
-            n.image_url = sanitize_input(request.form.get('image_url')); n.is_announcement = (request.form.get('is_announcement') == 'on')
-            db.session.commit(); return redirect(url_for('manage_news'))
+            old_image_url = n.image_url
+            uploaded_file = request.files.get('news_image')
+            new_image_url = None
+            if uploaded_file and uploaded_file.filename:
+                try:
+                    new_image_url, _ = save_news_image(uploaded_file)
+                except ValueError as error:
+                    flash(str(error), 'danger')
+                    return render_template("edit_news.html", n=n)
+                n.image_url = new_image_url
+            n.is_announcement = (request.form.get('is_announcement') == 'on')
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                if new_image_url:
+                    remove_news_image(new_image_url)
+                app.logger.exception('Yangilikni tahrirlashda xatolik')
+                flash("Yangilikni saqlashda xatolik yuz berdi.", 'danger')
+                return render_template("edit_news.html", n=n)
+            if new_image_url and old_image_url != new_image_url:
+                remove_news_image(old_image_url)
+            flash("Yangilik muvaffaqiyatli yangilandi.", 'success')
+            return redirect(url_for('manage_news'))
         return render_template("edit_news.html", n=n)
 
     @app.route("/admin_profile", methods=["GET", "POST"])

@@ -407,6 +407,8 @@ input:focus, select:focus, textarea:focus {
     box-shadow: 12px 0 30px rgba(30, 64, 175, 0.14);
     z-index: 20;
 }
+.sidebar-close { display:none; }
+.sidebar-backdrop { display:none; }
 .sidebar-brand { display: flex; align-items: center; gap: 11px; padding: 4px 12px 24px; color: #fff; text-decoration: none; font-weight: 800; font-size: 1.05rem; }
 .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; color: #1e3a8a; background: #bfdbfe; border-radius: 10px; font-size: 1.35rem; }
 .sidebar-user { display: flex; align-items: center; gap: 9px; margin: 0 6px 18px; padding: 12px; border: 1px solid rgba(191, 219, 254, .18); border-radius: 12px; color: #bfdbfe; font-size: .78rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -451,8 +453,13 @@ input:focus, select:focus, textarea:focus {
 }
 
 @media (max-width: 860px) {
-    .app-sidebar { position: fixed; left: -270px; top: 0; transition: left .3s ease; }
-    .app-sidebar.open { left: 0; }
+    body.sidebar-open { overflow:hidden; }
+    .app-sidebar { position: fixed; left: 0; top: 0; width: min(290px, 86vw); height: 100vh; height: 100dvh; min-height: 0; max-height: 100vh; padding: 20px 14px max(18px, env(safe-area-inset-bottom)); overflow-y:auto; overscroll-behavior:contain; transform: translateX(-105%); transition: transform .28s ease; z-index: 30; }
+    .app-sidebar.open { transform: translateX(0); }
+    .sidebar-backdrop { display:block; position:fixed; inset:0; z-index:29; padding:0; border:0; background:rgba(10,22,48,.52); opacity:0; visibility:hidden; transition:opacity .24s ease, visibility .24s ease; }
+    .sidebar-backdrop.open { opacity:1; visibility:visible; }
+    .sidebar-close { display:grid; place-items:center; position:absolute; top:14px; right:14px; width:38px; height:38px; border:1px solid rgba(219,234,254,.25); border-radius:11px; color:#fff; background:rgba(255,255,255,.12); font-size:1.55rem; line-height:1; cursor:pointer; }
+    .app-sidebar .sidebar-brand { padding-right:48px; }
     .menu-toggle { display: block; }
     .topbar { padding: 0 18px; }
     .app-main .content-wrapper { padding: 24px 18px 40px; }
