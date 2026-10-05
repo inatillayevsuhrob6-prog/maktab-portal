@@ -97,6 +97,7 @@ def create_app():
                     db.session.execute(text("ALTER TABLE club ADD COLUMN leader_name VARCHAR(100)"))
             else:
                 db.session.execute(text("ALTER TABLE club ADD COLUMN IF NOT EXISTS leader_name VARCHAR(100)"))
+                db.session.execute(text("ALTER TABLE club ALTER COLUMN teacher_id DROP NOT NULL"))
             db.session.commit()
             print("✅ 'club' va 'student_club' jadvallari yaratildi!")
         except Exception as e:
@@ -1072,9 +1073,13 @@ def create_app():
         role = session.get('user_role')
         if 'school_id' not in session or role not in {'admin', 'teacher'}: return redirect(url_for('home'))
         teacher_id = session.get('teacher_id') if role == 'teacher' else None
+        club_name = sanitize_input(request.form.get('name', '')).strip()
         leader_name = sanitize_input(request.form.get('leader_name', '')).strip()
-        if not leader_name:
-            flash("To‘garak rahbarining ismini kiriting.", "warning")
+        if not club_name or not leader_name:
+            flash("To‘garak nomi va rahbarining ismini kiriting.", "warning")
+            return redirect(url_for('manage_clubs'))
+        if role == 'teacher' and not Teacher.query.filter_by(id=teacher_id, school_id=session['school_id']).first():
+            flash("O‘qituvchi hisobi topilmadi. Qayta kiring va urinib ko‘ring.", "danger")
             return redirect(url_for('manage_clubs'))
         valid_days = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']
         days = request.form.getlist('days')
@@ -1085,15 +1090,21 @@ def create_app():
             flash("To‘garak kunlarini va boshlanish/tugash vaqtini to‘g‘ri kiriting.", "warning")
             return redirect(url_for('manage_clubs'))
         schedule = f"{', '.join(days)} | {start_time}–{end_time}"
-        db.session.add(Club(
-            name=sanitize_input(request.form.get('name')),
+        club = Club(
+            name=club_name[:200],
             description=sanitize_input(request.form.get('description')),
             teacher_id=teacher_id,
             leader_name=leader_name[:100],
             schedule=schedule,
             school_id=session['school_id']
-        ))
-        db.session.commit()
+        )
+        try:
+            db.session.add(club)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            app.logger.exception("To‘garakni saqlashda xatolik (school_id=%s, role=%s)", session.get('school_id'), role)
+            flash("To‘garak saqlanmadi. Sahifani yangilab qayta urinib ko‘ring; muammo qolsa administratorga xabar bering.", "danger")
         return redirect(url_for('manage_clubs'))
 
     @app.route("/clubs/delete/<int:club_id>")
