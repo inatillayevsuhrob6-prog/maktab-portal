@@ -360,7 +360,8 @@ def create_app():
             session['last_activity'] = datetime.now(timezone.utc)
             return redirect(url_for('teacher_dashboard'))
             
-        return "Login yoki parol xato!", 401
+        flash("Login yoki parol noto‘g‘ri. Ma’lumotlarni tekshirib, qayta urinib ko‘ring.", "danger")
+        return redirect(url_for('home'))
 
     # --- ADMIN DASHBOARD ---
     @app.route("/dashboard")

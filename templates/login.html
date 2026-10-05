@@ -120,6 +120,10 @@
         .login-auth-mark { width:50px; height:50px; display:grid; place-items:center; margin:0 auto 16px; border:1px solid #dbeafe; border-radius:16px; color:#2563eb; background:linear-gradient(145deg,#eff6ff,#fff); box-shadow:0 9px 22px rgba(37,99,235,.11); font-size:1.35rem; animation:softPulse 3.5s ease-in-out infinite; }
         .login-header h2 { font-size: 2rem; color: #0f172a; margin-bottom: 10px; font-weight: 700; }
         .login-header p { color: #64748b; font-size: 1rem; }
+        .auth-feedback { display:flex; align-items:flex-start; gap:11px; margin:0 0 20px; padding:13px 15px; border:1px solid #fecaca; border-radius:12px; color:#991b1b; background:linear-gradient(135deg,#fff7f7,#fff); box-shadow:0 6px 18px rgba(185,28,28,.06); font-size:.88rem; line-height:1.5; animation:revealDown .3s ease both; }
+        .auth-feedback.success { border-color:#bbf7d0; color:#166534; background:linear-gradient(135deg,#f0fdf4,#fff); }
+        .auth-feedback-icon { flex:none; display:grid; place-items:center; width:22px; height:22px; border-radius:50%; color:#fff; background:#dc2626; font-size:.75rem; font-weight:800; }
+        .auth-feedback.success .auth-feedback-icon { background:#16a34a; }
 
         .form-group { margin-bottom: 24px; }
         .form-group label { display: block; margin-bottom: 10px; color: #334155; font-weight: 600; font-size: 0.95rem; }
@@ -251,7 +255,7 @@
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
                             {% for category, message in messages %}
-                                <div style="background: {% if category == 'danger' %}#fee2e2{% else %}#dcfce7{% endif %}; color: {% if category == 'danger' %}#991b1b{% else %}#166534{% endif %}; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; text-align: center;">{{ message }}</div>
+                                <div class="auth-feedback {% if category == 'success' %}success{% endif %}" role="alert"><span class="auth-feedback-icon" aria-hidden="true">{% if category == 'success' %}✓{% else %}!{% endif %}</span><span>{{ message }}</span></div>
                             {% endfor %}
                         {% endif %}
                     {% endwith %}
@@ -260,11 +264,11 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="form-group">
                             <label>Login</label>
-                            <input type="text" name="username" placeholder="Loginingizni kiriting" required autofocus>
+                            <input type="text" name="username" placeholder="Loginingizni kiriting" autocomplete="username" required autofocus>
                         </div>
                         <div class="form-group">
                             <label>Parol</label>
-                            <input type="password" name="password" placeholder="Parolingizni kiriting" required>
+                            <input type="password" name="password" placeholder="Parolingizni kiriting" autocomplete="current-password" required>
                         </div>
                         <button type="submit" class="btn-login">Kirish</button>
                     </form>
