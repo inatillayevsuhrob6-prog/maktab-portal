@@ -8,6 +8,10 @@ env/
 *.sqlite3
 instance/
 
+# User-uploaded news photos stay on the server and are not overwritten by deploys
+static/uploads/news/*
+!static/uploads/news/.gitkeep
+
 # Environment Variables
 .env
 
