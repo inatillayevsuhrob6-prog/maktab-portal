@@ -520,7 +520,14 @@ def create_app():
     @app.route("/teachers")
     def teachers():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
-        return render_template("teachers.html", teachers=Teacher.query.filter_by(school_id=session['school_id']).all())
+        # The template reads each teacher's subject. Load it in the same query
+        # so a large school does not issue one extra database query per teacher.
+        teachers = (Teacher.query
+                    .options(joinedload(Teacher.subject))
+                    .filter_by(school_id=session['school_id'])
+                    .order_by(Teacher.first_name, Teacher.last_name)
+                    .all())
+        return render_template("teachers.html", teachers=teachers)
 
     @app.route("/add_teacher", methods=["GET", "POST"])
     def add_teacher():
