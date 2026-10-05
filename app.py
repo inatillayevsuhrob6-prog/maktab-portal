@@ -15,6 +15,23 @@ import os
 from openai import OpenAI
 from datetime import datetime, timedelta, timezone
 
+import traceback
+import sys
+
+# Global exception handler
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    with open('error.log', 'a') as f:
+        f.write("".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+        f.write("
+" + "="*50 + "
+")
+
+sys.excepthook = handle_exception
+
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -702,3 +719,5 @@ def create_app():
 # Emergency restart trigger
 
 # Emergency restart trigger
+
+# Force restart trigger 94503720627056
