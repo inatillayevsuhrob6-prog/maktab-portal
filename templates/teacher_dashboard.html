@@ -9,8 +9,10 @@
         .teacher-kicker { display:block; margin-bottom:8px; color:#bfdbfe; font-size:.7rem; font-weight:800; letter-spacing:.13em; }
         .teacher-avatar { width:82px; height:82px; flex:0 0 82px; border-radius:24px; background:rgba(255,255,255,.17); display:flex; align-items:center; justify-content:center; font-size:32px; overflow:hidden; border:2px solid rgba(255,255,255,.7); box-shadow:0 12px 28px rgba(15,23,42,.17); }
         .teacher-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .teacher-dashboard-page .teacher-avatar { animation:teacherFloat 4s ease-in-out infinite; }
         .schedule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .day-card { background: white; border:1px solid #e3ebfb; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 26px rgba(30,64,175,.06); transition:transform .24s ease,box-shadow .24s ease; }
+        .day-card { background: white; border:1px solid #e3ebfb; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 26px rgba(30,64,175,.06); transition:transform .24s ease,box-shadow .24s ease; animation:teacherRise .55s ease both; }
+        .day-card:nth-child(2) { animation-delay:.08s; }.day-card:nth-child(3) { animation-delay:.16s; }.day-card:nth-child(4) { animation-delay:.24s; }
         .day-card:hover { transform:translateY(-3px); box-shadow:0 17px 32px rgba(30,64,175,.11); }
         .day-header { background: linear-gradient(90deg,#1e40af,#2563eb); color: white; padding: 12px 16px; font-weight: 800; }
         .lesson-item { padding: 12px 15px; border-bottom: 1px solid #eee; }
@@ -28,12 +30,16 @@
         .teacher-dashboard-page .lesson-item { padding:14px 16px; border-bottom:1px solid #edf2fb; }
         .teacher-dashboard-page .lesson-time { color:#2563eb; font-weight:700; margin-bottom:4px; }
         .teacher-dashboard-page .lesson-class { color:#1d4ed8; background:#eff6ff; }
-        .teacher-dashboard-page .quick-link { display:flex !important; align-items:center; justify-content:center; min-height:44px; border-radius:11px !important; font-weight:700; box-shadow:none; transition:transform .2s ease,filter .2s ease; }
-        .teacher-dashboard-page .quick-link:hover { transform:translateY(-2px); filter:brightness(1.05); }
+        .teacher-dashboard-page .quick-link { display:flex !important; align-items:center; justify-content:center; min-height:44px; border-radius:11px !important; font-weight:700; box-shadow:none; transition:transform .2s ease,filter .2s ease; position:relative; overflow:hidden; }
+        .teacher-dashboard-page .quick-link::after { content:""; position:absolute; top:-40%; left:-70%; width:45%; height:180%; transform:rotate(22deg); background:linear-gradient(90deg,transparent,rgba(255,255,255,.26),transparent); transition:left .55s ease; }
+        .teacher-dashboard-page .quick-link:hover { transform:translateY(-2px) scale(1.01); filter:brightness(1.05); }
+        .teacher-dashboard-page .quick-link:hover::after { left:130%; }
         .teacher-dashboard-page .empty-schedule { display:grid; place-items:center; gap:8px; min-height:180px; padding:26px; border:1px dashed #bfdbfe; border-radius:16px; color:#64748b; background:rgba(255,255,255,.75); text-align:center; }
         .teacher-dashboard-page .empty-schedule span { font-size:2rem; }
         @keyframes teacherRise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
         @keyframes teacherOrbit { to { transform:rotate(360deg); } }
+        @keyframes teacherFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
+        .teacher-dashboard-page .empty-schedule span { animation:teacherFloat 3s ease-in-out infinite; }
         @media (max-width:700px) { .teacher-dashboard-page { padding:12px 0 30px !important; }.teacher-dashboard-page .teacher-header { padding:24px; }.teacher-dashboard-page .teacher-avatar { width:64px;height:64px;flex-basis:64px;border-radius:19px; } }
     </style>
 {% endblock %}

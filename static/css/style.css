@@ -425,8 +425,16 @@ input:focus, select:focus, textarea:focus {
 .role-nav { display:flex; align-items:center; gap:14px; min-width:0; overflow-x:auto; white-space:nowrap; }
 .role-nav a { color:#475569; text-decoration:none; font-size:.78rem; font-weight:600; }
 .role-nav a:hover { color:#2563eb; }
+.role-nav a { position:relative; transition:color .22s ease,transform .22s ease; }
+.role-nav a:not(.role-logout)::after { content:""; position:absolute; left:0; right:100%; bottom:-5px; height:2px; border-radius:2px; background:#38bdf8; transition:right .24s ease; }
+.role-nav a:hover { transform:translateY(-1px); }
+.role-nav a:hover::after { right:0; }
+.role-nav .role-logout { padding:8px 12px; border:1px solid #fecaca; border-radius:10px; color:#dc2626; background:#fff7f7; }
+.role-nav .role-logout:hover { color:#fff; background:#ef4444; border-color:#ef4444; }
 .notification-icon { display:grid; place-items:center; width:20px; height:20px; }
 .notification-icon svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.notification-button:hover .notification-icon { animation:bellWiggle .55s ease; }
+@keyframes bellWiggle { 0%,100% { transform:rotate(0); } 20%,60% { transform:rotate(-13deg); } 40%,80% { transform:rotate(13deg); } }
 .topbar { height: 72px; display: flex; align-items: center; gap: 20px; padding: 0 34px; background: rgba(255,255,255,.86); border-bottom: 1px solid #e5edff; backdrop-filter: blur(14px); position: sticky; top: 0; z-index: 10; }
 .menu-toggle { display: none; border: 0; background: #eaf2ff; color: var(--dark-blue); padding: 9px 12px; border-radius: 9px; font-size: 1.2rem; cursor: pointer; }
 .topbar-search { display: flex; align-items: center; gap: 9px; width: min(100%, 420px); padding: 9px 14px; color: #94a3b8; background: #f4f7ff; border: 1px solid #e1eaff; border-radius: 11px; }

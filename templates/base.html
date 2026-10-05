@@ -68,11 +68,11 @@
                 </form>
                 {% if session.get('user_role') == 'teacher' %}
                 <nav class="role-nav" aria-label="O‘qituvchi menyusi">
-                    <a href="/teacher_dashboard">Kabinet</a><a href="/teacher_profile">Profil</a><a href="{{ url_for('teacher_schedule') }}">Jadval</a><a href="/clubs/manage">To‘garaklar</a><a href="/library">Kutubxona</a><a href="/presentations">Taqdimotlar</a><a href="/chat">Chat</a>
+                    <a href="/teacher_dashboard">Kabinet</a><a href="/teacher_profile">Profil</a><a href="{{ url_for('teacher_schedule') }}">Jadval</a><a href="/clubs/manage">To‘garaklar</a><a href="/library">Kutubxona</a><a href="/presentations">Taqdimotlar</a><a href="/chat">Chat</a><a class="role-logout" href="/logout">Chiqish ↗</a>
                 </nav>
                 {% elif session.get('user_role') == 'student' %}
                 <nav class="role-nav" aria-label="O‘quvchi menyusi">
-                    <a href="/student_dashboard">Kabinet</a><a href="/student_profile">Profil</a><a href="/schedule/view">Jadval</a><a href="/my_tests">Testlar</a><a href="/library">Kutubxona</a><a href="/clubs">To‘garaklar</a><a href="/chat">Chat</a>
+                    <a href="/student_dashboard">Kabinet</a><a href="/student_profile">Profil</a><a href="/schedule/view">Jadval</a><a href="/my_tests">Testlar</a><a href="/library">Kutubxona</a><a href="/clubs">To‘garaklar</a><a href="/chat">Chat</a><a class="role-logout" href="/logout">Chiqish ↗</a>
                 </nav>
                 {% endif %}
                 <div class="notification-wrap">
