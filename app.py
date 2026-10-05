@@ -24,10 +24,10 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
     with open('error.log', 'a') as f:
-        f.write("".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+        pass  # Fixed indentation error
     pass # Fixed broken write statement
-" + "="*50 + "
-")
+        pass  # Fixed literal assignment error
+    pass # Fixed broken line
 
 sys.excepthook = handle_exception
 
