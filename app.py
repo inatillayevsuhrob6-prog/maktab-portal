@@ -25,9 +25,6 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         return
     with open('error.log', 'a') as f:
         f.write("".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
-        f.write("
-" + "="*50 + "
-")
 
 sys.excepthook = handle_exception
 
@@ -724,3 +721,93 @@ def create_app():
 # Emergency restart 2584104242367211027
 
 # Emergency restart -8371375395446362482
+
+@app.route("/presentations")
+def presentations():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>Taqdimotlar</h1><p>Bu sahifa tez orada ishga tushadi.</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/chat")
+def chat():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>Ichki Chat</h1><p>Chat tizimi hozircha faol emas.</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/delete_teacher/<int:id>")
+def delete_teacher(id):
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return f"<h1>O'qituvchi (ID: {id}) o'chirildi!</h1><p>(Demo rejim)</p><a href='/teachers'>Ortga</a>"
+
+@app.route("/library")
+def library():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>Kutubxona</h1><p>Kitoblar bazasi yuklanmoqda...</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/students")
+def students():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>O'quvchilar Ro'yxati</h1><p>Bu yerda barcha o'quvchilar ko'rinadi.</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/teacher_dashboard")
+def teacher_dashboard():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>O'qituvchi Kabineti</h1><p>Saboxat Nortosheva - Fan: Mental</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/presentations")
+def presentations():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>Taqdimotlar</h1><p>Bu sahifa tez orada ishga tushadi.</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/chat")
+def chat():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>Ichki Chat</h1><p>Chat tizimi hozircha faol emas.</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/delete_teacher/<int:id>")
+def delete_teacher(id):
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return f"<h1>O'qituvchi (ID: {id}) o'chirildi!</h1><p>(Demo rejim)</p><a href='/teachers'>Ortga</a>"
+
+@app.route("/library")
+def library():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>Kutubxona</h1><p>Kitoblar bazasi yuklanmoqda...</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/students")
+def students():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>O'quvchilar Ro'yxati</h1><p>Bu yerda barcha o'quvchilar ko'rinadi.</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/teacher_dashboard")
+def teacher_dashboard():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>O'qituvchi Kabineti</h1><p>Saboxat Nortosheva - Fan: Mental</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/presentations")
+def presentations():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>Taqdimotlar</h1><p>Bu sahifa tez orada ishga tushadi.</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/chat")
+def chat():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>Ichki Chat</h1><p>Chat tizimi hozircha faol emas.</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/delete_teacher/<int:id>")
+def delete_teacher(id):
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return f"<h1>O'qituvchi (ID: {id}) o'chirildi!</h1><p>(Demo rejim)</p><a href='/teachers'>Ortga</a>"
+
+@app.route("/library")
+def library():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>Kutubxona</h1><p>Kitoblar bazasi yuklanmoqda...</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/students")
+def students():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>O'quvchilar Ro'yxati</h1><p>Bu yerda barcha o'quvchilar ko'rinadi.</p><a href='/dashboard'>Ortga</a>"
+
+@app.route("/teacher_dashboard")
+def teacher_dashboard():
+    if 'user_role' not in session: return redirect(url_for('login'))
+    return "<h1>O'qituvchi Kabineti</h1><p>Saboxat Nortosheva - Fan: Mental</p><a href='/dashboard'>Ortga</a>"
