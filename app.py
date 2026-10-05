@@ -271,87 +271,38 @@ def create_app():
 
     # --- O'QITUVCHI DASHBOARD ---
     
+
+
+
+
+
+
 @app.route("/teacher_dashboard")
 def teacher_dashboard():
     if 'user_role' not in session: return redirect(url_for('login'))
-    return """<!DOCTYPE html>
-<html><head><title>O'qituvchi Kabineti</title>
-<style>body{font-family:sans-serif;background:#f0f2f5;padding:40px}
-.card{background:white;padding:30px;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);max-width:800px;margin:0 auto}
-h1{color:#1e293b}p{color:#64748b}.btn{display:inline-block;padding:10px 20px;background:#10b981;color:white;text-decoration:none;border-radius:8px;margin-top:20px}</style></head>
-<body><div class="card">
-<h1>Saboxat Nortosheva</h1>
-<p>Fan: Mental | O'qituvchi Kabineti</p>
-<p>⚠️ Ma'lumotlar bazasi hozircha texnik ishlar sababli vaqtincha o'chirilgan.</p>
-<a href="/dashboard" class="btn">Bosh Sahifaga Qaytish</a>
-</div></body></html>"""
+    return "<h1>O'qituvchi Kabineti</h1><p>Saboxat Nortosheva - Fan: Mental</p><a href='/dashboard'>Ortga</a>"
 
 @app.route("/delete_teacher/<int:id>")
 def delete_teacher(id):
     if 'user_role' not in session: return redirect(url_for('login'))
-    return f"""<!DOCTYPE html>
-<html><head><title>O'chirildi</title>
-<style>body{{font-family:sans-serif;padding:40px;text-align:center}}
-.box{{background:white;padding:40px;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);max-width:500px;margin:0 auto}}
-.btn{{display:inline-block;padding:10px 20px;background:#ef4444;color:white;text-decoration:none;border-radius:8px;margin-top:20px}}</style></head>
-<body><div class="box">
-<h1 style="color:#ef4444">O'qituvchi (ID: {id}) o'chirildi!</h1>
-<p>(Demo rejim - ma'lumotlar bazasi o'chirilgan)</p>
-<a href="/teachers" class="btn">Ortga Qaytish</a>
-</div></body></html>"""
+    return f"<h1>O'qituvchi (ID: {id}) o'chirildi!</h1><p>(Demo rejim)</p><a href='/teachers'>Ortga</a>"
 
 @app.route("/presentations")
 def presentations():
     if 'user_role' not in session: return redirect(url_for('login'))
-    return """<!DOCTYPE html>
-<html><head><title>Taqdimotlar</title>
-<style>body{font-family:sans-serif;background:#f0f2f5;padding:40px}
-.card{background:white;padding:30px;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);max-width:800px;margin:0 auto}
-h1{color:#1e293b}p{color:#64748b}.btn{display:inline-block;padding:10px 20px;background:#3b82f6;color:white;text-decoration:none;border-radius:8px;margin-top:20px}</style></head>
-<body><div class="card">
-<h1>Taqdimotlar</h1>
-<p>Bu sahifa tez orada to'liq ishga tushadi.</p>
-<a href="/dashboard" class="btn">Ortga Qaytish</a>
-</div></body></html>"""
+    return "<h1>Taqdimotlar</h1><p>Tez orada ishga tushadi.</p><a href='/dashboard'>Ortga</a>"
 
 @app.route("/chat")
 def chat():
     if 'user_role' not in session: return redirect(url_for('login'))
-    return """<!DOCTYPE html>
-<html><head><title>Chat</title>
-<style>body{font-family:sans-serif;background:#f0f2f5;padding:40px}
-.card{background:white;padding:30px;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);max-width:800px;margin:0 auto}
-h1{color:#1e293b}p{color:#64748b}.btn{display:inline-block;padding:10px 20px;background:#8b5cf6;color:white;text-decoration:none;border-radius:8px;margin-top:20px}</style></head>
-<body><div class="card">
-<h1>Ichki Chat</h1>
-<p>Chat tizimi hozircha texnik ishlar sababli vaqtincha o'chirilgan.</p>
-<a href="/dashboard" class="btn">Ortga Qaytish</a>
-</div></body></html>"""
+    return "<h1>Ichki Chat</h1><p>Hozircha faol emas.</p><a href='/dashboard'>Ortga</a>"
 
 @app.route("/library")
 def library():
     if 'user_role' not in session: return redirect(url_for('login'))
-    return """<!DOCTYPE html>
-<html><head><title>Kutubxona</title>
-<style>body{font-family:sans-serif;background:#f0f2f5;padding:40px}
-.card{background:white;padding:30px;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);max-width:800px;margin:0 auto}
-h1{color:#1e293b}p{color:#64748b}.btn{display:inline-block;padding:10px 20px;background:#f59e0b;color:white;text-decoration:none;border-radius:8px;margin-top:20px}</style></head>
-<body><div class="card">
-<h1>Kutubxona</h1>
-<p>Kitoblar bazasi yuklanmoqda...</p>
-<a href="/dashboard" class="btn">Ortga Qaytish</a>
-</div></body></html>"""
+    return "<h1>Kutubxona</h1><p>Yuklanmoqda...</p><a href='/dashboard'>Ortga</a>"
 
 @app.route("/students")
 def students():
     if 'user_role' not in session: return redirect(url_for('login'))
-    return """<!DOCTYPE html>
-<html><head><title>O'quvchilar</title>
-<style>body{font-family:sans-serif;background:#f0f2f5;padding:40px}
-.card{background:white;padding:30px;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);max-width:800px;margin:0 auto}
-h1{color:#1e293b}p{color:#64748b}.btn{display:inline-block;padding:10px 20px;background:#0ea5e9;color:white;text-decoration:none;border-radius:8px;margin-top:20px}</style></head>
-<body><div class="card">
-<h1>O'quvchilar Ro'yxati</h1>
-<p>Bu yerda barcha o'quvchilar ko'rinadi.</p>
-<a href="/dashboard" class="btn">Ortga Qaytish</a>
-</div></body></html>"""
+    return "<h1>O'quvchilar</h1><p>Ro'yxat tez orada chiqadi.</p><a href='/dashboard'>Ortga</a>"
