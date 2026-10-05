@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <title>AI Chat - Maktab Portal</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
+{% extends "base.html" %}
+{% block title %}AI Chat - Maktab Portal{% endblock %}
+{% block extra_css %}
+<style>
         .chat-container { max-width: 800px; margin: 40px auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 80vh; }
         .chat-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
         .chat-header h2 { margin: 0; font-size: 20px; }
@@ -22,9 +19,9 @@
         .clear-btn { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 12px; border-radius: 15px; cursor: pointer; font-size: 12px; margin-left: 10px; }
         .clear-btn:hover { background: rgba(255,255,255,0.1); }
     </style>
-</head>
-<body style="background: #f4f6f9;">
-    <div class="chat-container">
+{% endblock %}
+{% block content %}
+<div class="chat-container">
         <div class="chat-header">
             <h2>🤖 AI O'qituvchi</h2>
             <div style="display:flex; align-items:center;">
@@ -44,8 +41,9 @@
             <button onclick="sendMessage()" id="sendBtn" class="chat-send">Yuborish</button>
         </div>
     </div>
-
-    <script>
+{% endblock %}
+{% block extra_js %}
+<script>
     let isProcessing = false;
 
     async function sendMessage() {
@@ -112,5 +110,4 @@
         return div.innerHTML;
     }
     </script>
-</body>
-</html>
+{% endblock %}

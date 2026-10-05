@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <title>Natija</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
+{% extends "base.html" %}
+{% block title %}Natija{% endblock %}
+{% block extra_css %}
+<style>
         .xp-badge { background: #f1c40f; color: #333; padding: 5px 15px; border-radius: 20px; font-weight: bold; display: inline-block; margin-top: 10px; }
         .flash-msg { background: #dff9fb; border-left: 4px solid #22a6b3; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
     </style>
-</head>
-<body>
-    <div class="dashboard-container">
+{% endblock %}
+{% block content %}
+<div class="dashboard-container">
         <nav class="navbar">
             <h3>Test Natijasi</h3>
             <a href="/my_tests" style="color:white; text-decoration:none;">Testlarga</a>
@@ -48,5 +45,4 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <title>Savol Qo‘shish - {{ test.title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body class="legacy-admin-page">
-     {% include "admin_sidebar.html" %}
-    <div class="dashboard-container">
+{% extends "base.html" %}
+{% block title %}Savol Qo‘shish - {{ test.title }}{% endblock %}
+{% block extra_css %}
+{% endblock %}
+{% block content %}
+<div class="dashboard-container">
         <nav class="navbar">
             <h3>{{ test.title }} - Savol Qo‘shish</h3>
             <a href="/tests" style="color:white; text-decoration:none;">Tugatish</a>
@@ -52,5 +48,4 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

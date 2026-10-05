@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <title>Mening Jadvalim</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
+{% extends "base.html" %}
+{% block title %}Mening Jadvalim{% endblock %}
+{% block extra_css %}
+<style>
         .days-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
         .day-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .day-header { background: #3498db; color: white; padding: 10px 15px; font-weight: bold; }
@@ -16,9 +13,9 @@
         .teacher-info { display: inline-flex; align-items: center; gap: 6px; }
         .teacher-info img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; }
     </style>
-</head>
-<body style="background:#f4f6f9">
-    <div class="dashboard-container" style="max-width:1200px; margin:0 auto; padding:20px">
+{% endblock %}
+{% block content %}
+<div class="dashboard-container" style="max-width:1200px; margin:0 auto; padding:20px">
         <nav class="navbar" style="border-radius:8px; margin-bottom:20px">
             <h3>{{ student.student_class.name }} Sinf Jadvali</h3>
             <div style="display:flex; align-items:center; gap:14px;"><a href="/chat" style="color:white; text-decoration:none">💬 O‘qituvchiga yozish</a><a href="/student_dashboard" style="color:white; text-decoration:none">← Kabinetga</a></div>
@@ -49,5 +46,4 @@
             {% endfor %}
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

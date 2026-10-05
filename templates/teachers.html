@@ -1,58 +1,16 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <title>O'qituvchilar</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        .page-navbar { background-color: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .page-navbar h3 { margin: 0; font-size: 18px; font-weight: 600; }
-        .nav-actions { display: flex; gap: 15px; align-items: center; }
-        .nav-link { color: white !important; text-decoration: none; font-weight: 500; }
-        .btn-logout-nav { background-color: #e74c3c; color: white !important; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background-color: #f8f9fa; color: #2c3e50; font-weight: 600; }
-        .btn-edit { background: #f39c12; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; }
-        .btn-delete { background: #e74c3c; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; }
-    </style>
-</head>
-<body class="legacy-admin-page" style="background-color: #f4f6f9; padding: 20px;">
-    {% include "admin_sidebar.html" %}
-    <div class="page-navbar">
-        <h3>O'qituvchilar Bo'limi</h3>
-        <div class="nav-actions">
-            <a href="/dashboard" class="nav-link">← Bosh sahifa</a>
-            <a href="/logout" class="btn-logout-nav">Chiqish</a>
-        </div>
-    </div>
-
-    <div style="max-width: 1200px; margin: 0 auto;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h1 style="color: #2c3e50; margin: 0;">O'qituvchilar Ro'yxati</h1>
-            <a href="/add_teacher" class="btn-primary" style="width:auto; padding:10px 20px; text-decoration:none; display:inline-block;">+ Yangi O'qituvchi</a>
-        </div>
-
-        <table>
-            <thead><tr><th>Ism</th><th>Familiya</th><th>Fan</th><th>Login</th><th>Amallar</th></tr></thead>
-            <tbody>
-                {% for t in teachers %}
-                <tr>
-                    <td>{{ t.first_name }}</td>
-                    <td>{{ t.last_name }}</td>
-                    <td>{{ t.subject.name if t.subject else '-' }}</td>
-                    <td style="font-family: monospace;">{{ t.login }}</td>
-                    <td>
-                        <a href="/admin/edit_teacher/{{ t.id }}" class="btn-edit">✏️ Tahrirlash</a>
-                        <a href="/delete_teacher/{{ t.id }}" class="btn-delete" onclick="return confirm('Rostdan ham o\'chirmoqchimisiz?')">🗑 O'chirish</a>
-                    </td>
-                </tr>
-                {% endfor %}
-                {% if teachers|length == 0 %}
-                <tr><td colspan="5" style="text-align:center; padding:30px; color:#777;">Hozircha o'qituvchilar yo'q.</td></tr>
-                {% endif %}
-            </tbody>
-        </table>
-    </div>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}O‘qituvchilar{% endblock %}
+{% block content %}
+<section class="page-heading-row">
+    <div><span class="page-kicker">JAMOA BOSHQARUVI</span><h1>O‘qituvchilar</h1><p>Maktab o‘qituvchilarini ko‘ring va boshqaring.</p></div>
+    <a href="{{ url_for('add_teacher') }}" class="primary-button">＋ Yangi o‘qituvchi</a>
+</section>
+<section class="data-panel">
+    <div class="data-panel-heading"><strong>{{ teachers|length }} ta o‘qituvchi</strong><span>Ro‘yxat yangilangan</span></div>
+    <div class="table-scroll"><table class="portal-table"><thead><tr><th>O‘qituvchi</th><th>Fan</th><th>Login</th><th>Amallar</th></tr></thead><tbody>
+    {% for teacher in teachers %}
+    <tr><td><span class="person-cell"><span class="person-avatar">{{ teacher.first_name[:1] }}{{ teacher.last_name[:1] }}</span><strong>{{ teacher.first_name }} {{ teacher.last_name }}</strong></span></td><td>{{ teacher.subject.name if teacher.subject else '—' }}</td><td><code>{{ teacher.login or '—' }}</code></td><td><div class="table-actions"><a href="{{ url_for('edit_teacher', tid=teacher.id) }}" class="action-link">✏️ Tahrirlash</a><form method="POST" action="{{ url_for('delete_teacher', tid=teacher.id) }}" onsubmit="return confirm('O‘qituvchini o‘chirishni tasdiqlaysizmi?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="action-link danger" type="submit">🗑 O‘chirish</button></form></div></td></tr>
+    {% else %}<tr><td colspan="4"><div class="empty-state"><span>👩‍🏫</span><strong>O‘qituvchilar hali yo‘q</strong><p>Birinchi o‘qituvchini ro‘yxatga qo‘shing.</p></div></td></tr>{% endfor %}
+    </tbody></table></div>
+</section>
+{% endblock %}

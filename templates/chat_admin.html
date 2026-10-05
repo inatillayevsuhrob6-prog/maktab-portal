@@ -1,59 +1,43 @@
 {% extends "base.html" %}
-
-{% block title %}Chat nazorati{% endblock %}
-
+{% block title %}Ichki chat{% endblock %}
 {% block content %}
 <div class="chat-page">
     <div class="chat-page-heading">
-        <div>
-        <section class="admin-chat-compose">
-            <div>
-                <span class="page-kicker">YANGI XABAR</span>
-                <h2>O‘qituvchi yoki o‘quvchiga yozish</h2>
-            </div>
-            <form method="POST" action="{{ url_for('send_chat_message') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="recipient_type" id="adminRecipientType">
-                <input type="hidden" name="recipient_id" id="adminRecipientId">
-                <select id="adminRecipient" required>
-                    <option value="">Qabul qiluvchini tanlang</option>
-                    <optgroup label="O‘qituvchilar">
-                        {% for teacher in teachers %}<option value="teacher:{{ teacher.id }}">{{ teacher.first_name }} {{ teacher.last_name }}</option>{% endfor %}
-                    </optgroup>
-                    <optgroup label="O‘quvchilar">
-                        {% for student in students %}<option value="student:{{ student.id }}">{{ student.first_name }} {{ student.last_name }}</option>{% endfor %}
-                    </optgroup>
-                </select>
-                <input name="body" maxlength="2000" placeholder="Xabaringizni yozing..." required>
-                <button type="submit">Yuborish <span>➜</span></button>
-            </form>
-        </section>
-            <span class="page-kicker">NAZORAT PANELI</span>
-    <script>
-        document.getElementById('adminRecipient').addEventListener('change', function () {
-            const parts = this.value.split(':');
-            document.getElementById('adminRecipientType').value = parts[0] || '';
-            document.getElementById('adminRecipientId').value = parts[1] || '';
-        });
-    </script>
-            <h1>Ichki chatlar</h1>
-            <p>O‘qituvchi va o‘quvchilar o‘rtasidagi ichki yozishmalar.</p>
-        </div>
-        <span class="chat-status"><i></i> Faqat ko‘rish</span>
+        <div><span class="page-kicker">NAZORAT PANELI</span><h1>Ichki chatlar</h1><p>O‘qituvchi va o‘quvchilar o‘rtasidagi yozishmalar.</p></div>
+        <span class="chat-status"><i></i> {{ messages|length }} ta xabar</span>
     </div>
+    <section class="admin-chat-compose">
+        <div><span class="page-kicker">YANGI XABAR</span><h2>O‘qituvchi yoki o‘quvchiga yozish</h2></div>
+        <form method="POST" action="{{ url_for('send_chat_message') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="recipient_type" id="adminRecipientType">
+            <input type="hidden" name="recipient_id" id="adminRecipientId">
+            <select id="adminRecipient" required>
+                <option value="">Qabul qiluvchini tanlang</option>
+                <optgroup label="O‘qituvchilar">{% for teacher in teachers %}<option value="teacher:{{ teacher.id }}">{{ teacher.first_name }} {{ teacher.last_name }}</option>{% endfor %}</optgroup>
+                <optgroup label="O‘quvchilar">{% for student in students %}<option value="student:{{ student.id }}">{{ student.first_name }} {{ student.last_name }}</option>{% endfor %}</optgroup>
+            </select>
+            <input name="body" maxlength="2000" placeholder="Xabaringizni yozing..." required>
+            <button type="submit">Yuborish <span>➜</span></button>
+        </form>
+    </section>
     <section class="admin-chat-log">
         {% for message in messages %}
         <article class="admin-chat-row">
-            <div class="admin-chat-people">
-                <strong>{{ message.sender_type|capitalize }} #{{ message.sender_id }}</strong>
-                <span>→ {{ message.recipient_type|capitalize }} #{{ message.recipient_id }}</span>
-            </div>
+            <div class="admin-chat-people"><strong>{{ message.sender_type|capitalize }} #{{ message.sender_id }}</strong><span>→ {{ message.recipient_type|capitalize }} #{{ message.recipient_id }}</span></div>
             <p>{{ message.body }}</p>
-            <time>{{ message.created_at.strftime('%d.%m.%Y %H:%M') }}</time>
+            <div class="admin-chat-row-actions"><time>{{ message.created_at.strftime('%d.%m.%Y %H:%M') }}</time><a href="{{ url_for('edit_chat_message', message_id=message.id) }}">Tahrirlash</a><form method="POST" action="{{ url_for('delete_chat_message', message_id=message.id) }}" onsubmit="return confirm('Xabarni o‘chirishni tasdiqlaysizmi?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">O‘chirish</button></form></div>
         </article>
-        {% else %}
-        <div class="chat-welcome standalone"><span>💬</span><strong>Hozircha xabarlar yo‘q</strong><p>O‘qituvchi va o‘quvchilar yozishmalari shu yerda ko‘rinadi.</p></div>
-        {% endfor %}
+        {% else %}<div class="chat-welcome standalone"><span>💬</span><strong>Hozircha xabarlar yo‘q</strong><p>Yangi xabar yuborish uchun yuqoridagi formadan foydalaning.</p></div>{% endfor %}
     </section>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.getElementById('adminRecipient').addEventListener('change', function () {
+    const [type, id] = this.value.split(':');
+    document.getElementById('adminRecipientType').value = type || '';
+    document.getElementById('adminRecipientId').value = id || '';
+});
+</script>
 {% endblock %}

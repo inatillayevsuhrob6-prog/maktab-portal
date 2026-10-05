@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Dars jadvalim{% endblock %}
+{% block content %}
+<div class="page-heading-row"><div><span class="page-kicker">O‘QITUVCHI KABINETI</span><h1>Dars jadvalim</h1><p>Hafta davomida belgilangan darslaringiz.</p></div></div>
+{% set lessons_exist = schedule.values()|select|list %}
+<div class="days-grid">
+    {% for day, lessons in schedule.items() %}
+        {% if lessons %}<section class="day-card"><div class="day-header">{{ day }}</div>{% for lesson in lessons %}<article class="lesson-item"><div class="lesson-time">{{ lesson.start_time }} — {{ lesson.end_time }}</div><div class="lesson-subject">{{ lesson.subject.name if lesson.subject else 'Fan belgilanmagan' }}</div><div class="lesson-details">{{ lesson.student_class.name if lesson.student_class else 'Umumiy dars' }}{% if lesson.room_number %} · {{ lesson.room_number }}-xona{% endif %}</div></article>{% endfor %}</section>{% endif %}
+    {% endfor %}
+    {% if not lessons_exist %}<div class="data-panel empty-state"><span>📅</span><strong>Jadval hali belgilanmagan</strong><p>Darslaringiz belgilanganda shu yerda ko‘rinadi.</p></div>{% endif %}
+</div>
+{% endblock %}

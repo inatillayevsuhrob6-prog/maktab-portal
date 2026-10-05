@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <title>To'garaklar</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
+{% extends "base.html" %}
+{% block title %}To'garaklar{% endblock %}
+{% block extra_css %}
+<style>
         body { background: #f8fafc; padding: 40px 20px; font-family: 'Inter', sans-serif; }
         .container { max-width: 1200px; margin: 0 auto; }
         
@@ -66,9 +63,9 @@
         .btn-join.joined { background: #10b981; box-shadow: none; cursor: default; }
         .btn-join.joined:hover { transform: none; }
     </style>
-</head>
-<body>
-    <div class="container">
+{% endblock %}
+{% block content %}
+<div class="container">
         <div class="header">
             <a href="javascript:history.back()" class="back-btn">← Ortga qaytish</a>
             <div style="text-align: right;">
@@ -137,8 +134,9 @@
             {% endfor %}
         </div>
     </div>
-
-    <script>
+{% endblock %}
+{% block extra_js %}
+<script>
         function joinClub(btn, clubId) {
             const originalText = btn.innerText;
             btn.innerText = "Yuklanmoqda...";
@@ -172,5 +170,4 @@
                 });
         }
     </script>
-</body>
-</html>
+{% endblock %}

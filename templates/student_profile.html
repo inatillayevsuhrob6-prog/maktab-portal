@@ -1,13 +1,9 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mening profilim</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body class="student-profile-page">
-    <div class="student-profile-shell">
+{% extends "base.html" %}
+{% block title %}Mening profilim{% endblock %}
+{% block extra_css %}
+{% endblock %}
+{% block content %}
+<div class="student-profile-shell">
         <a href="/student_dashboard" class="profile-back">← Kabinetga qaytish</a>
         <div class="student-profile-card">
             <div class="student-profile-head">
@@ -30,5 +26,4 @@
             </form>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

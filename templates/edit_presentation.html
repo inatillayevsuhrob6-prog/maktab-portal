@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Taqdimotni tahrirlash{% endblock %}
+{% block content %}
+<section class="content-form-card">
+    <span class="page-kicker">O‘QUV MATERIALLARI</span>
+    <h1>Taqdimotni tahrirlash</h1>
+    <p class="form-intro">Nomi va tavsifini yangilang. Faylni <a href="{{ presentation.file_url }}" target="_blank" rel="noopener">shu yerdan oching</a>.</p>
+    <form method="POST" class="content-edit-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Taqdimot nomi<input name="title" maxlength="200" value="{{ presentation.title }}" required></label>
+        <label>Tavsif<textarea name="description" rows="5">{{ presentation.description or '' }}</textarea></label>
+        <div class="form-actions"><a href="{{ url_for('presentations') }}" class="secondary-button">Bekor qilish</a><button class="primary-button" type="submit">Saqlash</button></div>
+    </form>
+</section>
+{% endblock %}

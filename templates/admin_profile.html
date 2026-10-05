@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Profil Sozlamalari</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
+{% extends "base.html" %}
+{% block title %}Admin Profil Sozlamalari{% endblock %}
+{% block extra_css %}
+<style>
         body { background: #f8fafc; font-family: 'Inter', sans-serif; }
         .profile-container { max-width: 800px; margin: 40px auto; padding: 0 20px; position: relative; }
         
@@ -68,9 +65,9 @@
             .form-group.full-width { grid-column: span 1; }
         }
     </style>
-</head>
-<body>
-    <div class="profile-container">
+{% endblock %}
+{% block content %}
+<div class="profile-container">
         
         
         <a href="/dashboard" class="back-link">← Ortga</a>
@@ -131,13 +128,13 @@
             </form>
         </div>
     </div>
-
-    <script>
+{% endblock %}
+{% block extra_js %}
+<script>
         // Fayl tanlanganda nomini ko'rsatish
         document.querySelector('input[type="file"]').addEventListener('change', function(e) {
             const fileName = e.target.files[0] ? e.target.files[0].name : "📁 Rasm tanlash (JPG, PNG)";
             document.getElementById('file-name').innerText = fileName;
         });
     </script>
-</body>
-</html>
+{% endblock %}

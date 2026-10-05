@@ -1,11 +1,7 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Darsni tahrirlash</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
+{% extends "base.html" %}
+{% block title %}Darsni tahrirlash{% endblock %}
+{% block extra_css %}
+<style>
         .schedule-edit-card { max-width: 760px; margin: 30px auto; padding: 28px; background:white; border-radius:16px; box-shadow:0 12px 28px rgba(30,64,175,.08); }
         .schedule-edit-card h1 { color:#172554; margin-top:0; }
         .schedule-edit-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:16px; }
@@ -15,10 +11,9 @@
         .schedule-edit-actions a { display:inline-block; padding:11px 18px; color:#64748b; text-decoration:none; }
         @media (max-width:620px) { .schedule-edit-card { margin:20px 0; padding:20px; } .schedule-edit-grid { grid-template-columns:1fr; } }
     </style>
-</head>
-<body class="legacy-admin-page" style="background:#f5f8ff; padding:20px;">
-    {% include "admin_sidebar.html" %}
-    <div class="page-navbar">
+{% endblock %}
+{% block content %}
+<div class="page-navbar">
         <h3>Darsni tahrirlash</h3>
         <div class="nav-actions"><a href="/schedule/manage" class="nav-link">← Jadvalga qaytish</a><a href="/logout" class="btn-logout-nav">Chiqish</a></div>
     </div>
@@ -38,5 +33,4 @@
             <div class="schedule-edit-actions"><button type="submit" class="btn-primary">Saqlash</button><a href="/schedule/manage">Bekor qilish</a></div>
         </form>
     </div>
-</body>
-</html>
+{% endblock %}

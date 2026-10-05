@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <title>Kutubxona Boshqaruvi</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
+{% extends "base.html" %}
+{% block title %}Kutubxona Boshqaruvi{% endblock %}
+{% block extra_css %}
+<style>
         .page-navbar { background-color: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .page-navbar h3 { margin: 0; font-size: 18px; font-weight: 600; }
         .nav-actions { display: flex; gap: 15px; align-items: center; }
@@ -20,11 +17,9 @@
         .btn-edit { background: #f39c12; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; }
         .btn-delete { background: #e74c3c; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; }
     </style>
-</head>
-<body class="legacy-admin-page" style="background:#f4f6f9; padding:20px;">
-    {% include "admin_sidebar.html" %}
-    
-    <!-- NAVBAR -->
+{% endblock %}
+{% block content %}
+<!-- NAVBAR -->
     <div class="page-navbar">
         <h3>Kutubxona Boshqaruvi</h3>
         <div class="nav-actions">
@@ -79,5 +74,4 @@
             </table>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Xabarni tahrirlash{% endblock %}
+{% block content %}
+<section class="content-form-card">
+    <span class="page-kicker">ICHKI CHAT</span>
+    <h1>Xabarni tahrirlash</h1>
+    <p class="form-intro">Xabar 2 000 belgidan oshmasin.</p>
+    <form method="POST" class="content-edit-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Xabar<textarea name="body" rows="6" maxlength="2000" required>{{ message.body }}</textarea></label>
+        <div class="form-actions"><a href="{{ url_for('chat') }}" class="secondary-button">Bekor qilish</a><button class="primary-button" type="submit">Saqlash</button></div>
+    </form>
+</section>
+{% endblock %}

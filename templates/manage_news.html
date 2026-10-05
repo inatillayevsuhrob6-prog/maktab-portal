@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <title>Yangiliklar Boshqaruvi</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
+{% extends "base.html" %}
+{% block title %}Yangiliklar Boshqaruvi{% endblock %}
+{% block extra_css %}
+<style>
         .page-navbar { background-color: #2c3e50; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 30px; }
         .form-row textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px; min-height: 100px; }
         .news-item { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid #3498db; display: flex; gap: 15px; align-items: start; }
@@ -12,9 +9,9 @@
         .file-input-wrapper { margin-bottom: 15px; border: 2px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         .file-input-wrapper:hover { border-color: #3498db; background: #f8fafc; }
     </style>
-</head>
-<body style="background:#f4f6f9; padding:20px;">
-    <div class="page-navbar">
+{% endblock %}
+{% block content %}
+<div class="page-navbar">
         <h3>Yangiliklar va E'lonlar</h3>
         <a href="/dashboard" style="color:white; text-decoration:none;">← Dashboard</a>
     </div>
@@ -67,5 +64,4 @@
         </div>
         {% endfor %}
     </div>
-</body>
-</html>
+{% endblock %}

@@ -1,14 +1,9 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test natijalari</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body class="legacy-admin-page" style="background:#f5f8ff; padding:20px;">
-    {% include "admin_sidebar.html" %}
-    <div class="page-navbar">
+{% extends "base.html" %}
+{% block title %}Test natijalari{% endblock %}
+{% block extra_css %}
+{% endblock %}
+{% block content %}
+<div class="page-navbar">
         <h3>Test natijalari</h3>
         <div class="nav-actions"><a href="/dashboard" class="nav-link">← Bosh sahifa</a><a href="/logout" class="btn-logout-nav">Chiqish</a></div>
     </div>
@@ -34,5 +29,4 @@
             </table>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

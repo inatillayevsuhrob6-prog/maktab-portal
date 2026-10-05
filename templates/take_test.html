@@ -1,18 +1,15 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ test.title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
+{% extends "base.html" %}
+{% block title %}{{ test.title }}{% endblock %}
+{% block extra_css %}
+<style>
         .question-box { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .options label { display: block; padding: 10px; margin: 5px 0; background: #f9f9f9; border-radius: 4px; cursor: pointer; }
         .options input[type="radio"] { margin-right: 10px; }
         .options label:hover { background: #eef; }
     </style>
-</head>
-<body>
-    <div class="dashboard-container">
+{% endblock %}
+{% block content %}
+<div class="dashboard-container">
         <nav class="navbar">
             <h3>{{ test.title }}</h3>
             <div style="display:flex; align-items:center; gap:14px;"><a href="/chat" style="color:white; text-decoration:none;">💬 Savol berish</a><a href="/my_tests" style="color:white; text-decoration:none;">Ortga</a></div>
@@ -35,5 +32,4 @@
             </form>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

@@ -22,12 +22,14 @@
             <nav class="sidebar-nav">
                 {% if session.get('user_role') == 'admin' %}
                     <a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}"><span>⌂</span>Bosh sahifa</a>
-                    <a href="/classes" class="{% if request.path.startswith('/classes') %}active{% endif %}"><span>▤</span>Sinflar</a>
-                    <a href="/students" class="{% if request.path.startswith('/students') %}active{% endif %}"><span>♙</span>O‘quvchilar</a>
-                    <a href="/teachers" class="{% if request.path.startswith('/teachers') %}active{% endif %}"><span>♟</span>O‘qituvchilar</a>
-                    <a href="/tests" class="{% if request.path.startswith('/tests') %}active{% endif %}"><span>▣</span>Testlar</a>
+                    <a href="/classes" class="{% if request.path.startswith('/classes') or request.path.startswith('/edit_class') %}active{% endif %}"><span>▤</span>Sinflar</a>
+                    <a href="/students" class="{% if request.path.startswith('/students') or request.path.startswith('/add_student') or request.path.startswith('/edit_student') %}active{% endif %}"><span>♙</span>O‘quvchilar</a>
+                    <a href="/teachers" class="{% if request.path.startswith('/teachers') or request.path.startswith('/add_teacher') or request.path.startswith('/edit_teacher') or request.path.startswith('/admin/edit_teacher') %}active{% endif %}"><span>♟</span>O‘qituvchilar</a>
+                    <a href="/tests" class="{% if request.path.startswith('/tests') or request.path.startswith('/create_test') or request.path.startswith('/add_question') or request.path.startswith('/test_results') %}active{% endif %}"><span>▣</span>Testlar</a>
+                    <a href="/presentations" class="{% if request.path.startswith('/presentations') %}active{% endif %}"><span>▧</span>Taqdimotlar</a>
                     <a href="/schedule/manage" class="{% if request.path.startswith('/schedule') %}active{% endif %}"><span>◫</span>Dars jadvali</a>
                     <a href="/library/manage" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kutubxona</a>
+                    <a href="/clubs/manage" class="{% if request.path.startswith('/clubs') %}active{% endif %}"><span>🎯</span>To‘garaklar</a>
                     <a href="/news/manage" class="{% if request.path.startswith('/news') %}active{% endif %}"><span>▰</span>Yangiliklar</a>
                     <a href="/chat" class="{% if request.path.startswith('/chat') %}active{% endif %}"><span>◌</span>Ichki chat</a>
                     <a href="/ai_chat" class="{% if request.path.startswith('/ai_chat') %}active{% endif %}"><span>✦</span>AI Chat</a>
@@ -35,22 +37,22 @@
                 {% elif session.get('user_role') == 'teacher' %}
                     <a href="/teacher_dashboard" class="{% if request.path == '/teacher_dashboard' %}active{% endif %}"><span>⌂</span>Kabinet</a>
                     <a href="/teacher_profile" class="{% if request.path.startswith('/teacher_profile') %}active{% endif %}"><span>◉</span>Profil sozlamalari</a>
-                    <a href="/schedule/view"><span>◫</span>Dars jadvali</a>
-                    <a href="/tests" class="{% if request.path.startswith('/tests') %}active{% endif %}"><span>▣</span>Testlar</a>
+                    <a href="{{ url_for('teacher_schedule') }}" class="{% if request.path.startswith('/teacher/schedule') %}active{% endif %}"><span>◫</span>Dars jadvali</a>
+                    <a href="/tests" class="{% if request.path.startswith('/tests') or request.path.startswith('/create_test') or request.path.startswith('/add_question') %}active{% endif %}"><span>▣</span>Testlar</a>
                     <a href="/clubs/manage" class="{% if request.path.startswith('/clubs') %}active{% endif %}"><span>🎯</span>To‘garaklar</a>
-                    <a href="/library"><span>▥</span>Kutubxona</a>
-                    <a href="/ai_chat"><span>✦</span>AI yordamchi</a>
+                    <a href="/library" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kutubxona</a>
+                    <a href="/ai_chat" class="{% if request.path.startswith('/ai_chat') %}active{% endif %}"><span>✦</span>AI yordamchi</a>
                     <a href="/presentations" class="{% if request.path.startswith('/presentations') %}active{% endif %}"><span>▧</span>Taqdimotlar</a>
                     <a href="/chat" class="{% if request.path.startswith('/chat') %}active{% endif %}"><span>◌</span>Ichki chat</a>
                 {% else %}
                     <a href="/student_dashboard" class="{% if request.path == '/student_dashboard' %}active{% endif %}"><span>⌂</span>Kabinet</a>
                     <a href="/student_profile" class="{% if request.path.startswith('/student_profile') %}active{% endif %}"><span>◉</span>Mening profilim</a>
-                    <a href="/schedule/view" class="{% if request.path.startswith('/schedule') %}active{% endif %}"><span>◫</span>Dars jadvali</a>
+                    <a href="{{ url_for('view_schedule') }}" class="{% if request.path.startswith('/schedule/view') %}active{% endif %}"><span>◫</span>Dars jadvali</a>
                     <a href="/my_tests" class="{% if request.path.startswith('/my_tests') %}active{% endif %}"><span>▣</span>Testlarim</a>
                     <a href="/presentations" class="{% if request.path.startswith('/presentations') %}active{% endif %}"><span>▧</span>Taqdimotlar</a>
                     <a href="/library" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kitobxona</a>
                     <a href="/news" class="{% if request.path.startswith('/news') %}active{% endif %}"><span>▰</span>Yangiliklar</a>
-                    <a href="/ai_chat"><span>✦</span>AI yordamchi</a>
+                    <a href="/ai_chat" class="{% if request.path.startswith('/ai_chat') %}active{% endif %}"><span>✦</span>AI yordamchi</a>
                     <a href="/chat" class="{% if request.path.startswith('/chat') %}active{% endif %}"><span>◌</span>Ichki chat</a>
                 {% endif %}
             </nav>
@@ -73,6 +75,9 @@
                 <div class="topbar-status"><span></span> Tizim faol</div>
             </header>
             <div class="content-wrapper">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}<div class="flash-stack" role="status">{% for category, message in messages %}<div class="flash-message flash-{{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}
+                {% endwith %}
     {% else %}
             <div class="content-wrapper">
     {% endif %}

@@ -148,11 +148,24 @@ def create_app():
         ).delete(synchronize_session=False)
 
     def remove_teacher_records(teacher_id, school_id):
+        presentation_paths = []
         clubs = Club.query.filter_by(teacher_id=teacher_id, school_id=school_id).all()
         for club in clubs:
             StudentClub.query.filter_by(club_id=club.id).delete(synchronize_session=False)
             db.session.delete(club)
         TeacherClassAssignment.query.filter_by(teacher_id=teacher_id).delete(synchronize_session=False)
+        Test.query.filter_by(created_by_teacher_id=teacher_id, school_id=school_id).update(
+            {Test.created_by_teacher_id: None}, synchronize_session=False
+        )
+        presentations = Presentation.query.filter_by(teacher_id=teacher_id, school_id=school_id).all()
+        upload_dir = os.path.realpath(os.path.join(app.static_folder, 'uploads', 'presentations'))
+        for presentation in presentations:
+            if presentation.file_url.startswith('/static/uploads/presentations/'):
+                filename = os.path.basename(presentation.file_url.split('?', 1)[0])
+                path = os.path.realpath(os.path.join(upload_dir, filename))
+                if filename and os.path.commonpath([upload_dir, path]) == upload_dir:
+                    presentation_paths.append(path)
+            db.session.delete(presentation)
         Schedule.query.filter_by(teacher_id=teacher_id, school_id=school_id).update(
             {Schedule.teacher_id: None}, synchronize_session=False
         )
@@ -162,6 +175,7 @@ def create_app():
                 and_(ChatMessage.recipient_type == 'teacher', ChatMessage.recipient_id == teacher_id)
             )
         ).delete(synchronize_session=False)
+        return presentation_paths
 
     def save_teacher_profile_image(uploaded_file, teacher_id):
         if not uploaded_file or not uploaded_file.filename:
@@ -439,6 +453,48 @@ def create_app():
         ))
         db.session.commit()
         return redirect(url_for('chat', contact_id=recipient_id))
+
+    def can_manage_chat_message(message):
+        role = session.get('user_role')
+        if role == 'admin':
+            return True
+        user_id = session.get('teacher_id') if role == 'teacher' else session.get('student_id')
+        return message.sender_type == role and message.sender_id == user_id
+
+    @app.route("/chat/message/<int:message_id>/edit", methods=["GET", "POST"])
+    def edit_chat_message(message_id):
+        if 'school_id' not in session or session.get('user_role') not in {'admin', 'student', 'teacher'}:
+            return redirect(url_for('home'))
+        message = ChatMessage.query.filter_by(id=message_id, school_id=session['school_id']).first_or_404()
+        if not can_manage_chat_message(message):
+            return redirect(url_for('chat'))
+        if request.method == 'POST':
+            body = sanitize_input(request.form.get('body', '')).strip()
+            if not body:
+                flash("Xabar bo‘sh bo‘lishi mumkin emas.", "warning")
+                return render_template("edit_chat_message.html", message=message)
+            message.body = body[:2000]
+            db.session.commit()
+            flash("Xabar tahrirlandi.", "success")
+            if session.get('user_role') == 'admin':
+                return redirect(url_for('chat'))
+            return redirect(url_for('chat', contact_id=message.recipient_id))
+        return render_template("edit_chat_message.html", message=message)
+
+    @app.route("/chat/message/<int:message_id>/delete", methods=["POST"])
+    def delete_chat_message(message_id):
+        if 'school_id' not in session or session.get('user_role') not in {'admin', 'student', 'teacher'}:
+            return redirect(url_for('home'))
+        message = ChatMessage.query.filter_by(id=message_id, school_id=session['school_id']).first_or_404()
+        if not can_manage_chat_message(message):
+            return redirect(url_for('chat'))
+        contact_id = message.recipient_id
+        db.session.delete(message)
+        db.session.commit()
+        flash("Xabar o‘chirildi.", "success")
+        if session.get('user_role') == 'admin':
+            return redirect(url_for('chat'))
+        return redirect(url_for('chat', contact_id=contact_id))
 
     # --- O'QITUVCHI PROFIL SOZLAMALARI ---
     @app.route("/teacher_profile", methods=["GET", "POST"])
@@ -739,6 +795,27 @@ def create_app():
             if i.day_of_week in gs: gs[i.day_of_week].append(i)
         return render_template("view_schedule.html", schedule=gs, student=st)
 
+    @app.route("/teacher/schedule")
+    def teacher_schedule():
+        if 'school_id' not in session or session.get('user_role') != 'teacher':
+            return redirect(url_for('home'))
+        teacher_id = session['teacher_id']
+        items = Schedule.query.filter_by(
+            school_id=session['school_id'], teacher_id=teacher_id
+        ).options(
+            joinedload(Schedule.student_class), joinedload(Schedule.subject)
+        ).order_by(
+            db.case({"Dushanba": 1, "Seshanba": 2, "Chorshanba": 3,
+                     "Payshanba": 4, "Juma": 5, "Shanba": 6},
+                    value=Schedule.day_of_week),
+            Schedule.start_time
+        ).all()
+        days = {day: [] for day in ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba"]}
+        for item in items:
+            if item.day_of_week in days:
+                days[item.day_of_week].append(item)
+        return render_template("teacher_schedule.html", schedule=days)
+
     @app.route("/library/manage")
     def manage_library():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
@@ -779,6 +856,55 @@ def create_app():
         flash("Taqdimot muvaffaqiyatli yuklandi.", "success")
         return redirect(url_for('presentations'))
 
+    def can_manage_presentation(presentation):
+        return (session.get('user_role') == 'admin' or
+                (session.get('user_role') == 'teacher' and
+                 presentation.teacher_id == session.get('teacher_id')))
+
+    @app.route("/presentations/<int:presentation_id>/edit", methods=["GET", "POST"])
+    def edit_presentation(presentation_id):
+        if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}:
+            return redirect(url_for('home'))
+        presentation = Presentation.query.filter_by(
+            id=presentation_id, school_id=session['school_id']
+        ).first_or_404()
+        if not can_manage_presentation(presentation):
+            return redirect(url_for('presentations'))
+        if request.method == 'POST':
+            title = sanitize_input(request.form.get('title', '')).strip()
+            if not title:
+                flash("Taqdimot nomini kiriting.", "warning")
+                return render_template("edit_presentation.html", presentation=presentation)
+            presentation.title = title[:200]
+            presentation.description = sanitize_input(request.form.get('description', '')).strip()
+            db.session.commit()
+            flash("Taqdimot yangilandi.", "success")
+            return redirect(url_for('presentations'))
+        return render_template("edit_presentation.html", presentation=presentation)
+
+    @app.route("/presentations/<int:presentation_id>/delete", methods=["POST"])
+    def delete_presentation(presentation_id):
+        if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}:
+            return redirect(url_for('home'))
+        presentation = Presentation.query.filter_by(
+            id=presentation_id, school_id=session['school_id']
+        ).first_or_404()
+        if not can_manage_presentation(presentation):
+            return redirect(url_for('presentations'))
+        upload_dir = os.path.realpath(os.path.join(app.static_folder, 'uploads', 'presentations'))
+        is_local_upload = presentation.file_url.startswith('/static/uploads/presentations/')
+        filename = os.path.basename(presentation.file_url.split('?', 1)[0]) if is_local_upload else ''
+        file_path = os.path.realpath(os.path.join(upload_dir, filename))
+        db.session.delete(presentation)
+        db.session.commit()
+        if filename and os.path.commonpath([upload_dir, file_path]) == upload_dir and os.path.isfile(file_path):
+            try:
+                os.remove(file_path)
+            except OSError:
+                app.logger.warning("Taqdimot faylini o‘chirish amalga oshmadi: %s", file_path)
+        flash("Taqdimot o‘chirildi.", "success")
+        return redirect(url_for('presentations'))
+
     @app.route("/library/add", methods=["POST"])
     def add_book():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
@@ -802,7 +928,7 @@ def create_app():
 
     @app.route("/library")
     def student_library():
-        if 'school_id' not in session or session.get('user_role') != 'student': return redirect(url_for('home'))
+        if 'school_id' not in session or session.get('user_role') not in {'student', 'teacher'}: return redirect(url_for('home'))
         sid = session['school_id']; gf = request.args.get('genre')
         q = Book.query.filter_by(school_id=sid)
         if gf: q = q.filter_by(genre=gf)
@@ -1002,7 +1128,7 @@ def create_app():
         db.session.commit()
         return redirect(url_for('classes'))
 
-    @app.route("/delete_student/<int:sid>")
+    @app.route("/delete_student/<int:sid>", methods=["POST"])
     def delete_student(sid):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
         s = Student.query.filter_by(id=sid, school_id=session['school_id']).first_or_404()
@@ -1011,13 +1137,19 @@ def create_app():
         db.session.commit()
         return redirect(url_for('students'))
 
-    @app.route("/delete_teacher/<int:tid>")
+    @app.route("/delete_teacher/<int:tid>", methods=["POST"])
     def delete_teacher(tid):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
         t = Teacher.query.filter_by(id=tid, school_id=session['school_id']).first_or_404()
-        remove_teacher_records(t.id, session['school_id'])
+        presentation_paths = remove_teacher_records(t.id, session['school_id'])
         db.session.delete(t)
         db.session.commit()
+        for path in presentation_paths:
+            if os.path.isfile(path):
+                try:
+                    os.remove(path)
+                except OSError:
+                    app.logger.warning("Taqdimot faylini o‘chirish amalga oshmadi: %s", path)
         return redirect(url_for('teachers'))
 
     @app.route("/delete_test/<int:test_id>")

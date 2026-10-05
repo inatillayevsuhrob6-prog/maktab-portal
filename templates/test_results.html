@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <title>Natijalar - {{ test.title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
+{% extends "base.html" %}
+{% block title %}Natijalar - {{ test.title }}{% endblock %}
+{% block extra_css %}
+<style>
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background-color: #f8f9fa; }
@@ -21,9 +18,9 @@
         .info h4 { margin: 0; color: #2c3e50; }
         .info p { margin: 5px 0 0; color: #7f8c8d; font-size: 14px; }
     </style>
-</head>
-<body>
-    <div class="dashboard-container">
+{% endblock %}
+{% block content %}
+<div class="dashboard-container">
         <nav class="navbar">
             <h3>{{ test.title }} - Natijalar</h3>
             <a href="/tests" style="color:white; text-decoration:none;">Testlarga</a>
@@ -101,5 +98,4 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}
