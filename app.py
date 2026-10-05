@@ -25,7 +25,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         return
     with open('error.log', 'a') as f:
         f.write("".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
-        f.write("
+    pass # Fixed broken write statement
 " + "="*50 + "
 ")
 
