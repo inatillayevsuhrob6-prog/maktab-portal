@@ -92,6 +92,13 @@
             position: relative;
             z-index: 10;
         }
+        .right-side::before,.right-side::after { content:''; position:absolute; border-radius:50%; pointer-events:none; }
+        .right-side::before { width:280px; height:280px; top:8%; left:7%; border:1px solid rgba(37,99,235,.09); box-shadow:0 0 0 24px rgba(37,99,235,.025),0 0 0 52px rgba(14,165,233,.025); animation:orbitSpin 34s linear infinite; }
+        .right-side::after { width:10px; height:10px; top:22%; left:18%; background:#38bdf8; box-shadow:0 0 22px 7px rgba(56,189,248,.2); animation:softPulse 3.2s ease-in-out infinite; }
+        .login-float-item { position:absolute; z-index:1; display:grid; place-items:center; width:48px; height:48px; border:1px solid #dbeafe; border-radius:15px; color:#2563eb; background:rgba(255,255,255,.82); box-shadow:0 14px 28px rgba(30,64,175,.12); backdrop-filter:blur(10px); }
+        .login-float-item.book { top:19%; right:13%; animation:floatOne 4.3s ease-in-out infinite; }
+        .login-float-item.pencil { bottom:18%; left:13%; animation:floatTwo 4.8s .4s ease-in-out infinite; }
+        .login-float-item.star { right:10%; bottom:24%; color:#0891b2; animation:floatOne 3.7s .8s ease-in-out infinite; }
 
         .login-wrapper {
             width: 100%;
@@ -104,10 +111,13 @@
             border-radius: 24px;
             /* Box shadow o'rniga oddiy border yoki yengil soya */
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); 
-            border: 1px solid #dbeafe; animation: cardReveal .8s .2s ease both;
+            border: 1px solid #dbeafe; animation: cardReveal .8s .2s ease both; position:relative; overflow:hidden;
         }
+        .login-card::before { content:''; position:absolute; width:190px; height:190px; top:-125px; right:-96px; border:1px solid rgba(37,99,235,.13); border-radius:50%; box-shadow:0 0 0 16px rgba(37,99,235,.035),0 0 0 34px rgba(14,165,233,.025); pointer-events:none; }
+        .login-card > * { position:relative; z-index:1; }
 
         .login-header { text-align: center; margin-bottom: 35px; }
+        .login-auth-mark { width:50px; height:50px; display:grid; place-items:center; margin:0 auto 16px; border:1px solid #dbeafe; border-radius:16px; color:#2563eb; background:linear-gradient(145deg,#eff6ff,#fff); box-shadow:0 9px 22px rgba(37,99,235,.11); font-size:1.35rem; animation:softPulse 3.5s ease-in-out infinite; }
         .login-header h2 { font-size: 2rem; color: #0f172a; margin-bottom: 10px; font-weight: 700; }
         .login-header p { color: #64748b; font-size: 1rem; }
 
@@ -117,13 +127,16 @@
             width: 100%; padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px;
             font-size: 1rem; transition: all 0.3s; outline: none; background: #f8fafc;
         }
+        .form-group input:hover { border-color:#bfdbfe; }
         .form-group input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
 
         .btn-login {
             width: 100%; padding: 18px; background: var(--primary); color: white; border: none;
             border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s;
-            margin-top: 10px; box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+            margin-top: 10px; box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4); position:relative; overflow:hidden;
         }
+        .btn-login::after { content:'→'; float:right; opacity:.8; transition:transform .25s ease; }
+        .btn-login:hover::after { transform:translateX(4px); }
         .btn-login:hover { transform: translateY(-2px); box-shadow: 0 15px 25px -5px rgba(37, 99, 235, 0.5); background: #1d4ed8; }
 
         .register-link {
@@ -172,6 +185,7 @@
         @keyframes floatOne { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-12px) rotate(4deg); } }
         @keyframes floatTwo { 0%, 100% { transform: translateY(0) rotate(4deg); } 50% { transform: translateY(10px) rotate(-4deg); } }
         @keyframes orbitSpin { to { transform: rotate(360deg); } }
+        @keyframes softPulse { 0%,100% { transform:scale(1); opacity:.86; } 50% { transform:scale(1.07); opacity:1; } }
 
         @media (max-width: 1024px) {
             .main-container { flex-direction: column; }
@@ -181,7 +195,7 @@
             .school-scene { margin: 24px auto 0; }
             .business-orbit { right: 5%; top: 12%; }
         }
-        @media (max-width: 640px) { .news-grid { grid-template-columns: 1fr; max-width: 460px; }.news-image-wrapper { aspect-ratio: 3 / 4; } }
+        @media (max-width: 640px) { .news-grid { grid-template-columns: 1fr; max-width: 460px; }.news-image-wrapper { aspect-ratio: 3 / 4; }.login-float-item { display:none; }.right-side::before { width:180px;height:180px;top:3%;left:-60px; } }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; } }
     </style>
 </head>
@@ -223,9 +237,13 @@
 
         <!-- O'NG TOMON -->
         <div class="right-side">
+            <span class="login-float-item book" aria-hidden="true">📘</span>
+            <span class="login-float-item pencil" aria-hidden="true">✏️</span>
+            <span class="login-float-item star" aria-hidden="true">✦</span>
             <div class="login-wrapper">
                 <div class="login-card">
                     <div class="login-header">
+                        <span class="login-auth-mark" aria-hidden="true">▦</span>
                         <h2>Tizimga kirish</h2>
                         <p>Hisobingizga kirish uchun ma'lumotlarni kiriting</p>
                     </div>

@@ -14,10 +14,33 @@
         .news-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-right: 5px; }
         .tag-announce { background: #ffebee; color: #c62828; }
         .tag-news { background: #e3f2fd; color: #1565c0; }
+        .student-dashboard { max-width: 1260px !important; padding: 26px 10px 50px !important; }
+        .student-dashboard .profile-header { position:relative; isolation:isolate; overflow:hidden; padding:36px 42px; border-radius:22px; background:linear-gradient(115deg,#173b91 0%,#2563eb 62%,#0ea5e9 100%); box-shadow:0 22px 45px rgba(37,99,235,.19); animation:studentRise .65s ease both; }
+        .student-dashboard .profile-header::before,.student-dashboard .profile-header::after { content:""; position:absolute; z-index:-1; border:1px solid rgba(255,255,255,.2); border-radius:50%; pointer-events:none; }
+        .student-dashboard .profile-header::before { width:280px; height:280px; right:7%; top:-190px; box-shadow:0 0 0 26px rgba(255,255,255,.06),0 0 0 54px rgba(255,255,255,.04); animation:studentOrbit 22s linear infinite; }
+        .student-dashboard .profile-header::after { width:100px; height:100px; right:26%; bottom:-72px; background:rgba(255,255,255,.08); }
+        .student-dashboard .profile-header h1 { font-size:clamp(1.7rem,3vw,2.35rem); letter-spacing:-.04em; }
+        .student-dashboard .level-badge { display:inline-flex; align-items:center; min-width:180px; justify-content:center; padding:12px 22px; background:rgba(15,23,42,.19); border:1px solid rgba(255,255,255,.2); backdrop-filter:blur(10px); }
+        .student-dashboard .xp-container { width:min(300px,38vw); margin-left:auto; }
+        .student-dashboard .xp-bar { background:linear-gradient(90deg,#67e8f9,#fff); box-shadow:0 0 14px rgba(255,255,255,.35); }
+        .student-dashboard .grid-2 { gap:20px; align-items:start; }
+        .student-dashboard .grid-2 > div { display:grid; gap:18px; align-content:start; }
+        .student-dashboard .card { margin:0 !important; padding:22px; border:1px solid #e3ebfb; border-radius:17px; background:rgba(255,255,255,.94); box-shadow:0 8px 24px rgba(30,64,175,.055); transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease; animation:studentRise .55s ease both; }
+        .student-dashboard .card:hover { transform:translateY(-3px); border-color:#bfdbfe; box-shadow:0 16px 32px rgba(37,99,235,.1); }
+        .student-dashboard .card h3 { color:#173b78; font-size:1.05rem; }
+        .student-dashboard .quick-actions { display:grid; gap:9px; }
+        .student-dashboard .quick-actions a { display:flex !important; align-items:center; justify-content:center; width:100%; min-height:44px; box-sizing:border-box; margin:0 !important; padding:11px 14px !important; border:0; border-radius:11px !important; font-size:.88rem; font-weight:700; transition:transform .2s ease,filter .2s ease,box-shadow .2s ease; }
+        .student-dashboard .quick-actions a:hover { transform:translateY(-2px); filter:brightness(1.04); box-shadow:0 8px 16px rgba(37,99,235,.15); }
+        .student-dashboard .achievement-icon { display:grid; place-items:center; width:54px; height:54px; margin:0 auto 9px; border-radius:17px; background:#eff6ff; box-shadow:inset 0 0 0 1px #dbeafe; }
+        .student-dashboard .news-mini-item { padding:12px 0; border-color:#edf2fb; }
+        .student-dashboard table tr:last-child { border-bottom:0 !important; }
+        @keyframes studentRise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes studentOrbit { to { transform:rotate(360deg); } }
+        @media (max-width:700px) { .student-dashboard { padding:12px 0 30px !important; }.student-dashboard .profile-header { padding:25px; gap:20px; }.student-dashboard .xp-container { width:100%; }.student-dashboard .grid-2 { gap:14px; } }
     </style>
 {% endblock %}
 {% block content %}
-    <div class="dashboard-container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+    <div class="dashboard-container student-dashboard">
         
         <div class="profile-header">
             <div>
@@ -96,7 +119,7 @@
                     {% endif %}
                 </div>
 
-                <div class="card">
+                <div class="card quick-actions">
                     <h3> Tezkor Harakatlar</h3>
                     <a href="/my_tests" class="btn-primary" style="display:block; text-align:center; margin-bottom:10px; text-decoration:none;">Test Ishlash</a>
                     <a href="/chat" style="display:block; text-align:center; background:#2563eb; color:white; padding:10px; border-radius:6px; text-decoration:none; margin-bottom:10px;">💬 O‘qituvchiga yozish</a>
