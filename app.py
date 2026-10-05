@@ -346,6 +346,7 @@ def create_app():
             db.session.rollback()
             club_class_rows = []
         results = TestResult.query.join(Student).filter(Student.school_id == sid).all()
+        dashboard_clubs = Club.query.filter_by(school_id=sid).order_by(Club.name).all()
         average_score = round(sum(item.percentage or 0 for item in results) / len(results), 1) if results else 0
         passed_results = sum((item.percentage or 0) >= 60 for item in results)
         return render_template("dashboard.html", school=school, 
@@ -365,7 +366,8 @@ def create_app():
             day_names=json.dumps(day_names),
             schedule_counts=json.dumps(schedule_counts),
             club_class_labels=json.dumps([row[0] for row in club_class_rows]),
-            club_class_counts=json.dumps([row[1] for row in club_class_rows]))
+            club_class_counts=json.dumps([row[1] for row in club_class_rows]),
+            dashboard_clubs=dashboard_clubs)
 
     # --- O'QITUVCHI DASHBOARD ---
     @app.route("/teacher_dashboard")
@@ -692,9 +694,10 @@ def create_app():
         res = TestResult.query.filter_by(student_id=st.id).order_by(TestResult.submitted_at.desc()).limit(5).all()
         ach = StudentAchievement.query.filter_by(student_id=st.id).all()
         nws = News.query.filter_by(school_id=st.school_id).order_by(News.created_at.desc()).limit(3).all()
+        clubs = Club.query.filter_by(school_id=st.school_id).order_by(Club.name).all()
         labels = [r.test.title[:15] for r in reversed(res)]; data = [r.percentage for r in reversed(res)]
         while len(data) < 5: labels.insert(0, f"Test {len(data)+1}"); data.insert(0, 0)
-        return render_template("student_dashboard.html", student=st, results=res, achievements=ach, news=nws, chart_labels=json.dumps(labels), chart_data=json.dumps(data))
+        return render_template("student_dashboard.html", student=st, results=res, achievements=ach, news=nws, clubs=clubs, chart_labels=json.dumps(labels), chart_data=json.dumps(data))
 
     @app.route("/student_profile", methods=["GET", "POST"])
     def student_profile():

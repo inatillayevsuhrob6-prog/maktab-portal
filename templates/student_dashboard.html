@@ -38,6 +38,10 @@
         .student-dashboard .achievement-icon { transition:transform .25s ease,box-shadow .25s ease; }
         .student-dashboard .achievement-icon:hover { transform:translateY(-4px) rotate(-5deg); box-shadow:0 10px 18px rgba(37,99,235,.13),inset 0 0 0 1px #bfdbfe; }
         .student-dashboard .news-mini-item { padding:12px 0; border-color:#edf2fb; }
+        .student-dashboard .student-club-row { display:grid; gap:4px; padding:12px 0; border-bottom:1px solid #edf2fb; }
+        .student-dashboard .student-club-row:last-of-type { border-bottom:0; }
+        .student-dashboard .student-club-row strong { color:#173b78; }
+        .student-dashboard .student-club-row small { color:#7186a6; }
         .student-dashboard table tr:last-child { border-bottom:0 !important; }
         @keyframes studentRise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
         @keyframes studentOrbit { to { transform:rotate(360deg); } }
@@ -122,6 +126,15 @@
                     {% else %}
                     <p style="color:#777; font-size:14px;">Yangiliklar yo'q.</p>
                     {% endif %}
+                </div>
+
+                <div class="card student-club-preview">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px;">
+                        <h3 style="margin:0;">🎯 Maktab to‘garaklari</h3><a href="/clubs" style="color:#2563eb; font-size:.78rem; font-weight:700; text-decoration:none;">Barchasi →</a>
+                    </div>
+                    {% for club in clubs[:4] %}
+                    <article class="student-club-row"><strong>{{ club.name }}</strong><small>Rahbar: {{ club.leader_name or ((club.teacher.first_name ~ ' ' ~ club.teacher.last_name) if club.teacher else 'Belgilanmagan') }}</small><small>{{ club.schedule or 'Jadval belgilanmagan' }}</small></article>
+                    {% else %}<p style="color:#7890b1; margin:0;">Hozircha to‘garaklar yo‘q.</p>{% endfor %}
                 </div>
 
                 <div class="card quick-actions">

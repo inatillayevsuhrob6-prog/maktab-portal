@@ -86,6 +86,17 @@
                     </article>
                 </section>
 
+                <section class="panel dashboard-club-list">
+                    <div class="panel-heading"><div><span class="panel-kicker">MAKTAB TO‘GARAKLARI</span><h2>Mavjud to‘garaklar</h2></div><a href="/clubs/manage">Boshqarish <i class="fas fa-arrow-right"></i></a></div>
+                    {% if dashboard_clubs %}
+                    <div class="dashboard-club-grid">
+                        {% for club in dashboard_clubs %}
+                        <article class="dashboard-club-item"><span class="dashboard-club-icon">🎯</span><div><strong>{{ club.name }}</strong><small>Rahbar: {{ club.leader_name or ((club.teacher.first_name ~ ' ' ~ club.teacher.last_name) if club.teacher else 'Belgilanmagan') }}</small><small>{{ club.schedule or 'Jadval belgilanmagan' }} · {{ club.members|length }} a’zo</small></div></article>
+                        {% endfor %}
+                    </div>
+                    {% else %}<p class="dashboard-clubs-empty">Hozircha to‘garaklar yaratilmagan.</p>{% endif %}
+                </section>
+
                 <section class="dashboard-grid bottom-shortcuts">
                     <a href="/classes" style="text-decoration:none;"><div class="card"><div class="card-icon">🏫</div><div class="card-title">Sinflar</div><div class="card-value">{{ class_count }}</div></div></a>
                     <a href="/students" style="text-decoration:none;"><div class="card"><div class="card-icon">🎓</div><div class="card-title">O‘quvchilar</div><div class="card-value">{{ student_count }}</div></div></a>
