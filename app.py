@@ -26,7 +26,6 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     with open('error.log', 'a') as f:
         pass  # Fixed indentation error
     pass # Fixed broken write statement
-        pass  # Fixed literal assignment error
     pass # Fixed broken line
 
 sys.excepthook = handle_exception
