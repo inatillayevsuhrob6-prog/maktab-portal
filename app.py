@@ -696,11 +696,5 @@ def create_app():
         return render_template("teacher_dashboard.html", teacher=teacher, schedule=grouped, my_classes=list(unique_classes), clubs=clubs)
 
     # --- O'QITUVCHI-O'QUVCHI ICHKI CHAT ---
-    @app.route("/chat")
-    def chat():
-        if 'school_id' not in session: 
-            return redirect(url_for('home'))
-        try:
-            return render_template("chat.html")
-        except Exception as e:
-            return f"Chat sahifasida xatolik: {e}", 500
+    
+# Server restart trigger - fix bad gateway
