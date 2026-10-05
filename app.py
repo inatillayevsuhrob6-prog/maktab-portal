@@ -871,11 +871,13 @@ def create_app():
         return redirect(url_for('presentations'))
 
     def can_manage_presentation(presentation):
-        return session.get('user_role') == 'admin'
+        role = session.get('user_role')
+        return (role == 'admin' or
+                (role == 'teacher' and presentation.teacher_id == session.get('teacher_id')))
 
     @app.route("/presentations/<int:presentation_id>/edit", methods=["GET", "POST"])
     def edit_presentation(presentation_id):
-        if 'school_id' not in session or session.get('user_role') != 'admin':
+        if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}:
             return redirect(url_for('home'))
         presentation = Presentation.query.filter_by(
             id=presentation_id, school_id=session['school_id']
@@ -896,7 +898,7 @@ def create_app():
 
     @app.route("/presentations/<int:presentation_id>/delete", methods=["POST"])
     def delete_presentation(presentation_id):
-        if 'school_id' not in session or session.get('user_role') != 'admin':
+        if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}:
             return redirect(url_for('home'))
         presentation = Presentation.query.filter_by(
             id=presentation_id, school_id=session['school_id']
