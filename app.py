@@ -455,15 +455,11 @@ def create_app():
         return redirect(url_for('chat', contact_id=recipient_id))
 
     def can_manage_chat_message(message):
-        role = session.get('user_role')
-        if role == 'admin':
-            return True
-        user_id = session.get('teacher_id') if role == 'teacher' else session.get('student_id')
-        return message.sender_type == role and message.sender_id == user_id
+        return session.get('user_role') == 'admin'
 
     @app.route("/chat/message/<int:message_id>/edit", methods=["GET", "POST"])
     def edit_chat_message(message_id):
-        if 'school_id' not in session or session.get('user_role') not in {'admin', 'student', 'teacher'}:
+        if 'school_id' not in session or session.get('user_role') != 'admin':
             return redirect(url_for('home'))
         message = ChatMessage.query.filter_by(id=message_id, school_id=session['school_id']).first_or_404()
         if not can_manage_chat_message(message):
@@ -476,14 +472,12 @@ def create_app():
             message.body = body[:2000]
             db.session.commit()
             flash("Xabar tahrirlandi.", "success")
-            if session.get('user_role') == 'admin':
-                return redirect(url_for('chat'))
-            return redirect(url_for('chat', contact_id=message.recipient_id))
+            return redirect(url_for('chat'))
         return render_template("edit_chat_message.html", message=message)
 
     @app.route("/chat/message/<int:message_id>/delete", methods=["POST"])
     def delete_chat_message(message_id):
-        if 'school_id' not in session or session.get('user_role') not in {'admin', 'student', 'teacher'}:
+        if 'school_id' not in session or session.get('user_role') != 'admin':
             return redirect(url_for('home'))
         message = ChatMessage.query.filter_by(id=message_id, school_id=session['school_id']).first_or_404()
         if not can_manage_chat_message(message):
@@ -492,9 +486,7 @@ def create_app():
         db.session.delete(message)
         db.session.commit()
         flash("Xabar o‘chirildi.", "success")
-        if session.get('user_role') == 'admin':
-            return redirect(url_for('chat'))
-        return redirect(url_for('chat', contact_id=contact_id))
+        return redirect(url_for('chat'))
 
     # --- O'QITUVCHI PROFIL SOZLAMALARI ---
     @app.route("/teacher_profile", methods=["GET", "POST"])
@@ -857,13 +849,11 @@ def create_app():
         return redirect(url_for('presentations'))
 
     def can_manage_presentation(presentation):
-        return (session.get('user_role') == 'admin' or
-                (session.get('user_role') == 'teacher' and
-                 presentation.teacher_id == session.get('teacher_id')))
+        return session.get('user_role') == 'admin'
 
     @app.route("/presentations/<int:presentation_id>/edit", methods=["GET", "POST"])
     def edit_presentation(presentation_id):
-        if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}:
+        if 'school_id' not in session or session.get('user_role') != 'admin':
             return redirect(url_for('home'))
         presentation = Presentation.query.filter_by(
             id=presentation_id, school_id=session['school_id']
@@ -884,7 +874,7 @@ def create_app():
 
     @app.route("/presentations/<int:presentation_id>/delete", methods=["POST"])
     def delete_presentation(presentation_id):
-        if 'school_id' not in session or session.get('user_role') not in {'admin', 'teacher'}:
+        if 'school_id' not in session or session.get('user_role') != 'admin':
             return redirect(url_for('home'))
         presentation = Presentation.query.filter_by(
             id=presentation_id, school_id=session['school_id']
@@ -1063,12 +1053,21 @@ def create_app():
         if not Teacher.query.filter_by(id=teacher_id, school_id=session['school_id']).first():
             flash("O'qituvchi topilmadi.", "danger")
             return redirect(url_for('manage_clubs'))
+        valid_days = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba']
+        days = request.form.getlist('days')
+        days = [day for day in valid_days if day in days]
+        start_time = request.form.get('start_time', '').strip()
+        end_time = request.form.get('end_time', '').strip()
+        if not days or not start_time or not end_time or end_time <= start_time:
+            flash("To‘garak kunlarini va boshlanish/tugash vaqtini to‘g‘ri kiriting.", "warning")
+            return redirect(url_for('manage_clubs'))
+        schedule = f"{', '.join(days)} | {start_time}–{end_time}"
         db.session.add(Club(
             name=sanitize_input(request.form.get('name')),
             description=sanitize_input(request.form.get('description')),
             teacher_id=teacher_id,
             max_students=request.form.get('max_students', type=int),
-            schedule=sanitize_input(request.form.get('schedule')),
+            schedule=schedule,
             school_id=session['school_id']
         ))
         db.session.commit()

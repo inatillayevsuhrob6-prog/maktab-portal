@@ -15,7 +15,7 @@
     <div class="presentation-grid">
         {% for item in presentations %}
         <article class="presentation-card"><div class="presentation-icon">▤</div><div class="presentation-body"><h2>{{ item.title }}</h2><p>{{ item.description or 'Dars uchun taqdimot' }}</p><small>{% if item.teacher %}{{ item.teacher.first_name }} {{ item.teacher.last_name }}{% else %}Maktab{% endif %} · {{ item.created_at.strftime('%d.%m.%Y') }}</small><a href="{{ item.file_url }}" target="_blank" rel="noopener">Ochish / yuklab olish →</a>
-            {% if current_role == 'admin' or (current_role == 'teacher' and item.teacher_id == session.get('teacher_id')) %}
+            {% if current_role == 'admin' %}
             <div class="presentation-actions"><a class="action-link" href="{{ url_for('edit_presentation', presentation_id=item.id) }}">✏️ Tahrirlash</a><form method="POST" action="{{ url_for('delete_presentation', presentation_id=item.id) }}" onsubmit="return confirm('Taqdimotni o‘chirishni tasdiqlaysizmi?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="action-link danger" type="submit">🗑 O‘chirish</button></form></div>
             {% endif %}
         </div></article>

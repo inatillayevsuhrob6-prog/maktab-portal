@@ -6,6 +6,9 @@
         .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         h2 { color: #1e293b; margin-bottom: 20px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .days-row { display:flex; flex-wrap:wrap; gap:12px; margin:8px 0 16px; }
+        .days-row label { display:flex; align-items:center; gap:5px; color:#334155; }
+        .days-row input { width:auto; margin:0; }
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; }
         button { background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; }
         .club-list { margin-top: 30px; }
@@ -38,7 +41,16 @@
                     {% for t in teachers %}<option value="{{ t.id }}">{{ t.first_name }} {{ t.last_name }}</option>{% endfor %}
                 </select>
                 {% endif %}
-                <input type="text" name="schedule" placeholder="Vaqt (Masalan: Dushanba, 15:00)">
+            </div>
+            <label style="font-weight:600; color:#334155;">To‘garak kunlari</label>
+            <div class="days-row">
+                {% for day in ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'] %}
+                <label><input type="checkbox" name="days" value="{{ day }}">{{ day }}</label>
+                {% endfor %}
+            </div>
+            <div class="form-row">
+                <label>Boshlanish vaqti<input type="time" name="start_time" required></label>
+                <label>Tugash vaqti<input type="time" name="end_time" required></label>
             </div>
             
             <div class="form-row">
