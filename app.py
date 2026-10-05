@@ -18,6 +18,7 @@ from datetime import datetime, timedelta, timezone
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024
     os.makedirs(app.instance_path, exist_ok=True)
     
     csrf = CSRFProtect(app)
@@ -26,6 +27,21 @@ def create_app():
     def handle_csrf_error(error):
         flash("Sahifa eskirgan. Jadval yangilandi, amalni qayta bajaring.", "danger")
         return redirect(url_for('manage_schedule'))
+
+    @app.errorhandler(400)
+    def handle_bad_request(error):
+        if request.path == '/presentations/upload':
+            app.logger.warning("Noto‘g‘ri taqdimot yuklash so‘rovi: %s", error)
+            flash("Fayl yuklash so‘rovi noto‘g‘ri. Sahifani yangilab, PDF/PPT/PPTX faylni qayta tanlang.", "danger")
+            return redirect(url_for('presentations'))
+        return error
+
+    @app.errorhandler(413)
+    def handle_upload_too_large(error):
+        if request.path == '/presentations/upload':
+            flash("Taqdimot fayli 25 MB dan kichik bo‘lishi kerak.", "danger")
+            return redirect(url_for('presentations'))
+        return error
     
     limiter = Limiter(
         app=app,
