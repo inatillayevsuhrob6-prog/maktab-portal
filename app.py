@@ -583,8 +583,25 @@ def create_app():
                     try: custom = EducationalGame.query.filter_by(id=int(result.game_key[7:]), school_id=sid).first()
                     except ValueError: pass
                 metadata = games_for_page.get(result.game_key, {})
-                recent.append({'title': custom.title if custom else metadata.get('title', 'Bilim o‘yini'), 'icon': GAME_BANK.get(custom.game_type, GAME_BANK['box'])['icon'] if custom else metadata.get('icon', '🎮'), 'points': result.points})
+                recent.append({'title': custom.title if custom else metadata.get('title', 'Bilim o‘yini'), 'icon': GAME_BANK.get(custom.game_type, GAME_BANK['box'])['icon'] if custom else metadata.get('icon', '🎮'), 'points': result.points, 'correct': result.score > 0})
         return render_template('games.html', games=games_for_page, recent=recent, role=role, classes=classes, custom_games=custom_games)
+
+    @app.route('/games/results')
+    def game_results():
+        role, sid = session.get('user_role'), session.get('school_id')
+        if role not in {'admin', 'teacher'} or not sid: return redirect(url_for('home'))
+        query = GameResult.query.join(Student).filter(GameResult.school_id == sid)
+        if role == 'teacher':
+            assigned_ids = teacher_class_ids(session['teacher_id'])
+            query = query.filter(Student.class_id.in_(assigned_ids)) if assigned_ids else query.filter(Student.id == -1)
+        results = query.order_by(GameResult.played_at.desc()).limit(200).all()
+        custom_ids = set()
+        for result in results:
+            if result.game_key.startswith('custom-'):
+                try: custom_ids.add(int(result.game_key[7:]))
+                except ValueError: pass
+        custom_titles = {f'custom-{game.id}': game.title for game in EducationalGame.query.filter(EducationalGame.school_id == sid, EducationalGame.id.in_(custom_ids)).all()} if custom_ids else {}
+        return render_template('game_results.html', results=results, custom_titles=custom_titles, game_bank=GAME_BANK, role=role)
 
     @app.route('/games/create', methods=['POST'])
     def game_create():
@@ -660,51 +677,47 @@ def create_app():
         if challenge.created_at < datetime.utcnow() - timedelta(minutes=15):
             db.session.delete(challenge); db.session.commit(); flash('O‘yin vaqti tugadi. Qayta urinib ko‘ring.', 'warning'); return redirect(url_for('games'))
         correct = request.form.get('answer', '').strip().casefold() == challenge.answer.strip().casefold()
-        local_now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=5)))
-        local_start = datetime.combine(local_now.date(), datetime.min.time(), tzinfo=local_now.tzinfo)
-        day_start = local_start.astimezone(timezone.utc).replace(tzinfo=None)
-        day_end = (local_start + timedelta(days=1)).astimezone(timezone.utc).replace(tzinfo=None)
-        scored_today = GameResult.query.filter_by(student_id=session['student_id']).filter(GameResult.played_at >= day_start, GameResult.played_at < day_end, GameResult.points > 0).count()
-        points = 15 if correct and scored_today < 5 else 0
-        if correct:
-            if points:
-                student = Student.query.filter_by(id=session['student_id'], school_id=session['school_id']).first()
-                if student: student.xp = (student.xp or 0) + points; student.level = (student.xp // 500) + 1
-                db.session.add(GameResult(student_id=session['student_id'], school_id=session['school_id'], game_key=challenge.game_key, score=1, points=points))
         game_key = challenge.game_key
-
+        progress = session.get('custom_game_progress') or {}
+        question_ids = progress.get('question_ids') or []
+        current_index = progress.get('index', 0)
+        custom_game = None
         if game_key.startswith('custom-'):
             try: custom_game_id = int(game_key[7:])
             except ValueError: custom_game_id = None
-            progress = session.get('custom_game_progress') or {}
-            question_ids = progress.get('question_ids') or []
-            current_index = progress.get('index', 0)
             if progress.get('game_id') != custom_game_id or progress.get('token') != token or current_index >= len(question_ids):
                 db.session.delete(challenge); db.session.commit()
                 session.pop('custom_game_progress', None)
                 flash('O‘yin sessiyasi tugadi. O‘yinni qaytadan boshlang.', 'warning')
                 return redirect(url_for('games'))
-
             custom_game = EducationalGame.query.filter_by(id=custom_game_id, school_id=session['school_id'], is_active=True).first()
             if not custom_game:
                 db.session.delete(challenge); db.session.commit()
                 session.pop('custom_game_progress', None)
                 flash('Bu o‘yin endi mavjud emas.', 'warning')
                 return redirect(url_for('games'))
+        local_now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=5)))
+        local_start = datetime.combine(local_now.date(), datetime.min.time(), tzinfo=local_now.tzinfo)
+        day_start = local_start.astimezone(timezone.utc).replace(tzinfo=None)
+        day_end = (local_start + timedelta(days=1)).astimezone(timezone.utc).replace(tzinfo=None)
+        scored_today = GameResult.query.filter_by(student_id=session['student_id']).filter(GameResult.played_at >= day_start, GameResult.played_at < day_end, GameResult.points > 0).count()
+        points = 15 if correct and scored_today < 5 else 0
+        if correct and points:
+            student = Student.query.filter_by(id=session['student_id'], school_id=session['school_id']).first()
+            if student: student.xp = (student.xp or 0) + points; student.level = (student.xp // 500) + 1
+        db.session.add(GameResult(student_id=session['student_id'], school_id=session['school_id'], game_key=game_key, score=1 if correct else 0, points=points))
+
+        if game_key.startswith('custom-'):
             game = {'title': custom_game.title, 'icon': GAME_BANK.get(custom_game.game_type, GAME_BANK['box'])['icon']}
             choices = json.loads(challenge.choices_json or '[]')
-
-            if not correct:
-                return render_template('game_play.html', game=game, challenge=challenge, choices=random.sample(choices, len(choices)) if choices else [], question_number=current_index + 1, question_total=len(question_ids), feedback='Javob noto‘g‘ri. Yana bir marta urinib ko‘ring.')
-
             current_index += 1
+            correct_count = progress.get('correct_count', 0) + (1 if correct else 0)
+            earned_points = progress.get('earned_points', 0) + points
             db.session.delete(challenge)
             if current_index >= len(question_ids):
                 db.session.commit()
                 session.pop('custom_game_progress', None)
-                if points: flash('Ajoyib! Barcha savollar tugadi. To‘g‘ri javob uchun +15 XP oldingiz 🎉', 'success')
-                else: flash('Ajoyib! Barcha savollar tugadi. Bugungi XP limiti ishlatildi.', 'success')
-                return redirect(url_for('games', played=game_key))
+                return render_template('game_result.html', game=game, correct_count=correct_count, total_questions=len(question_ids), earned_points=earned_points)
 
             next_question = EducationalGameQuestion.query.filter_by(id=question_ids[current_index], game_id=custom_game.id).first()
             if not next_question:
@@ -716,14 +729,12 @@ def create_app():
             next_challenge = GameChallenge(token=str(uuid.uuid4()), student_id=session['student_id'], school_id=session['school_id'], game_key=game_key, prompt=next_question.prompt, answer=next_question.correct_answer, choices_json=json.dumps(next_choices, ensure_ascii=False))
             db.session.add(next_challenge)
             db.session.commit()
-            session['custom_game_progress'] = {**progress, 'index': current_index, 'token': next_challenge.token}
-            return render_template('game_play.html', game=game, challenge=next_challenge, choices=random.sample(next_choices, len(next_choices)) if next_choices else [], question_number=current_index + 1, question_total=len(question_ids), feedback='To‘g‘ri javob! Keyingi savolga o‘tdingiz.' + (' +15 XP 🎉' if points else ''))
+            session['custom_game_progress'] = {**progress, 'index': current_index, 'correct_count': correct_count, 'earned_points': earned_points, 'token': next_challenge.token}
+            feedback = ('To‘g‘ri javob! Keyingi savolga o‘tdingiz.' + (' +15 XP 🎉' if points else '')) if correct else 'Noto‘g‘ri javob. Keyingi savolga o‘tdingiz.'
+            return render_template('game_play.html', game=game, challenge=next_challenge, choices=random.sample(next_choices, len(next_choices)) if next_choices else [], question_number=current_index + 1, question_total=len(question_ids), feedback=feedback)
 
         db.session.delete(challenge); db.session.commit()
-        if points: flash('To‘g‘ri javob! +15 XP 🎉', 'success')
-        elif correct: flash('Javob to‘g‘ri! Bugungi 5 ta ball beriladigan urinishdan foydalandingiz. Ertaga davom eting.', 'info')
-        else: flash('Bu safar topilmadi. Keyingi o‘yinda omad!', 'warning')
-        return redirect(url_for('games', played=game_key))
+        return render_template('game_result.html', game=GAME_BANK[game_key], correct_count=1 if correct else 0, total_questions=1, earned_points=points)
 
     # --- ADMIN DASHBOARD ---
     @app.route("/dashboard")
