@@ -444,8 +444,11 @@ def create_app():
             valid_statuses = {'present', 'excused', 'unexcused'}
             for student in students:
                 status = request.form.get(f'status_{student.id}')
-                if status not in valid_statuses: continue
                 record = Attendance.query.filter_by(student_id=student.id, attendance_date=selected_date).first()
+                if status == '':
+                    if record: db.session.delete(record)
+                    continue
+                if status not in valid_statuses: continue
                 if not record:
                     record = Attendance(student_id=student.id, class_id=selected.id, teacher_id=tid, school_id=sid, attendance_date=selected_date, status=status)
                     db.session.add(record)
@@ -467,10 +470,12 @@ def create_app():
         for cls in Class.query.filter_by(school_id=sid).order_by(Class.name).all():
             students = Student.query.filter_by(school_id=sid, class_id=cls.id).order_by(Student.last_name, Student.first_name).all()
             records = {row.student_id: row for row in Attendance.query.filter_by(school_id=sid, class_id=cls.id, attendance_date=selected_date).all()}
+            marked_teachers = sorted({f'{row.teacher.first_name} {row.teacher.last_name}' for row in records.values() if row.teacher}, key=str.casefold)
             present = sum(1 for student in students if records.get(student.id) and records[student.id].status == 'present')
             absent = [{'student': student, 'record': records.get(student.id)} for student in students if records.get(student.id) and records[student.id].status in {'excused', 'unexcused'}]
-            unmarked = sum(1 for student in students if student.id not in records)
-            rows.append({'class': cls, 'total': len(students), 'present': present, 'percent': round(present * 100 / len(students)) if students else 0, 'absent': absent, 'unmarked': unmarked})
+            unmarked_students = [student for student in students if student.id not in records]
+            unmarked = len(unmarked_students)
+            rows.append({'class': cls, 'total': len(students), 'present': present, 'percent': round(present * 100 / len(students)) if students else 0, 'absent': absent, 'unmarked': unmarked, 'unmarked_students': unmarked_students, 'teachers': marked_teachers})
         return render_template('attendance_overview.html', rows=rows, selected_date=selected_date)
 
     @app.route('/grades', methods=['GET', 'POST'])
@@ -729,14 +734,15 @@ def create_app():
         grouped = {d: [] for d in days_order}
         unique_classes = set()
         assigned_classes = TeacherClassAssignment.query.filter_by(teacher_id=tid).all()
+        assigned_class_ids = {assignment.class_id for assignment in assigned_classes}
         unique_classes.update(assignment.student_class for assignment in assigned_classes)
         for s in my_schedules:
             if s.day_of_week in grouped:
                 grouped[s.day_of_week].append(s)
                 if s.student_class: unique_classes.add(s.student_class)
-        clubs = Club.query.filter_by(school_id=session['school_id']).all()
+        clubs = Club.query.filter_by(school_id=session['school_id']).order_by(func.lower(Club.name), Club.schedule).all()
         sid = session['school_id']
-        return render_template("teacher_dashboard.html", teacher=teacher, schedule=grouped, my_classes=list(unique_classes), clubs=clubs,
+        return render_template("teacher_dashboard.html", teacher=teacher, schedule=grouped, my_classes=sorted(unique_classes, key=lambda item: item.name.casefold()), assigned_class_ids=assigned_class_ids, clubs=clubs,
             spotlights=current_spotlights(sid), weekly_students=weekly_student_scores(sid)[:5], weekly_classes=class_weekly_scores(sid)[:5])
 
     # --- O'QITUVCHI-O'QUVCHI ICHKI CHAT ---
