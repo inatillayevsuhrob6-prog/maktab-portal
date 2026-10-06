@@ -524,14 +524,29 @@ def create_app():
             if not person or not reason:
                 flash('Ishtirokchi va yutuq sababini kiriting.', 'danger')
             else:
-                row = Spotlight.query.filter_by(school_id=sid, person_type=person_type, week_start=week_start).first()
+                edit_id = request.form.get('spotlight_id', type=int)
+                row = Spotlight.query.filter_by(id=edit_id, school_id=sid, week_start=week_start).first() if edit_id else Spotlight.query.filter_by(school_id=sid, person_type=person_type, week_start=week_start).first()
+                duplicate = Spotlight.query.filter_by(school_id=sid, person_type=person_type, week_start=week_start).filter(Spotlight.id != (row.id if row else -1)).first()
+                if duplicate:
+                    flash('Bu haftada bu toifaga allaqachon yulduz tanlangan. Mavjud tanlovni tahrirlang.', 'warning')
+                    return redirect(url_for('spotlight_manage', edit=duplicate.id))
                 if not row:
                     row = Spotlight(school_id=sid, person_type=person_type, week_start=week_start)
                     db.session.add(row)
-                row.person_id, row.reason, row.selected_at = person.id, reason, datetime.utcnow()
-                db.session.commit(); flash('Hafta yulduzi yangilandi.', 'success')
+                row.person_type, row.person_id, row.reason, row.selected_at = person_type, person.id, reason, datetime.utcnow()
+                db.session.commit(); flash('Hafta yulduzi tahrirlandi.' if edit_id else 'Hafta yulduzi saqlandi.', 'success')
             return redirect(url_for('spotlight_manage'))
-        return render_template('spotlight.html', spotlights=current_spotlights(sid), students=Student.query.filter_by(school_id=sid).order_by(Student.first_name).all(), teachers=Teacher.query.filter_by(school_id=sid).order_by(Teacher.first_name).all())
+        edit_id = request.args.get('edit', type=int)
+        edit_item = Spotlight.query.filter_by(id=edit_id, school_id=sid, week_start=week_start).first() if edit_id else None
+        return render_template('spotlight.html', spotlights=current_spotlights(sid), edit_item=edit_item, students=Student.query.filter_by(school_id=sid).order_by(Student.first_name).all(), teachers=Teacher.query.filter_by(school_id=sid).order_by(Teacher.first_name).all())
+
+    @app.route('/spotlight/delete/<int:spotlight_id>', methods=['POST'])
+    def spotlight_delete(spotlight_id):
+        if session.get('user_role') != 'admin' or not session.get('school_id'): return redirect(url_for('home'))
+        row = Spotlight.query.filter_by(id=spotlight_id, school_id=session['school_id'], week_start=week_window()[0]).first_or_404()
+        db.session.delete(row); db.session.commit()
+        flash('Hafta yulduzi o‘chirildi.', 'success')
+        return redirect(url_for('spotlight_manage'))
 
     @app.route('/leaderboard')
     def leaderboard():
