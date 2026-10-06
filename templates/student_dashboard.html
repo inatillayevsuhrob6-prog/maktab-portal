@@ -45,14 +45,16 @@
         .student-dashboard table tr:last-child { border-bottom:0 !important; }
         .student-dashboard .weekly-board { display:grid; grid-template-columns:1.15fr .85fr; gap:18px; margin:0 0 20px; }
         .student-dashboard .weekly-board .card { min-width:0; }
-        .student-dashboard .weekly-row { display:grid; grid-template-columns:30px minmax(0,1fr) auto; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #edf2fb; }
+        .student-dashboard .weekly-row { display:grid; grid-template-columns:30px minmax(0,1fr) auto; align-items:center; gap:10px; margin:4px -9px; padding:10px 9px; border:1px solid transparent; border-radius:12px; color:inherit; text-decoration:none; transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease; }
+        .student-dashboard a.weekly-row:hover { transform:translateY(-1px); border-color:#dbeafe; background:#f8fbff; box-shadow:0 7px 15px rgba(37,99,235,.06); }
         .student-dashboard .weekly-row:last-child { border-bottom:0; }
         .student-dashboard .weekly-place { display:grid; place-items:center; width:28px; height:28px; border-radius:9px; background:#eff6ff; color:#2563eb; font-weight:800; font-size:.8rem; }
         .student-dashboard .weekly-row strong { overflow:hidden; color:#173b78; text-overflow:ellipsis; white-space:nowrap; font-size:.88rem; }
         .student-dashboard .weekly-row small { display:block; margin-top:3px; color:#8191aa; font-size:.75rem; }
         .student-dashboard .weekly-points { color:#2563eb; font-size:.83rem; font-weight:800; white-space:nowrap; }
-        .student-dashboard .weekly-row.is-me { margin:0 -9px; padding-right:9px; padding-left:9px; border-radius:10px; background:#f1f7ff; }
-        .student-dashboard .weekly-class { display:flex; justify-content:space-between; gap:10px; padding:11px 0; border-bottom:1px solid #edf2fb; color:#173b78; font-size:.86rem; }
+        .student-dashboard .weekly-row.is-me { border-color:#bfdbfe; background:#f1f7ff; }
+        .student-dashboard .weekly-class { display:flex; justify-content:space-between; gap:10px; margin:5px -8px; padding:10px 9px; border:1px solid transparent; border-radius:11px; color:#173b78; font-size:.86rem; text-decoration:none; transition:transform .18s ease,border-color .18s ease,background .18s ease; }
+        .student-dashboard a.weekly-class:hover { transform:translateY(-1px); border-color:#dbeafe; background:#f8fbff; }
         .student-dashboard .weekly-class:last-child { border-bottom:0; }
         .student-dashboard .weekly-class strong { color:#2563eb; white-space:nowrap; }
         .student-dashboard .star-highlight { display:flex; align-items:flex-start; gap:13px; padding:14px 0; border-bottom:1px solid #f2ead8; }
@@ -60,6 +62,8 @@
         .student-dashboard .star-badge { display:grid; place-items:center; flex:0 0 38px; height:38px; border-radius:13px; background:#fff0c2; font-size:1.15rem; }
         .student-dashboard .star-highlight strong { color:#173b78; }
         .student-dashboard .star-highlight small { display:block; margin-top:4px; color:#7186a6; line-height:1.5; }
+        .student-dashboard .weekly-board-cta { display:flex; align-items:center; justify-content:center; gap:8px; min-height:42px; margin-top:12px; padding:10px 14px; border-radius:11px; color:#fff; background:linear-gradient(100deg,#2563eb,#0ea5e9); box-shadow:0 7px 15px rgba(37,99,235,.17); font-size:.84rem; font-weight:750; text-decoration:none; transition:transform .2s ease,box-shadow .2s ease,filter .2s ease; }
+        .student-dashboard .weekly-board-cta:hover { transform:translateY(-2px); filter:brightness(1.04); box-shadow:0 11px 22px rgba(37,99,235,.22); }
         @keyframes studentRise { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
         @keyframes studentOrbit { to { transform:rotate(360deg); } }
         @media (max-width:700px) { .student-dashboard { padding:12px 0 30px !important; }.student-dashboard .profile-header { padding:25px; gap:20px; }.student-dashboard .xp-container { width:100%; }.student-dashboard .grid-2 { gap:14px; }.student-dashboard .weekly-board { grid-template-columns:1fr; gap:14px; } }
@@ -88,10 +92,11 @@
             <div class="card" style="background:linear-gradient(120deg,#fff,#f5f3ff)"><h3>🎮 Bilim o‘yinlari</h3><p>Sirli quti, omad charxi, poyga va anagrammada bilimingizni sinang.</p><a class="btn-primary" style="display:inline-block;padding:10px 16px;border-radius:10px;color:#fff;text-decoration:none" href="/games">O‘yinlarni boshlash →</a></div>
         </div>
         <div class="weekly-board">
-            <section class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><h3 style="margin:0">🏆 Haftalik o‘quvchilar reytingi</h3><p style="margin:6px 0 2px;color:#8191aa;font-size:.82rem">Eng faol o‘quvchilar</p></div><a href="/leaderboard" style="font-size:.8rem;white-space:nowrap">Barchasi →</a></div>
-                {% for item in weekly_scores %}<div class="weekly-row {% if item.student.id == student.id %}is-me{% endif %}"><span class="weekly-place">{{ loop.index }}</span><div><strong>{{ item.student.first_name }} {{ item.student.last_name }}{% if item.student.id == student.id %} (Siz){% endif %}</strong><small>{{ item.student.student_class.name if item.student.student_class else 'Sinf biriktirilmagan' }}</small></div><span class="weekly-points">{{ item.points }} XP</span></div>{% else %}<p style="color:#8191aa">Bu haftada reyting natijalari hali yig‘ilmoqda.</p>{% endfor %}
+            <section class="card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><h3 style="margin:0">🏆 Haftalik o‘quvchilar reytingi</h3><p style="margin:6px 0 2px;color:#8191aa;font-size:.82rem">Eng faol o‘quvchilar</p></div></div>
+                {% for item in weekly_scores %}<a class="weekly-row {% if item.student.id == student.id %}is-me{% endif %}" href="/leaderboard" aria-label="{{ loop.index }}-o‘rin: {{ item.student.first_name }} {{ item.student.last_name }}, {{ item.points }} XP"><span class="weekly-place">{{ '🥇' if loop.index == 1 else '🥈' if loop.index == 2 else loop.index }}</span><div><strong>{{ item.student.first_name }} {{ item.student.last_name }}{% if item.student.id == student.id %} (Siz){% endif %}</strong><small>{{ item.student.student_class.name if item.student.student_class else 'Sinf biriktirilmagan' }}</small></div><span class="weekly-points">{{ item.points }} XP</span></a>{% else %}<p style="color:#8191aa">Bu haftada reyting natijalari hali yig‘ilmoqda.</p>{% endfor %}
+                <a class="weekly-board-cta" href="/leaderboard">To‘liq reytingni ko‘rish <span aria-hidden="true">→</span></a>
             </section>
-            <section class="card"><h3 style="margin-top:0">🏫 Sinflar bellashuvi</h3><p style="margin-top:-5px;color:#8191aa;font-size:.82rem">O‘quvchi boshiga o‘rtacha ball</p>{% for item in weekly_classes %}<div class="weekly-class"><span>{{ loop.index }}. {{ item['class'].name }}</span><strong>{{ item.points }} ball</strong></div>{% else %}<p style="color:#8191aa">Sinflar reytingi shakllanmoqda.</p>{% endfor %}<a href="/leaderboard" style="display:inline-block;margin-top:8px">To‘liq reyting →</a></section>
+            <section class="card"><h3 style="margin-top:0">🏫 Sinflar bellashuvi</h3><p style="margin-top:-5px;color:#8191aa;font-size:.82rem">O‘quvchi boshiga o‘rtacha ball</p>{% for item in weekly_classes %}<a class="weekly-class" href="/leaderboard"><span>{{ loop.index }}. {{ item['class'].name }}</span><strong>{{ item.points }} ball</strong></a>{% else %}<p style="color:#8191aa">Sinflar reytingi shakllanmoqda.</p>{% endfor %}<a class="weekly-board-cta" href="/leaderboard">Sinf reytingini ochish <span aria-hidden="true">→</span></a></section>
         </div>
         <section class="card" style="margin-bottom:20px;background:linear-gradient(115deg,#fff9e9,#fff 75%);border-color:#f5e6bf"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:0">✨ Hafta yulduzlari</h3><a href="/leaderboard" style="font-size:.8rem">Barchasi →</a></div>{% for item in spotlights %}<div class="star-highlight"><span class="star-badge">⭐</span><div><strong>{{ item.name }}</strong><small>{{ 'O‘quvchi' if item.row.person_type == 'student' else 'O‘qituvchi' }} · {{ item.row.reason }}</small></div></div>{% else %}<p style="margin-bottom:0;color:#8191aa">Bu hafta yulduzlar hali tanlanmagan.</p>{% endfor %}</section>
 

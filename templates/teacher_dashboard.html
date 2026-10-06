@@ -47,7 +47,19 @@
         @keyframes teacherOrbit { to { transform:rotate(360deg); } }
         @keyframes teacherFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
         .teacher-dashboard-page .empty-schedule span { animation:teacherFloat 3s ease-in-out infinite; }
-        @media (max-width:700px) { .teacher-dashboard-page { padding:12px 0 30px !important; }.teacher-dashboard-page .teacher-header { padding:24px; }.teacher-dashboard-page .teacher-avatar { width:64px;height:64px;flex-basis:64px;border-radius:19px; } }
+        .teacher-weekly-overview { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:0 0 24px; }
+        .teacher-weekly-overview .card { min-width:0; padding:20px !important; }
+        .teacher-weekly-overview h2 { margin:0 0 12px; font-size:1.05rem; }
+        .teacher-weekly-note { margin:0; color:#8191aa; font-size:.82rem; }
+        .teacher-weekly-link { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; margin-top:8px; padding:10px 11px; border:1px solid #e7eefb; border-radius:12px; color:#23416e; background:#f9fbff; text-decoration:none; transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease; }
+        .teacher-weekly-link:hover { transform:translateY(-2px); border-color:#bfdbfe; background:#eff6ff; box-shadow:0 8px 18px rgba(37,99,235,.09); }
+        .teacher-weekly-link span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.82rem; font-weight:650; }
+        .teacher-weekly-link b { flex:0 0 auto; color:#2563eb; font-size:.8rem; }
+        .teacher-weekly-link .weekly-medal { width:26px; height:26px; display:grid; place-items:center; border-radius:9px; background:#eaf2ff; }
+        .teacher-star-card { background:linear-gradient(130deg,#fffaf0,#fff 75%) !important; border-color:#f5e6bf !important; }
+        .teacher-class-card { background:linear-gradient(130deg,#f3f8ff,#fff 75%) !important; }
+        @media (max-width:950px) { .teacher-weekly-overview { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+        @media (max-width:700px) { .teacher-dashboard-page { padding:12px 0 30px !important; }.teacher-dashboard-page .teacher-header { padding:24px; }.teacher-dashboard-page .teacher-avatar { width:64px;height:64px;flex-basis:64px;border-radius:19px; }.teacher-weekly-overview { grid-template-columns:1fr; gap:12px; } }
     </style>
 {% endblock %}
 {% block content %}
@@ -68,6 +80,12 @@
                 <p style="margin:9px 0 0; color:#dbeafe; font-size:.84rem;">Darslaringiz, sinflaringiz va to‘garaklaringiz shu yerda.</p>
             </div>
         </div>
+
+        <section class="teacher-weekly-overview" aria-label="Haftalik yutuqlar va reytinglar">
+            <article class="card teacher-star-card"><h2>✨ Hafta yulduzlari</h2>{% for item in spotlights %}<a class="teacher-weekly-link" href="/leaderboard"><span>⭐ {{ item.name }} · {{ 'O‘quvchi' if item.row.person_type == 'student' else 'O‘qituvchi' }}</span><b>Ko‘rish →</b></a>{% else %}<p class="teacher-weekly-note">Bu hafta yulduzlar tanlanmagan.</p>{% endfor %}<a class="teacher-weekly-link" href="/leaderboard"><span>Hafta yulduzlarini ko‘rish</span><b>→</b></a></article>
+            <article class="card teacher-class-card"><h2>🏫 Sinflar bellashuvi</h2>{% for item in weekly_classes %}<a class="teacher-weekly-link" href="/leaderboard"><span>{{ loop.index }}. {{ item['class'].name }}-sinf · {{ item.students }} o‘quvchi</span><b>{{ item.points }} ball</b></a>{% else %}<p class="teacher-weekly-note">Sinflar uchun ballar yig‘ilmoqda.</p>{% endfor %}<a class="teacher-weekly-link" href="/leaderboard"><span>To‘liq reytingni ochish</span><b>→</b></a></article>
+            <article class="card"><h2>🏆 Haftalik o‘quvchilar</h2>{% for item in weekly_students %}<a class="teacher-weekly-link" href="/leaderboard"><span><i class="weekly-medal">{{ '🥇' if loop.index == 1 else '🥈' if loop.index == 2 else loop.index }}</i> {{ item.student.first_name }} {{ item.student.last_name }}</span><b>{{ item.points }} XP</b></a>{% else %}<p class="teacher-weekly-note">Hozircha ballar yo‘q.</p>{% endfor %}<a class="teacher-weekly-link" href="/leaderboard"><span>Barcha o‘rinlarni ko‘rish</span><b>→</b></a></article>
+        </section>
 
         <div class="teacher-dashboard-grid">
             <!-- Dars Jadvali -->
@@ -132,11 +150,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="teacher-dashboard-grid" style="margin-top:24px">
-            <section class="card"><h2>✨ Hafta yulduzlari</h2>{% for item in spotlights %}<p><strong>{{ item.name }}</strong> · {{ 'O‘quvchi' if item.row.person_type == 'student' else 'O‘qituvchi' }}<br><small>{{ item.row.reason }}</small></p>{% else %}<p>Bu hafta yulduzlar tanlanmagan.</p>{% endfor %}</section>
-            <section class="card"><h2>🏆 Haftalik o‘quvchilar</h2>{% for item in weekly_students %}<p>{{ loop.index }}. {{ item.student.first_name }} {{ item.student.last_name }} <strong style="float:right">{{ item.points }} XP</strong></p>{% else %}<p>Hozircha ballar yo‘q.</p>{% endfor %}<a href="/leaderboard">Reytingni ochish →</a></section>
-            <section class="card"><h2>🏫 Sinflar bellashuvi</h2>{% for item in weekly_classes %}<p>{{ loop.index }}. {{ item['class'].name }}-sinf <strong style="float:right">{{ item.points }} ball</strong></p>{% else %}<p>Sinflar uchun ballar yig‘ilmoqda.</p>{% endfor %}</section>
         </div>
     </div>
 
