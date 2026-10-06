@@ -32,6 +32,7 @@
                     <a href="/grades/overview" class="{% if request.path.startswith('/grades') %}active{% endif %}"><span>★</span>Baholar</a>
                     <a href="/leaderboard" class="{% if request.path == '/leaderboard' %}active{% endif %}"><span>🏆</span>Reytinglar</a>
                     <a href="/spotlight" class="{% if request.path == '/spotlight' %}active{% endif %}"><span>✨</span>Hafta yulduzi</a>
+                    <a href="/games" class="{% if request.path.startswith('/games') %}active{% endif %}"><span>🎮</span>O‘yinlar va savollar</a>
                     <a href="/presentations" class="{% if request.path.startswith('/presentations') %}active{% endif %}"><span>▧</span>Taqdimotlar</a>
                     <a href="/schedule/manage" class="{% if request.path.startswith('/schedule') %}active{% endif %}"><span>◫</span>Dars jadvali</a>
                     <a href="/library/manage" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kutubxona</a>
@@ -48,6 +49,7 @@
                     <a href="/attendance" class="{% if request.path == '/attendance' %}active{% endif %}"><span>✓</span>Davomat belgilash</a>
                     <a href="/grades" class="{% if request.path == '/grades' %}active{% endif %}"><span>★</span>Baho qo‘yish</a>
                     <a href="/leaderboard" class="{% if request.path == '/leaderboard' %}active{% endif %}"><span>🏆</span>Reytinglar</a>
+                    <a href="/games" class="{% if request.path.startswith('/games') %}active{% endif %}"><span>🎮</span>O‘yin yaratish</a>
                     <a href="/clubs/manage" class="{% if request.path.startswith('/clubs') %}active{% endif %}"><span>🎯</span>To‘garaklar</a>
                     <a href="/library" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kutubxona</a>
                     <a href="/ai_chat" class="{% if request.path.startswith('/ai_chat') %}active{% endif %}"><span>✦</span>AI yordamchi</a>
@@ -79,7 +81,7 @@
                 </form>
                 {% if session.get('user_role') == 'teacher' %}
                 <nav class="role-nav" aria-label="O‘qituvchi menyusi">
-                    <a href="/teacher_dashboard">Kabinet</a><a href="/teacher_profile">Profil</a><a href="{{ url_for('teacher_schedule') }}">Jadval</a><a href="/attendance">Davomat</a><a href="/grades">Baholar</a><a href="/leaderboard">Reyting</a><a href="/clubs/manage">To‘garaklar</a><a href="/library">Kutubxona</a><a href="/presentations">Taqdimotlar</a><a href="/chat">Chat</a><a class="role-logout" href="/logout">Chiqish ↗</a>
+                    <a href="/teacher_dashboard">Kabinet</a><a href="/teacher_profile">Profil</a><a href="{{ url_for('teacher_schedule') }}">Jadval</a><a href="/attendance">Davomat</a><a href="/grades">Baholar</a><a href="/leaderboard">Reyting</a><a href="/games">O‘yinlar</a><a href="/clubs/manage">To‘garaklar</a><a href="/library">Kutubxona</a><a href="/presentations">Taqdimotlar</a><a href="/chat">Chat</a><a class="role-logout" href="/logout">Chiqish ↗</a>
                 </nav>
                 {% elif session.get('user_role') == 'student' %}
                 <nav class="role-nav" aria-label="O‘quvchi menyusi">

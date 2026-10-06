@@ -211,6 +211,33 @@ class GameChallenge(db.Model):
     choices_json = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
+class EducationalGame(db.Model):
+    __tablename__ = 'educational_games'
+    id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False, index=True)
+    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), index=True)
+    created_by_role = db.Column(db.String(20), nullable=False)
+    created_by_id = db.Column(db.Integer, nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    game_type = db.Column(db.String(30), nullable=False, default='box')
+    description = db.Column(db.String(300))
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    student_class = db.relationship('Class', backref=db.backref('learning_games', lazy=True))
+    questions = db.relationship('EducationalGameQuestion', backref='game', cascade='all, delete-orphan', lazy=True)
+
+class EducationalGameQuestion(db.Model):
+    __tablename__ = 'educational_game_questions'
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('educational_games.id'), nullable=False, index=True)
+    prompt = db.Column(db.Text, nullable=False)
+    option_a = db.Column(db.String(250))
+    option_b = db.Column(db.String(250))
+    option_c = db.Column(db.String(250))
+    option_d = db.Column(db.String(250))
+    correct_answer = db.Column(db.String(250), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
 class Achievement(db.Model):
     __tablename__ = 'achievements'
     id = db.Column(db.Integer, primary_key=True)

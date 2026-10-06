@@ -3,7 +3,7 @@ from config import Config
 from extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from backend.models import School, Class, Student, Teacher, TeacherClassAssignment, Subject, Test, TestQuestion, TestResult, Achievement, StudentAchievement, Schedule, Book, News, Club, StudentClub, ChatMessage, Presentation, Attendance, Grade, Spotlight, GameResult, GameChallenge
+from backend.models import School, Class, Student, Teacher, TeacherClassAssignment, Subject, Test, TestQuestion, TestResult, Achievement, StudentAchievement, Schedule, Book, News, Club, StudentClub, ChatMessage, Presentation, Attendance, Grade, Spotlight, GameResult, GameChallenge, EducationalGame, EducationalGameQuestion
 from sqlalchemy.orm import joinedload
 from sqlalchemy import text, func, and_, or_
 from flask_wtf.csrf import CSRFProtect, CSRFError
@@ -546,17 +546,88 @@ def create_app():
 
     @app.route('/games')
     def games():
-        if session.get('user_role') != 'student' or not session.get('school_id'): return redirect(url_for('home'))
-        return render_template('games.html', games=GAME_BANK, recent=GameResult.query.filter_by(student_id=session['student_id']).order_by(GameResult.played_at.desc()).limit(8).all())
+        role, sid = session.get('user_role'), session.get('school_id')
+        if role not in {'admin', 'teacher', 'student'} or not sid: return redirect(url_for('home'))
+        classes = []
+        games_for_page = dict(GAME_BANK)
+        if role == 'admin':
+            classes = Class.query.filter_by(school_id=sid).order_by(Class.name).all()
+            custom_games = EducationalGame.query.filter_by(school_id=sid).order_by(EducationalGame.created_at.desc()).all()
+        elif role == 'teacher':
+            allowed_ids = teacher_class_ids(session['teacher_id'])
+            classes = Class.query.filter(Class.school_id == sid, Class.id.in_(allowed_ids)).order_by(Class.name).all() if allowed_ids else []
+            custom_games = EducationalGame.query.filter_by(school_id=sid, created_by_role='teacher', created_by_id=session['teacher_id']).order_by(EducationalGame.created_at.desc()).all()
+        else:
+            student = Student.query.filter_by(id=session['student_id'], school_id=sid).first_or_404()
+            custom_games = EducationalGame.query.filter(EducationalGame.school_id == sid, EducationalGame.is_active.is_(True), or_(EducationalGame.class_id.is_(None), EducationalGame.class_id == student.class_id)).order_by(EducationalGame.created_at.desc()).all()
+        for game in custom_games:
+            games_for_page[f'custom-{game.id}'] = {'title': game.title, 'icon': GAME_BANK.get(game.game_type, GAME_BANK['box'])['icon'], 'description': game.description or 'Ustoz tayyorlagan savol-javob o‘yini.', 'question_count': len(game.questions), 'class_name': game.student_class.name if game.student_class else 'Barcha sinflar'}
+        recent = []
+        if role == 'student':
+            for result in GameResult.query.filter_by(student_id=session['student_id']).order_by(GameResult.played_at.desc()).limit(8).all():
+                custom = None
+                if result.game_key.startswith('custom-'):
+                    try: custom = EducationalGame.query.filter_by(id=int(result.game_key[7:]), school_id=sid).first()
+                    except ValueError: pass
+                metadata = games_for_page.get(result.game_key, {})
+                recent.append({'title': custom.title if custom else metadata.get('title', 'Bilim o‘yini'), 'icon': GAME_BANK.get(custom.game_type, GAME_BANK['box'])['icon'] if custom else metadata.get('icon', '🎮'), 'points': result.points})
+        return render_template('games.html', games=games_for_page, recent=recent, role=role, classes=classes, custom_games=custom_games)
+
+    @app.route('/games/create', methods=['POST'])
+    def game_create():
+        role, sid = session.get('user_role'), session.get('school_id')
+        if role not in {'admin', 'teacher'} or not sid: return redirect(url_for('home'))
+        title = sanitize_input(request.form.get('title', '')).strip()[:100]
+        description = sanitize_input(request.form.get('description', '')).strip()[:300]
+        game_type = request.form.get('game_type', '')
+        if game_type not in GAME_BANK or not title:
+            flash('O‘yin nomi va turini to‘g‘ri kiriting.', 'danger'); return redirect(url_for('games'))
+        class_id = request.form.get('class_id', type=int)
+        if role == 'teacher':
+            if not class_id or class_id not in teacher_class_ids(session['teacher_id']):
+                flash('O‘yinni faqat o‘zingiz dars beradigan sinfga biriktiring.', 'danger'); return redirect(url_for('games'))
+        elif class_id and not Class.query.filter_by(id=class_id, school_id=sid).first():
+            flash('Tanlangan sinf topilmadi.', 'danger'); return redirect(url_for('games'))
+        questions = []
+        for number in range(1, 6):
+            prompt = sanitize_input(request.form.get(f'question_{number}', '')).strip()[:1000]
+            if not prompt: continue
+            options = [sanitize_input(request.form.get(f'option_{number}_{letter}', '')).strip()[:120] for letter in 'abcd']
+            correct_letter = request.form.get(f'correct_{number}', '').lower()
+            if not all(options) or correct_letter not in {'a', 'b', 'c', 'd'}:
+                flash(f'{number}-savolning 4 ta javob variantini kiriting va to‘g‘ri javobni belgilang.', 'danger'); return redirect(url_for('games'))
+            questions.append({'prompt': prompt, 'options': options, 'answer': options['abcd'.index(correct_letter)]})
+        if not questions:
+            flash('Kamida bitta savol va uning javob variantlarini kiriting.', 'danger'); return redirect(url_for('games'))
+        game = EducationalGame(school_id=sid, class_id=class_id, created_by_role=role, created_by_id=session['teacher_id'] if role == 'teacher' else sid, title=title, game_type=game_type, description=description or None)
+        db.session.add(game); db.session.flush()
+        for item in questions:
+            db.session.add(EducationalGameQuestion(game_id=game.id, prompt=item['prompt'], option_a=item['options'][0], option_b=item['options'][1], option_c=item['options'][2], option_d=item['options'][3], correct_answer=item['answer']))
+        db.session.commit(); flash(f'“{title}” o‘yini {len(questions)} ta savol bilan saqlandi.', 'success')
+        return redirect(url_for('games'))
 
     @app.route('/games/start/<game_key>', methods=['POST'])
     def game_start(game_key):
         if session.get('user_role') != 'student' or not session.get('school_id'): return redirect(url_for('home'))
         game = GAME_BANK.get(game_key)
-        if not game: return redirect(url_for('games'))
-        challenge = GameChallenge(token=str(uuid.uuid4()), student_id=session['student_id'], school_id=session['school_id'], game_key=game_key, prompt=game['prompt'], answer=game['answer'], choices_json=json.dumps(game['choices'], ensure_ascii=False))
+        if game:
+            prompt, answer, choices = game['prompt'], game['answer'], game['choices']
+        elif game_key.startswith('custom-'):
+            student = Student.query.filter_by(id=session['student_id'], school_id=session['school_id']).first_or_404()
+            try: game_id = int(game_key[7:])
+            except ValueError: return redirect(url_for('games'))
+            custom_game = EducationalGame.query.filter(EducationalGame.id == game_id, EducationalGame.school_id == student.school_id, EducationalGame.is_active.is_(True), or_(EducationalGame.class_id.is_(None), EducationalGame.class_id == student.class_id)).first_or_404()
+            question = random.choice(custom_game.questions) if custom_game.questions else None
+            if not question: flash('Bu o‘yinda hozircha savollar yo‘q.', 'warning'); return redirect(url_for('games'))
+            game = {'title': custom_game.title, 'icon': GAME_BANK.get(custom_game.game_type, GAME_BANK['box'])['icon']}
+            prompt, answer = question.prompt, question.correct_answer
+            choices = [value for value in [question.option_a, question.option_b, question.option_c, question.option_d] if value]
+            game_key = f'custom-{custom_game.id}'
+        else:
+            return redirect(url_for('games'))
+        challenge = GameChallenge(token=str(uuid.uuid4()), student_id=session['student_id'], school_id=session['school_id'], game_key=game_key, prompt=prompt, answer=answer, choices_json=json.dumps(choices, ensure_ascii=False))
         db.session.add(challenge); db.session.commit()
-        return render_template('game_play.html', game=game, challenge=challenge, choices=random.sample(game['choices'], len(game['choices'])) if game['choices'] else [])
+        return render_template('game_play.html', game=game, challenge=challenge, choices=random.sample(choices, len(choices)) if choices else [])
 
     @app.route('/games/answer', methods=['POST'])
     def game_answer():
