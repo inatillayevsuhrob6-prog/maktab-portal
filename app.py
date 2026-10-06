@@ -539,7 +539,15 @@ def create_app():
         sid = session['school_id']; student_scores = weekly_student_scores(sid)
         current_id = session.get('student_id') if session.get('user_role') == 'student' else None
         own_rank = next((index for index, item in enumerate(student_scores, 1) if item['student'].id == current_id), None)
-        return render_template('leaderboard.html', students=student_scores[:50], classes=class_weekly_scores(sid), own_rank=own_rank, week_start=week_window()[0])
+        return render_template(
+            'leaderboard.html',
+            students=student_scores[:50],
+            classes=class_weekly_scores(sid),
+            spotlights=current_spotlights(sid),
+            own_rank=own_rank,
+            current_student_id=current_id,
+            week_start=week_window()[0],
+        )
 
     GAME_BANK = {
         'box': {'title':'Sirli quti', 'icon':'🎁', 'prompt':'8 × 7 nechaga teng?', 'answer':'56', 'choices':['48','54','56','64']},
@@ -1052,7 +1060,7 @@ def create_app():
         own_rank = next((index for index, item in enumerate(week_scores, 1) if item['student'].id == st.id), None)
         labels = [r.test.title[:15] for r in reversed(res)]; data = [r.percentage for r in reversed(res)]
         while len(data) < 5: labels.insert(0, f"Test {len(data)+1}"); data.insert(0, 0)
-        return render_template("student_dashboard.html", student=st, results=res, achievements=ach, news=nws, clubs=clubs, chart_labels=json.dumps(labels), chart_data=json.dumps(data), latest_grades=latest_grades, weekly_rank=own_rank, weekly_scores=week_scores[:5], spotlights=current_spotlights(st.school_id))
+        return render_template("student_dashboard.html", student=st, results=res, achievements=ach, news=nws, clubs=clubs, chart_labels=json.dumps(labels), chart_data=json.dumps(data), latest_grades=latest_grades, weekly_rank=own_rank, weekly_scores=week_scores[:5], weekly_classes=class_weekly_scores(st.school_id)[:5], spotlights=current_spotlights(st.school_id))
 
     @app.route("/student_profile", methods=["GET", "POST"])
     def student_profile():
