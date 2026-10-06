@@ -62,6 +62,22 @@
         .btn-join:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4); }
         .btn-join.joined { background: #10b981; box-shadow: none; cursor: default; }
         .btn-join.joined:hover { transform: none; }
+        .join-modal { position:fixed; inset:0; z-index:1000; display:none; place-items:center; padding:20px; background:rgba(15,23,42,.58); backdrop-filter:blur(5px); }
+        .join-modal.open { display:grid; animation:joinFade .2s ease both; }
+        .join-dialog { width:min(100%,460px); padding:28px; border:1px solid #e3ebfa; border-radius:20px; background:#fff; box-shadow:0 24px 70px rgba(15,23,42,.25); animation:joinPop .24s ease both; }
+        .join-dialog h2 {margin:0 0 8px;color:#1e293b;font-size:1.35rem}
+        .join-dialog p {margin:0 0 20px;color:#64748b;line-height:1.5}
+        .join-dialog label {display:block;margin-bottom:7px;color:#334155;font-size:.9rem;font-weight:700}
+        .join-dialog input[type=tel] {width:100%;padding:13px 14px;border:1px solid #cbd8eb;border-radius:10px;font:inherit;outline:none}
+        .join-dialog input[type=tel]:focus {border-color:#2563eb;box-shadow:0 0 0 4px #2563eb1c}
+        .join-error {min-height:20px;margin:8px 0;color:#dc2626;font-size:.85rem}
+        .join-dialog-actions {display:flex;gap:10px}
+        .join-dialog-actions button {flex:1;padding:12px;border:0;border-radius:10px;font:inherit;font-weight:700;cursor:pointer}
+        .join-confirm {color:#fff;background:#2563eb}
+        .join-cancel {color:#334155;background:#eef2f7}
+        @keyframes joinFade {from{opacity:0}to{opacity:1}}
+        @keyframes joinPop {from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+        @media(prefers-reduced-motion:reduce){.join-modal.open,.join-dialog{animation:none}}
     </style>
 {% endblock %}
 {% block content %}
@@ -109,17 +125,17 @@
 
                 <!-- Tugma -->
                 {% if session.get('user_role') == 'student' %}
-                    {% set is_member = false %}
+                    {% set member_state = namespace(joined=false) %}
                     {% for m in c.members %}
                         {% if m.student_id == session.get('student_id') %}
-                            {% set is_member = true %}
+                            {% set member_state.joined = true %}
                         {% endif %}
                     {% endfor %}
 
-                    {% if is_member %}
+                    {% if member_state.joined %}
                         <button class="btn-join joined" disabled>✅ Siz a'zosiz</button>
                     {% else %}
-                        <button class="btn-join" onclick="joinClub(this, {{ c.id }})">A'zo Bo'lish</button>
+                        <button type="button" class="btn-join" onclick="openJoinModal(this, {{ c.id }}, {{ c.name|tojson|forceescape }})">A’zo bo‘lish</button>
                     {% endif %}
                 {% else %}
                     <div style="text-align:center; color:#94a3b8; font-size:0.9rem; margin-top:10px; font-style: italic;">
@@ -135,40 +151,77 @@
             {% endfor %}
         </div>
     </div>
+    <div class="join-modal" id="joinModal" aria-hidden="true">
+        <form class="join-dialog" id="clubJoinForm" method="post" role="dialog" aria-modal="true" aria-labelledby="joinDialogTitle">
+            <h2 id="joinDialogTitle">To‘garakka a’zo bo‘lish</h2>
+            <p><strong id="joinClubName"></strong> to‘garagiga yozilish uchun telefon raqamingizni kiriting. Raqam administrator va o‘qituvchilarga ko‘rinadi.</p>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="joinPhone">Telefon raqami</label>
+            <input type="tel" id="joinPhone" name="phone" placeholder="+998 90 123 45 67" autocomplete="tel" inputmode="tel" maxlength="24" required>
+            <div class="join-error" id="joinError" role="alert"></div>
+            <div class="join-dialog-actions">
+                <button type="button" class="join-cancel" onclick="closeJoinModal()">Bekor qilish</button>
+                <button type="submit" class="join-confirm" id="joinConfirm">A’zo bo‘lish</button>
+            </div>
+        </form>
+    </div>
 {% endblock %}
 {% block extra_js %}
 <script>
-        function joinClub(btn, clubId) {
-            const originalText = btn.innerText;
-            btn.innerText = "Yuklanmoqda...";
-            btn.style.opacity = "0.7";
-            
-            fetch('/clubs/join/' + clubId)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        btn.innerHTML = "✅ A'zo bo'ldingiz!";
-                        btn.classList.add('joined');
-                        btn.disabled = true;
-                        btn.style.background = "#10b981";
-                        btn.style.opacity = "1";
-                        
-                        // A'zolar sonini vizual yangilash
-                        const card = btn.closest('.card');
-                        const countSpan = card.querySelector('.members-count');
-                        let currentCount = parseInt(countSpan.innerText.replace(/\D/g,'')) || 0;
-                        countSpan.innerText = "👥 " + (currentCount + 1) + " a'zo";
-                    } else {
-                        alert(data.message || "Xatolik yuz berdi");
-                        btn.innerText = originalText;
-                        btn.style.opacity = "1";
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    btn.innerText = "Xatolik! Qayta urinib ko'ring";
-                    btn.style.opacity = "1";
-                });
+        let selectedJoinButton = null;
+        let selectedClubId = null;
+
+        function openJoinModal(button, clubId, clubName) {
+            selectedJoinButton = button;
+            selectedClubId = clubId;
+            document.getElementById('joinClubName').textContent = clubName;
+            document.getElementById('joinError').textContent = '';
+            document.getElementById('joinPhone').value = '';
+            document.getElementById('joinModal').classList.add('open');
+            document.getElementById('joinModal').setAttribute('aria-hidden', 'false');
+            setTimeout(() => document.getElementById('joinPhone').focus(), 50);
         }
+
+        function closeJoinModal() {
+            const modal = document.getElementById('joinModal');
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        document.getElementById('joinModal').addEventListener('click', event => {
+            if (event.target.id === 'joinModal') closeJoinModal();
+        });
+        document.addEventListener('keydown', event => { if (event.key === 'Escape') closeJoinModal(); });
+
+        document.getElementById('clubJoinForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const submit = document.getElementById('joinConfirm');
+            const error = document.getElementById('joinError');
+            submit.disabled = true;
+            submit.textContent = 'Saqlanmoqda…';
+            error.textContent = '';
+            try {
+                const response = await fetch('/clubs/join/' + selectedClubId, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {'X-CSRFToken': form.querySelector('[name=csrf_token]').value}
+                });
+                const result = await response.json();
+                if (!response.ok || result.status !== 'success') throw new Error(result.message || 'A’zolikni saqlab bo‘lmadi.');
+                selectedJoinButton.textContent = '✓ Siz a’zosiz';
+                selectedJoinButton.classList.add('joined');
+                selectedJoinButton.disabled = true;
+                const count = selectedJoinButton.closest('.card').querySelector('.members-count');
+                const currentCount = parseInt(count.textContent.replace(/\D/g, ''), 10) || 0;
+                count.textContent = '👥 ' + (currentCount + 1) + ' a’zo';
+                closeJoinModal();
+            } catch (err) {
+                error.textContent = err.message || 'Ulanishda xatolik yuz berdi. Qayta urinib ko‘ring.';
+            } finally {
+                submit.disabled = false;
+                submit.textContent = 'A’zo bo‘lish';
+            }
+        });
     </script>
 {% endblock %}

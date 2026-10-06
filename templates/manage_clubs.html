@@ -13,14 +13,21 @@
         button { background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; }
         .club-list { margin-top: 30px; }
         .club-item { display: flex; justify-content: space-between; align-items: center; gap:16px; padding: 18px 14px; border-bottom: 1px solid #edf1f7; transition:background .2s ease; }
+        .club-item { flex-wrap:wrap; }
+        .club-info {flex:1;min-width:220px}
         .club-item:hover { background:#f8faff; }
         .club-info h4 { margin: 0 0 6px; color: #0f172a; font-size:1rem; }
         .club-info p { margin: 0; color: #64748b; font-size: 0.9rem; line-height:1.5; }
-        .club-actions { display:flex; flex:none; gap:8px; }
+        .club-actions { display:flex; flex:none; flex-wrap:wrap; gap:8px; }
         .btn-edit, .btn-delete { display:inline-flex; justify-content:center; align-items:center; padding:9px 14px; font-size:0.85rem; font-weight:600; text-decoration:none; border-radius:8px; transition:transform .18s ease,box-shadow .18s ease; }
+        .btn-members {display:inline-flex;justify-content:center;align-items:center;padding:9px 12px;color:#0f766e;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer}
         .btn-edit { color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; }
         .btn-delete { background: #ef4444; border:1px solid #ef4444; color: white; }
         .btn-edit:hover, .btn-delete:hover { transform:translateY(-1px); box-shadow:0 5px 12px rgba(15,23,42,.12); }
+        .club-member-panel {width:100%;padding:14px 16px;background:#f8fafc;border:1px solid #e5edf8;border-radius:12px}
+        .club-member-row {display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid #e7edf5;color:#334155;font-size:.9rem}
+        .club-member-row:last-child {border-bottom:0}
+        .club-member-phone {color:#1d4ed8;text-decoration:none;font-weight:600;white-space:nowrap}
         .form-heading {margin:0 0 16px;color:#1e293b;font-size:1.05rem}
         .form-actions {display:flex;gap:10px;align-items:center}
         .btn-cancel {display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border:1px solid #dbe5f2;border-radius:8px;color:#475569;background:#fff;text-decoration:none;font-weight:600}
@@ -72,16 +79,52 @@
                     <h4>{{ c.name }}</h4>
                     <p>Rahbar: {{ c.leader_name or ((c.teacher.first_name ~ ' ' ~ c.teacher.last_name) if c.teacher else 'Belgilanmagan') }} | Vaqt: {{ c.schedule or 'Belgilanmagan' }}</p>
                 </div>
-                {% if current_role == 'admin' or c.teacher_id == current_teacher_id %}
                 <div class="club-actions">
+                    <button type="button" class="btn-members" onclick="toggleClubMembers(this, {{ c.id }})">A’zolar va telefonlar</button>
+                    {% if current_role == 'admin' or c.teacher_id == current_teacher_id %}
                     <a href="{{ url_for('edit_club', club_id=c.id) }}" class="btn-edit">Tahrirlash</a>
                     <a href="/clubs/delete/{{ c.id }}" class="btn-delete" onclick="return confirm('O\'chirilsinmi?')">O'chirish</a>
+                    {% endif %}
                 </div>
-                {% endif %}
+                <div class="club-member-panel" hidden aria-live="polite"></div>
             </div>
             {% else %}
             <p style="color:#94a3b8; text-align:center; padding:20px;">Hozircha to'garaklar yo'q.</p>
             {% endfor %}
         </div>
     </div>
+<script>
+async function toggleClubMembers(button, clubId) {
+    const panel = button.closest('.club-item').querySelector('.club-member-panel');
+    if (!panel.hidden) { panel.hidden = true; return; }
+    panel.hidden = false;
+    if (panel.dataset.loaded === 'true') return;
+    panel.textContent = 'A’zolar yuklanmoqda…';
+    try {
+        const response = await fetch('/clubs/members/list?club_id=' + encodeURIComponent(clubId));
+        if (!response.ok) throw new Error();
+        const members = await response.json();
+        panel.replaceChildren();
+        if (!members.length) {
+            panel.textContent = 'Hozircha bu to‘garakka a’zo yozilmagan.';
+        } else {
+            members.forEach(member => {
+                const row = document.createElement('div');
+                row.className = 'club-member-row';
+                const name = document.createElement('span');
+                name.textContent = `${member.name} · ${member.class}`;
+                const phone = document.createElement(member.phone && member.phone !== 'Ko‘rsatilmagan' ? 'a' : 'span');
+                phone.className = 'club-member-phone';
+                phone.textContent = member.phone || 'Ko‘rsatilmagan';
+                if (phone.tagName === 'A') phone.href = 'tel:' + member.phone;
+                row.append(name, phone);
+                panel.appendChild(row);
+            });
+        }
+        panel.dataset.loaded = 'true';
+    } catch (error) {
+        panel.textContent = 'A’zolar ro‘yxatini yuklab bo‘lmadi. Qayta urinib ko‘ring.';
+    }
+}
+</script>
 {% endblock %}

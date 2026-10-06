@@ -191,12 +191,20 @@
                         return;
                     }
 
-                    content.innerHTML = '<div class="club-member-list">' + members.map(member => `
-                        <div class="club-member-row">
-                            <strong>${member.name}</strong>
-                            <span>${member.class}-sinf</span>
-                        </div>
-                    `).join('') + '</div>';
+                    content.replaceChildren();
+                    const list = document.createElement('div');
+                    list.className = 'club-member-list';
+                    members.forEach(member => {
+                        const row = document.createElement('div');
+                        row.className = 'club-member-row';
+                        const name = document.createElement('strong');
+                        name.textContent = member.name;
+                        const details = document.createElement('span');
+                        details.textContent = `${member.club} · ${member.class} · ${member.phone}`;
+                        row.append(name, details);
+                        list.appendChild(row);
+                    });
+                    content.appendChild(list);
                 })
                 .catch(() => {
                     content.innerHTML = '<p class="club-members-empty club-members-error">Ma’lumotlarni yuklashda xatolik yuz berdi.</p>';

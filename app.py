@@ -104,6 +104,18 @@ def create_app():
         except Exception as e:
             print(f"❌ Club jadvalini yaratishda xatolik: {e}")
             db.session.rollback()
+
+        try:
+            if db.engine.dialect.name == 'sqlite':
+                membership_columns = [row[1] for row in db.session.execute(text("PRAGMA table_info(student_club)"))]
+                if 'phone' not in membership_columns:
+                    db.session.execute(text("ALTER TABLE student_club ADD COLUMN phone VARCHAR(20)"))
+            else:
+                db.session.execute(text("ALTER TABLE student_club ADD COLUMN IF NOT EXISTS phone VARCHAR(20)"))
+            db.session.commit()
+        except Exception as e:
+            print(f"To‘garak a’zosi telefon ustunini yangilashda xatolik: {e}")
+            db.session.rollback()
             
         # Achievement qo'shish (agar bo'lmasa)
         if not Achievement.query.first():
@@ -1095,19 +1107,27 @@ def create_app():
     
     @app.route("/clubs/members/list")
     def get_club_members_list():
-        if 'school_id' not in session or session.get('user_role') != 'admin': 
+        role = session.get('user_role')
+        if 'school_id' not in session or role not in {'admin', 'teacher'}:
             return jsonify([])
         
         try:
             sid = session['school_id']
-            # To'garakka yozilgan o'quvchilarni sinf nomi bilan olish
-            members = db.session.query(
-                Student.first_name, 
-                Student.last_name, 
-                Class.name.label('class_name')
-            ).join(StudentClub, Student.id == StudentClub.student_id)             .join(Class, Student.class_id == Class.id)             .filter(Student.school_id == sid)             .order_by(Class.name, Student.last_name).all()
-             
-            result = [{"name": f"{m.first_name} {m.last_name}", "class": m.class_name} for m in members]
+            query = db.session.query(StudentClub, Student, Club, Class) \
+                .join(Student, Student.id == StudentClub.student_id) \
+                .join(Club, Club.id == StudentClub.club_id) \
+                .outerjoin(Class, Student.class_id == Class.id) \
+                .filter(Student.school_id == sid, Club.school_id == sid)
+            club_id = request.args.get('club_id', type=int)
+            if club_id:
+                query = query.filter(Club.id == club_id)
+            rows = query.order_by(Club.name, Class.name, Student.last_name).all()
+            result = [{
+                "name": f"{student.first_name} {student.last_name}",
+                "class": school_class.name if school_class else "Sinf ko‘rsatilmagan",
+                "phone": membership.phone or "Ko‘rsatilmagan",
+                "club": club.name,
+            } for membership, student, club, school_class in rows]
             return jsonify(result)
         except Exception as e:
             print(f"Members list error: {e}")
@@ -1240,19 +1260,39 @@ def create_app():
         clubs = Club.query.filter_by(school_id=session['school_id']).all()
         return render_template("clubs.html", clubs=clubs)
 
-    @app.route("/clubs/join/<int:club_id>")
+    @app.route("/clubs/join/<int:club_id>", methods=["POST"])
     def join_club(club_id):
         if 'school_id' not in session or session.get('user_role') != 'student': 
-            return jsonify({"status": "error", "message": "Ruxsat yo'q"})
+            return jsonify({"status": "error", "message": "Ruxsat yo‘q."}), 403
         
         student_id = session.get('student_id')
+        club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first()
+        if not club:
+            return jsonify({"status": "error", "message": "To‘garak topilmadi."}), 404
+
+        phone = (request.form.get('phone') or '').strip()
+        phone_digits = ''.join(character for character in phone if character in '0123456789')
+        if not 9 <= len(phone_digits) <= 15:
+            return jsonify({"status": "error", "message": "Telefon raqamini to‘g‘ri kiriting."}), 400
+        if len(phone_digits) == 9:
+            phone = '+998' + phone_digits
+        elif phone_digits.startswith('998') and len(phone_digits) == 12:
+            phone = '+' + phone_digits
+        else:
+            phone = '+' + phone_digits
+
         existing = StudentClub.query.filter_by(student_id=student_id, club_id=club_id).first()
         if existing:
-            return jsonify({"status": "warning", "message": "Siz allaqachon a'zosiz"})
+            return jsonify({"status": "warning", "message": "Siz allaqachon a’zosiz."})
         else:
-            db.session.add(StudentClub(student_id=student_id, club_id=club_id))
-            db.session.commit()
-            return jsonify({"status": "success", "message": "A'zo bo'ldingiz!"})
+            db.session.add(StudentClub(student_id=student_id, club_id=club_id, phone=phone))
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                app.logger.exception("To‘garakka a’zo yozishda xatolik (club_id=%s)", club_id)
+                return jsonify({"status": "error", "message": "A’zolik saqlanmadi. Qayta urinib ko‘ring."}), 500
+            return jsonify({"status": "success", "message": "To‘garakka muvaffaqiyatli a’zo bo‘ldingiz!"})
 
     # --- O'CHIRISH ROUTE LARI ---
     @app.route("/delete_class/<int:cid>")

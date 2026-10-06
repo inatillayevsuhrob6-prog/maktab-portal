@@ -236,6 +236,7 @@ class StudentClub(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
     club_id = db.Column(db.Integer, db.ForeignKey('club.id'), nullable=False)
+    phone = db.Column(db.String(20))
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     student = db.relationship('Student', backref=db.backref('club_memberships', lazy=True))
