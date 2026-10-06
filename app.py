@@ -1159,6 +1159,62 @@ def create_app():
             flash("To‘garak saqlanmadi. Sahifani yangilab qayta urinib ko‘ring; muammo qolsa administratorga xabar bering.", "danger")
         return redirect(url_for('manage_clubs'))
 
+    @app.route("/clubs/edit/<int:club_id>", methods=["GET", "POST"])
+    def edit_club(club_id):
+        role = session.get('user_role')
+        if 'school_id' not in session or role not in {'admin', 'teacher'}:
+            return redirect(url_for('home'))
+        club = Club.query.filter_by(id=club_id, school_id=session['school_id']).first_or_404()
+        if role == 'teacher' and club.teacher_id != session.get('teacher_id'):
+            flash("Faqat o‘zingiz boshqaradigan to‘garakni tahrirlashingiz mumkin.", "danger")
+            return redirect(url_for('manage_clubs'))
+
+        valid_days = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']
+        schedule_parts = (club.schedule or '').split('|', 1)
+        edit_days = [day.strip() for day in schedule_parts[0].split(',') if day.strip()] if schedule_parts else []
+        edit_start_time = edit_end_time = ''
+        if len(schedule_parts) == 2:
+            time_parts = schedule_parts[1].strip().replace('–', '-').split('-', 1)
+            if len(time_parts) == 2:
+                edit_start_time, edit_end_time = [part.strip() for part in time_parts]
+
+        if request.method == 'POST':
+            club_name = sanitize_input(request.form.get('name', '')).strip()
+            leader_name = sanitize_input(request.form.get('leader_name', '')).strip()
+            days = [day for day in valid_days if day in request.form.getlist('days')]
+            start_time = request.form.get('start_time', '').strip()
+            end_time = request.form.get('end_time', '').strip()
+            if not club_name or not leader_name:
+                flash("To‘garak nomi va rahbarining ismini kiriting.", "warning")
+            elif not days or not start_time or not end_time or end_time <= start_time:
+                flash("To‘garak kunlari va boshlanish/tugash vaqtlarini to‘g‘ri kiriting.", "warning")
+            else:
+                club.name = club_name[:200]
+                club.description = sanitize_input(request.form.get('description'))
+                club.leader_name = leader_name[:100]
+                club.schedule = f"{', '.join(days)} | {start_time}–{end_time}"
+                try:
+                    db.session.commit()
+                    flash("To‘garak ma’lumotlari yangilandi.", "success")
+                    return redirect(url_for('manage_clubs'))
+                except Exception:
+                    db.session.rollback()
+                    app.logger.exception("To‘garakni tahrirlashda xatolik (club_id=%s)", club_id)
+                    flash("To‘garakni saqlashda xatolik yuz berdi. Qayta urinib ko‘ring.", "danger")
+
+            edit_days = days
+            edit_start_time = start_time
+            edit_end_time = end_time
+
+        clubs = Club.query.filter_by(school_id=session['school_id']).order_by(Club.name).all()
+        current_teacher = Teacher.query.filter_by(id=session.get('teacher_id'), school_id=session['school_id']).first() if role == 'teacher' else None
+        return render_template(
+            "manage_clubs.html", clubs=clubs, current_role=role,
+            current_teacher_id=session.get('teacher_id'), current_teacher=current_teacher,
+            edit_club=club, edit_days=edit_days, edit_start_time=edit_start_time,
+            edit_end_time=edit_end_time
+        )
+
     @app.route("/clubs/delete/<int:club_id>")
     def delete_club(club_id):
         role = session.get('user_role')

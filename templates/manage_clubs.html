@@ -12,10 +12,19 @@
         input, select, textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 10px; }
         button { background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; }
         .club-list { margin-top: 30px; }
-        .club-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f1f5f9; }
-        .club-info h4 { margin: 0 0 5px; color: #0f172a; }
-        .club-info p { margin: 0; color: #64748b; font-size: 0.9rem; }
-        .btn-delete { background: #ef4444; padding: 8px 16px; font-size: 0.85rem; text-decoration: none; color: white; border-radius: 6px; }
+        .club-item { display: flex; justify-content: space-between; align-items: center; gap:16px; padding: 18px 14px; border-bottom: 1px solid #edf1f7; transition:background .2s ease; }
+        .club-item:hover { background:#f8faff; }
+        .club-info h4 { margin: 0 0 6px; color: #0f172a; font-size:1rem; }
+        .club-info p { margin: 0; color: #64748b; font-size: 0.9rem; line-height:1.5; }
+        .club-actions { display:flex; flex:none; gap:8px; }
+        .btn-edit, .btn-delete { display:inline-flex; justify-content:center; align-items:center; padding:9px 14px; font-size:0.85rem; font-weight:600; text-decoration:none; border-radius:8px; transition:transform .18s ease,box-shadow .18s ease; }
+        .btn-edit { color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; }
+        .btn-delete { background: #ef4444; border:1px solid #ef4444; color: white; }
+        .btn-edit:hover, .btn-delete:hover { transform:translateY(-1px); box-shadow:0 5px 12px rgba(15,23,42,.12); }
+        .form-heading {margin:0 0 16px;color:#1e293b;font-size:1.05rem}
+        .form-actions {display:flex;gap:10px;align-items:center}
+        .btn-cancel {display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border:1px solid #dbe5f2;border-radius:8px;color:#475569;background:#fff;text-decoration:none;font-weight:600}
+        @media(max-width:600px) { body {padding:12px;} .container {padding:20px 16px;} .container > div:first-child {gap:10px;} .container > div:first-child h2 {font-size:1.2rem;} .form-row {grid-template-columns:1fr;gap:4px;} .club-item {align-items:flex-start;flex-direction:column;} .club-actions {width:100%;} .club-actions a {flex:1;} }
     </style>
 {% endblock %}
 {% block content %}
@@ -25,28 +34,32 @@
             <a href="{% if current_role == 'teacher' %}/teacher_dashboard{% else %}/dashboard{% endif %}" style="color:#64748b; text-decoration:none;">← Dashboard</a>
         </div>
 
-        <!-- Yangi To'garak Qo'shish -->
-        <form action="/clubs/add" method="POST" style="background:#f8fafc; padding:20px; border-radius:12px; margin-bottom:30px;">
+        <!-- Yangi to'garak qo'shish yoki mavjudini tahrirlash -->
+        <form action="{% if edit_club %}{{ url_for('edit_club', club_id=edit_club.id) }}{% else %}{{ url_for('add_club') }}{% endif %}" method="POST" style="background:#f8fafc; padding:20px; border-radius:12px; margin-bottom:30px;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <input type="text" name="name" placeholder="To'garak nomi (Masalan: Futbol, Robototexnika)" required>
-            <textarea name="description" placeholder="Qisqacha tavsif..." rows="2"></textarea>
+            <h3 class="form-heading">{% if edit_club %}To‘garakni tahrirlash{% else %}Yangi to‘garak qo‘shish{% endif %}</h3>
+            <input type="text" name="name" placeholder="To'garak nomi (Masalan: Futbol, Robototexnika)" value="{{ edit_club.name if edit_club else '' }}" required>
+            <textarea name="description" placeholder="Qisqacha tavsif..." rows="2">{{ edit_club.description if edit_club else '' }}</textarea>
             
             {% if current_role == 'teacher' %}<input type="hidden" name="teacher_id" value="{{ current_teacher_id }}">{% endif %}
             <label style="display:block; color:#334155; font-weight:600;">To‘garak rahbari</label>
-            <input type="text" name="leader_name" placeholder="Rahbarning ism-familiyasi" value="{{ (current_teacher.first_name ~ ' ' ~ current_teacher.last_name) if current_teacher else '' }}" required>
+            <input type="text" name="leader_name" placeholder="Rahbarning ism-familiyasi" value="{{ edit_club.leader_name if edit_club else ((current_teacher.first_name ~ ' ' ~ current_teacher.last_name) if current_teacher else '') }}" required>
             <label style="font-weight:600; color:#334155;">To‘garak kunlari</label>
             <div class="days-row">
                 {% for day in ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba'] %}
-                <label><input type="checkbox" name="days" value="{{ day }}">{{ day }}</label>
+                <label><input type="checkbox" name="days" value="{{ day }}" {% if day in edit_days|default([]) %}checked{% endif %}>{{ day }}</label>
                 {% endfor %}
             </div>
             <div class="form-row">
-                <label>Boshlanish vaqti<input type="time" name="start_time" required></label>
-                <label>Tugash vaqti<input type="time" name="end_time" required></label>
+                <label>Boshlanish vaqti<input type="time" name="start_time" value="{{ edit_start_time|default('') }}" required></label>
+                <label>Tugash vaqti<input type="time" name="end_time" value="{{ edit_end_time|default('') }}" required></label>
             </div>
             
             <div class="form-row">
-                <button type="submit" style="grid-column:1/-1;">To'garak Qo'shish</button>
+                <div class="form-actions" style="grid-column:1/-1;">
+                    <button type="submit">{% if edit_club %}O‘zgarishlarni saqlash{% else %}To‘garak qo‘shish{% endif %}</button>
+                    {% if edit_club %}<a href="{{ url_for('manage_clubs') }}" class="btn-cancel">Bekor qilish</a>{% endif %}
+                </div>
             </div>
         </form>
 
@@ -59,7 +72,12 @@
                     <h4>{{ c.name }}</h4>
                     <p>Rahbar: {{ c.leader_name or ((c.teacher.first_name ~ ' ' ~ c.teacher.last_name) if c.teacher else 'Belgilanmagan') }} | Vaqt: {{ c.schedule or 'Belgilanmagan' }}</p>
                 </div>
-                {% if current_role == 'admin' or c.teacher_id == current_teacher_id %}<a href="/clubs/delete/{{ c.id }}" class="btn-delete" onclick="return confirm('O\'chirilsinmi?')">O'chirish</a>{% endif %}
+                {% if current_role == 'admin' or c.teacher_id == current_teacher_id %}
+                <div class="club-actions">
+                    <a href="{{ url_for('edit_club', club_id=c.id) }}" class="btn-edit">Tahrirlash</a>
+                    <a href="/clubs/delete/{{ c.id }}" class="btn-delete" onclick="return confirm('O\'chirilsinmi?')">O'chirish</a>
+                </div>
+                {% endif %}
             </div>
             {% else %}
             <p style="color:#94a3b8; text-align:center; padding:20px;">Hozircha to'garaklar yo'q.</p>
