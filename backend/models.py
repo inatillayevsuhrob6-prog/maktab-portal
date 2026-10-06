@@ -146,6 +146,71 @@ class TestResult(db.Model):
     def __repr__(self):
         return f'<Result {self.student_id} - {self.test_id}>'
 
+class Attendance(db.Model):
+    __tablename__ = 'attendance'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False, index=True)
+    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=False, index=True)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=False)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False, index=True)
+    attendance_date = db.Column(db.Date, nullable=False, index=True)
+    status = db.Column(db.String(20), nullable=False)  # present, excused, unexcused
+    note = db.Column(db.String(250))
+    marked_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    __table_args__ = (db.UniqueConstraint('student_id', 'attendance_date', name='uq_attendance_student_day'),)
+    student = db.relationship('Student', backref=db.backref('attendance_records', lazy=True))
+    student_class = db.relationship('Class', backref=db.backref('attendance_records', lazy=True))
+    teacher = db.relationship('Teacher', backref=db.backref('attendance_records', lazy=True))
+
+class Grade(db.Model):
+    __tablename__ = 'grades'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False, index=True)
+    class_id = db.Column(db.Integer, db.ForeignKey('classes.id'), nullable=False, index=True)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teachers.id'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id'))
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False, index=True)
+    value = db.Column(db.Integer, nullable=False)
+    note = db.Column(db.String(250))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    student = db.relationship('Student', backref=db.backref('grades', lazy=True))
+    student_class = db.relationship('Class', backref=db.backref('grades', lazy=True))
+    teacher = db.relationship('Teacher', backref=db.backref('grades', lazy=True))
+    subject = db.relationship('Subject', backref=db.backref('grades', lazy=True))
+
+class Spotlight(db.Model):
+    __tablename__ = 'weekly_spotlights'
+    id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False, index=True)
+    person_type = db.Column(db.String(20), nullable=False)
+    person_id = db.Column(db.Integer, nullable=False)
+    week_start = db.Column(db.Date, nullable=False, index=True)
+    reason = db.Column(db.String(300), nullable=False)
+    selected_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    __table_args__ = (db.UniqueConstraint('school_id', 'person_type', 'week_start', name='uq_weekly_spotlight_type'),)
+
+class GameResult(db.Model):
+    __tablename__ = 'game_results'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False, index=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False, index=True)
+    game_key = db.Column(db.String(30), nullable=False)
+    score = db.Column(db.Integer, default=0, nullable=False)
+    points = db.Column(db.Integer, default=0, nullable=False)
+    played_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    student = db.relationship('Student', backref=db.backref('game_results', lazy=True))
+
+class GameChallenge(db.Model):
+    __tablename__ = 'game_challenges'
+    token = db.Column(db.String(36), primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False, index=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id'), nullable=False)
+    game_key = db.Column(db.String(30), nullable=False)
+    prompt = db.Column(db.Text, nullable=False)
+    answer = db.Column(db.String(120), nullable=False)
+    choices_json = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
 class Achievement(db.Model):
     __tablename__ = 'achievements'
     id = db.Column(db.Integer, primary_key=True)

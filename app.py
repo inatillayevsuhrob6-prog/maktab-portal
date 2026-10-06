@@ -3,7 +3,7 @@ from config import Config
 from extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from backend.models import School, Class, Student, Teacher, TeacherClassAssignment, Subject, Test, TestQuestion, TestResult, Achievement, StudentAchievement, Schedule, Book, News, Club, StudentClub, ChatMessage, Presentation
+from backend.models import School, Class, Student, Teacher, TeacherClassAssignment, Subject, Test, TestQuestion, TestResult, Achievement, StudentAchievement, Schedule, Book, News, Club, StudentClub, ChatMessage, Presentation, Attendance, Grade, Spotlight, GameResult, GameChallenge
 from sqlalchemy.orm import joinedload
 from sqlalchemy import text, func, and_, or_
 from flask_wtf.csrf import CSRFProtect, CSRFError
@@ -13,6 +13,7 @@ import json
 import bleach
 import os
 import uuid
+import random
 from openai import OpenAI
 from datetime import datetime, timedelta, timezone
 
@@ -27,7 +28,7 @@ def create_app():
     @app.errorhandler(CSRFError)
     def handle_csrf_error(error):
         flash("Sahifa eskirgan. Jadval yangilandi, amalni qayta bajaring.", "danger")
-        return redirect(url_for('manage_schedule'))
+        return redirect(request.referrer or url_for('home'))
 
     @app.errorhandler(400)
     def handle_bad_request(error):
@@ -130,6 +131,52 @@ def create_app():
     def sanitize_input(text):
         if text: return bleach.clean(text, tags=[], attributes={}, strip=True)
         return text
+
+    def week_window():
+        local_now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=5)))
+        week_start = local_now.date() - timedelta(days=local_now.weekday())
+        start_local = datetime.combine(week_start, datetime.min.time(), tzinfo=timezone(timedelta(hours=5)))
+        end_local = start_local + timedelta(days=7)
+        return week_start, start_local.astimezone(timezone.utc).replace(tzinfo=None), end_local.astimezone(timezone.utc).replace(tzinfo=None)
+
+    def weekly_student_scores(school_id):
+        _, start_at, end_at = week_window()
+        students = Student.query.filter_by(school_id=school_id).options(joinedload(Student.student_class)).all()
+        scores = {student.id: {'student': student, 'tests': 0, 'attendance': 0, 'games': 0, 'points': 0} for student in students}
+        for result in TestResult.query.join(Student).filter(Student.school_id == school_id, TestResult.submitted_at >= start_at, TestResult.submitted_at < end_at).all():
+            item = scores.get(result.student_id)
+            if item:
+                item['tests'] += max(0, int(result.score or 0)) * 10 + (50 if result.percentage == 100 else 0)
+        for record in Attendance.query.filter_by(school_id=school_id, status='present').filter(Attendance.attendance_date >= week_window()[0], Attendance.attendance_date < week_window()[0] + timedelta(days=7)).all():
+            if record.student_id in scores: scores[record.student_id]['attendance'] += 10
+        for result in GameResult.query.filter_by(school_id=school_id).filter(GameResult.played_at >= start_at, GameResult.played_at < end_at).all():
+            if result.student_id in scores: scores[result.student_id]['games'] += result.points or 0
+        for item in scores.values(): item['points'] = item['tests'] + item['attendance'] + item['games']
+        return sorted(scores.values(), key=lambda item: (-item['points'], item['student'].last_name, item['student'].first_name))
+
+    def class_weekly_scores(school_id):
+        ranked = weekly_student_scores(school_id)
+        groups = {}
+        for item in ranked:
+            cls = item['student'].student_class
+            group = groups.setdefault(cls.id, {'class': cls, 'total': 0, 'count': 0})
+            group['total'] += item['points']; group['count'] += 1
+        result = [{'class': value['class'], 'points': round(value['total'] / value['count']) if value['count'] else 0, 'students': value['count']} for value in groups.values()]
+        return sorted(result, key=lambda value: (-value['points'], value['class'].name))
+
+    def current_spotlights(school_id):
+        week_start = week_window()[0]
+        rows = Spotlight.query.filter_by(school_id=school_id, week_start=week_start).all()
+        people = []
+        for row in rows:
+            person = Student.query.filter_by(id=row.person_id, school_id=school_id).first() if row.person_type == 'student' else Teacher.query.filter_by(id=row.person_id, school_id=school_id).first()
+            if person: people.append({'row': row, 'person': person, 'name': f'{person.first_name} {person.last_name}'})
+        return people
+
+    def teacher_class_ids(teacher_id):
+        assigned = {row.class_id for row in TeacherClassAssignment.query.filter_by(teacher_id=teacher_id).all()}
+        assigned.update(row.class_id for row in Schedule.query.filter_by(teacher_id=teacher_id).filter(Schedule.class_id.isnot(None)).all())
+        return assigned
 
     def save_news_image(uploaded_file):
         """Save one validated news image under a collision-resistant name."""
@@ -375,6 +422,169 @@ def create_app():
         flash("Login yoki parol noto‘g‘ri. Ma’lumotlarni tekshirib, qayta urinib ko‘ring.", "danger")
         return redirect(url_for('home'))
 
+    @app.route('/attendance', methods=['GET', 'POST'])
+    def attendance():
+        if session.get('user_role') != 'teacher' or not session.get('school_id'):
+            return redirect(url_for('home'))
+        tid, sid = session['teacher_id'], session['school_id']
+        allowed_ids = teacher_class_ids(tid)
+        classes = Class.query.filter(Class.school_id == sid, Class.id.in_(allowed_ids)).order_by(Class.name).all() if allowed_ids else []
+        selected_id = request.values.get('class_id', type=int) or (classes[0].id if classes else None)
+        selected = next((item for item in classes if item.id == selected_id), None)
+        try: selected_date = datetime.strptime(request.values.get('date', ''), '%Y-%m-%d').date()
+        except ValueError: selected_date = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=5))).date()
+        if request.method == 'POST':
+            if not selected:
+                flash('Sinfni tanlang.', 'danger'); return redirect(url_for('attendance'))
+            today = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=5))).date()
+            if selected_date > today:
+                flash('Kelajak sanasi uchun davomat belgilab bo‘lmaydi.', 'danger')
+                return redirect(url_for('attendance', class_id=selected.id, date=today.isoformat()))
+            students = Student.query.filter_by(school_id=sid, class_id=selected.id).all()
+            valid_statuses = {'present', 'excused', 'unexcused'}
+            for student in students:
+                status = request.form.get(f'status_{student.id}')
+                if status not in valid_statuses: continue
+                record = Attendance.query.filter_by(student_id=student.id, attendance_date=selected_date).first()
+                if not record:
+                    record = Attendance(student_id=student.id, class_id=selected.id, teacher_id=tid, school_id=sid, attendance_date=selected_date, status=status)
+                    db.session.add(record)
+                record.class_id, record.teacher_id, record.school_id, record.status = selected.id, tid, sid, status
+                record.note = sanitize_input(request.form.get(f'note_{student.id}', ''))[:250] or None
+            db.session.commit(); flash('Davomat saqlandi.', 'success')
+            return redirect(url_for('attendance', class_id=selected.id, date=selected_date.isoformat()))
+        students = Student.query.filter_by(school_id=sid, class_id=selected.id).order_by(Student.last_name, Student.first_name).all() if selected else []
+        records = {row.student_id: row for row in Attendance.query.filter_by(class_id=selected.id, attendance_date=selected_date).all()} if selected else {}
+        return render_template('attendance.html', classes=classes, selected=selected, selected_date=selected_date, students=students, records=records)
+
+    @app.route('/attendance/overview')
+    def attendance_overview():
+        if session.get('user_role') != 'admin' or not session.get('school_id'): return redirect(url_for('home'))
+        sid = session['school_id']
+        try: selected_date = datetime.strptime(request.args.get('date', ''), '%Y-%m-%d').date()
+        except ValueError: selected_date = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=5))).date()
+        rows = []
+        for cls in Class.query.filter_by(school_id=sid).order_by(Class.name).all():
+            students = Student.query.filter_by(school_id=sid, class_id=cls.id).order_by(Student.last_name, Student.first_name).all()
+            records = {row.student_id: row for row in Attendance.query.filter_by(school_id=sid, class_id=cls.id, attendance_date=selected_date).all()}
+            present = sum(1 for student in students if records.get(student.id) and records[student.id].status == 'present')
+            absent = [{'student': student, 'record': records.get(student.id)} for student in students if records.get(student.id) and records[student.id].status in {'excused', 'unexcused'}]
+            unmarked = sum(1 for student in students if student.id not in records)
+            rows.append({'class': cls, 'total': len(students), 'present': present, 'percent': round(present * 100 / len(students)) if students else 0, 'absent': absent, 'unmarked': unmarked})
+        return render_template('attendance_overview.html', rows=rows, selected_date=selected_date)
+
+    @app.route('/grades', methods=['GET', 'POST'])
+    def grades():
+        if session.get('user_role') != 'teacher' or not session.get('school_id'): return redirect(url_for('home'))
+        tid, sid = session['teacher_id'], session['school_id']
+        assignments = TeacherClassAssignment.query.filter_by(teacher_id=tid).options(joinedload(TeacherClassAssignment.subject)).all()
+        class_ids = teacher_class_ids(tid)
+        classes = Class.query.filter(Class.school_id == sid, Class.id.in_(class_ids)).order_by(Class.name).all() if class_ids else []
+        selected_id = request.values.get('class_id', type=int) or (classes[0].id if classes else None)
+        selected = next((item for item in classes if item.id == selected_id), None)
+        assignment = next((row for row in assignments if row.class_id == selected_id), None)
+        subject_id = assignment.subject_id if assignment else None
+        if request.method == 'POST':
+            if not selected: flash('Sinfni tanlang.', 'danger'); return redirect(url_for('grades'))
+            students = Student.query.filter_by(school_id=sid, class_id=selected.id).all()
+            for student in students:
+                raw = request.form.get(f'grade_{student.id}', '').strip()
+                if not raw: continue
+                try: value = int(raw)
+                except ValueError: continue
+                if value not in range(1, 6): continue
+                db.session.add(Grade(student_id=student.id, class_id=selected.id, teacher_id=tid, subject_id=subject_id, school_id=sid, value=value, note=sanitize_input(request.form.get(f'note_{student.id}', ''))[:250] or None))
+            db.session.commit(); flash('Baholar saqlandi.', 'success')
+            return redirect(url_for('grades', class_id=selected.id))
+        students = Student.query.filter_by(school_id=sid, class_id=selected.id).order_by(Student.last_name, Student.first_name).all() if selected else []
+        recent = Grade.query.filter_by(school_id=sid, teacher_id=tid).order_by(Grade.created_at.desc()).limit(30).all()
+        return render_template('grades.html', classes=classes, selected=selected, students=students, recent=recent, subject=assignment.subject if assignment else None)
+
+    @app.route('/grades/overview')
+    def grades_overview():
+        if session.get('user_role') != 'admin' or not session.get('school_id'): return redirect(url_for('home'))
+        rows = Grade.query.filter_by(school_id=session['school_id']).order_by(Grade.created_at.desc()).limit(100).all()
+        return render_template('grades_overview.html', grades=rows)
+
+    @app.route('/spotlight', methods=['GET', 'POST'])
+    def spotlight_manage():
+        if session.get('user_role') != 'admin' or not session.get('school_id'): return redirect(url_for('home'))
+        sid = session['school_id']; week_start = week_window()[0]
+        if request.method == 'POST':
+            person_type = request.form.get('person_type')
+            person_id = request.form.get('person_id', type=int)
+            model = Student if person_type == 'student' else Teacher if person_type == 'teacher' else None
+            person = model.query.filter_by(id=person_id, school_id=sid).first() if model and person_id else None
+            reason = sanitize_input(request.form.get('reason', '')).strip()[:300]
+            if not person or not reason:
+                flash('Ishtirokchi va yutuq sababini kiriting.', 'danger')
+            else:
+                row = Spotlight.query.filter_by(school_id=sid, person_type=person_type, week_start=week_start).first()
+                if not row:
+                    row = Spotlight(school_id=sid, person_type=person_type, week_start=week_start)
+                    db.session.add(row)
+                row.person_id, row.reason, row.selected_at = person.id, reason, datetime.utcnow()
+                db.session.commit(); flash('Hafta yulduzi yangilandi.', 'success')
+            return redirect(url_for('spotlight_manage'))
+        return render_template('spotlight.html', spotlights=current_spotlights(sid), students=Student.query.filter_by(school_id=sid).order_by(Student.first_name).all(), teachers=Teacher.query.filter_by(school_id=sid).order_by(Teacher.first_name).all())
+
+    @app.route('/leaderboard')
+    def leaderboard():
+        if session.get('user_role') not in {'admin', 'teacher', 'student'} or not session.get('school_id'): return redirect(url_for('home'))
+        sid = session['school_id']; student_scores = weekly_student_scores(sid)
+        current_id = session.get('student_id') if session.get('user_role') == 'student' else None
+        own_rank = next((index for index, item in enumerate(student_scores, 1) if item['student'].id == current_id), None)
+        return render_template('leaderboard.html', students=student_scores[:50], classes=class_weekly_scores(sid), own_rank=own_rank, week_start=week_window()[0])
+
+    GAME_BANK = {
+        'box': {'title':'Sirli quti', 'icon':'🎁', 'prompt':'8 × 7 nechaga teng?', 'answer':'56', 'choices':['48','54','56','64']},
+        'tug': {'title':'Arqon tortish', 'icon':'🪢', 'prompt':'Suv odatdagi bosimda necha °C da muzlaydi?', 'answer':'0°C', 'choices':['0°C','10°C','32°C','100°C']},
+        'wheel': {'title':'Omad charxi', 'icon':'🎡', 'prompt':'Quyosh tizimidagi Qizil sayyora qaysi?', 'answer':'Mars', 'choices':['Venera','Mars','Yupiter','Merkuriy']},
+        'race': {'title':'Poyga', 'icon':'🏁', 'prompt':'144 ÷ 12 nechaga teng?', 'answer':'12', 'choices':['10','11','12','14']},
+        'anagram': {'title':'Anagram', 'icon':'🔤', 'prompt':'“TIKOB” harflaridan qanday so‘z tuziladi?', 'answer':'KITOB', 'choices':[]},
+    }
+
+    @app.route('/games')
+    def games():
+        if session.get('user_role') != 'student' or not session.get('school_id'): return redirect(url_for('home'))
+        return render_template('games.html', games=GAME_BANK, recent=GameResult.query.filter_by(student_id=session['student_id']).order_by(GameResult.played_at.desc()).limit(8).all())
+
+    @app.route('/games/start/<game_key>', methods=['POST'])
+    def game_start(game_key):
+        if session.get('user_role') != 'student' or not session.get('school_id'): return redirect(url_for('home'))
+        game = GAME_BANK.get(game_key)
+        if not game: return redirect(url_for('games'))
+        challenge = GameChallenge(token=str(uuid.uuid4()), student_id=session['student_id'], school_id=session['school_id'], game_key=game_key, prompt=game['prompt'], answer=game['answer'], choices_json=json.dumps(game['choices'], ensure_ascii=False))
+        db.session.add(challenge); db.session.commit()
+        return render_template('game_play.html', game=game, challenge=challenge, choices=random.sample(game['choices'], len(game['choices'])) if game['choices'] else [])
+
+    @app.route('/games/answer', methods=['POST'])
+    def game_answer():
+        if session.get('user_role') != 'student' or not session.get('school_id'): return redirect(url_for('home'))
+        token = request.form.get('token', '')
+        challenge = GameChallenge.query.filter_by(token=token, student_id=session['student_id'], school_id=session['school_id']).first()
+        if not challenge: flash('O‘yin savoli eskirgan. Qayta boshlang.', 'danger'); return redirect(url_for('games'))
+        if challenge.created_at < datetime.utcnow() - timedelta(minutes=15):
+            db.session.delete(challenge); db.session.commit(); flash('O‘yin vaqti tugadi. Qayta urinib ko‘ring.', 'warning'); return redirect(url_for('games'))
+        correct = request.form.get('answer', '').strip().casefold() == challenge.answer.strip().casefold()
+        local_now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=5)))
+        local_start = datetime.combine(local_now.date(), datetime.min.time(), tzinfo=local_now.tzinfo)
+        day_start = local_start.astimezone(timezone.utc).replace(tzinfo=None)
+        day_end = (local_start + timedelta(days=1)).astimezone(timezone.utc).replace(tzinfo=None)
+        scored_today = GameResult.query.filter_by(student_id=session['student_id']).filter(GameResult.played_at >= day_start, GameResult.played_at < day_end, GameResult.points > 0).count()
+        points = 15 if correct and scored_today < 5 else 0
+        if correct:
+            if points:
+                student = Student.query.filter_by(id=session['student_id'], school_id=session['school_id']).first()
+                if student: student.xp = (student.xp or 0) + points; student.level = (student.xp // 500) + 1
+                db.session.add(GameResult(student_id=session['student_id'], school_id=session['school_id'], game_key=challenge.game_key, score=1, points=points))
+        game_key = challenge.game_key
+        db.session.delete(challenge); db.session.commit()
+        if points: flash('To‘g‘ri javob! +15 XP 🎉', 'success')
+        elif correct: flash('Javob to‘g‘ri! Bugungi 5 ta ball beriladigan urinishdan foydalandingiz. Ertaga davom eting.', 'info')
+        else: flash('Bu safar topilmadi. Keyingi o‘yinda omad!', 'warning')
+        return redirect(url_for('games', played=game_key))
+
     # --- ADMIN DASHBOARD ---
     @app.route("/dashboard")
     def dashboard():
@@ -401,6 +611,13 @@ def create_app():
         dashboard_clubs = Club.query.filter_by(school_id=sid).order_by(Club.name).all()
         average_score = round(sum(item.percentage or 0 for item in results) / len(results), 1) if results else 0
         passed_results = sum((item.percentage or 0) >= 60 for item in results)
+        today = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=5))).date()
+        today_rows = []
+        for cls in school_classes:
+            roster = Student.query.filter_by(school_id=sid, class_id=cls.id).count()
+            marked = Attendance.query.filter_by(school_id=sid, class_id=cls.id, attendance_date=today).all()
+            present = sum(item.status == 'present' for item in marked)
+            today_rows.append({'class': cls, 'present': present, 'total': roster, 'percent': round(present * 100 / roster) if roster else 0})
         return render_template("dashboard.html", school=school, 
             class_count=Class.query.filter_by(school_id=sid).count(),
             student_count=Student.query.filter_by(school_id=sid).count(),
@@ -419,7 +636,11 @@ def create_app():
             schedule_counts=json.dumps(schedule_counts),
             club_class_labels=json.dumps([row[0] for row in club_class_rows]),
             club_class_counts=json.dumps([row[1] for row in club_class_rows]),
-            dashboard_clubs=dashboard_clubs)
+            dashboard_clubs=dashboard_clubs,
+            dashboard_spotlights=current_spotlights(sid),
+            dashboard_students=weekly_student_scores(sid)[:5],
+            dashboard_classes=class_weekly_scores(sid)[:5],
+            dashboard_attendance=today_rows)
 
     # --- O'QITUVCHI DASHBOARD ---
     @app.route("/teacher_dashboard")
@@ -443,7 +664,9 @@ def create_app():
                 grouped[s.day_of_week].append(s)
                 if s.student_class: unique_classes.add(s.student_class)
         clubs = Club.query.filter_by(school_id=session['school_id']).all()
-        return render_template("teacher_dashboard.html", teacher=teacher, schedule=grouped, my_classes=list(unique_classes), clubs=clubs)
+        sid = session['school_id']
+        return render_template("teacher_dashboard.html", teacher=teacher, schedule=grouped, my_classes=list(unique_classes), clubs=clubs,
+            spotlights=current_spotlights(sid), weekly_students=weekly_student_scores(sid)[:5], weekly_classes=class_weekly_scores(sid)[:5])
 
     # --- O'QITUVCHI-O'QUVCHI ICHKI CHAT ---
     @app.route("/chat")
@@ -747,9 +970,12 @@ def create_app():
         ach = StudentAchievement.query.filter_by(student_id=st.id).all()
         nws = News.query.filter_by(school_id=st.school_id).order_by(News.created_at.desc()).limit(3).all()
         clubs = Club.query.filter_by(school_id=st.school_id).order_by(Club.name).all()
+        latest_grades = Grade.query.filter_by(student_id=st.id).order_by(Grade.created_at.desc()).limit(5).all()
+        week_scores = weekly_student_scores(st.school_id)
+        own_rank = next((index for index, item in enumerate(week_scores, 1) if item['student'].id == st.id), None)
         labels = [r.test.title[:15] for r in reversed(res)]; data = [r.percentage for r in reversed(res)]
         while len(data) < 5: labels.insert(0, f"Test {len(data)+1}"); data.insert(0, 0)
-        return render_template("student_dashboard.html", student=st, results=res, achievements=ach, news=nws, clubs=clubs, chart_labels=json.dumps(labels), chart_data=json.dumps(data))
+        return render_template("student_dashboard.html", student=st, results=res, achievements=ach, news=nws, clubs=clubs, chart_labels=json.dumps(labels), chart_data=json.dumps(data), latest_grades=latest_grades, weekly_rank=own_rank, weekly_scores=week_scores[:5], spotlights=current_spotlights(st.school_id))
 
     @app.route("/student_profile", methods=["GET", "POST"])
     def student_profile():

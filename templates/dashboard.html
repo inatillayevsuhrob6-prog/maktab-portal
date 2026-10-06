@@ -19,6 +19,10 @@
                 <a href="/students"><span>♙</span>O‘quvchilar</a>
                 <a href="/teachers"><span>♟</span>O‘qituvchilar</a>
                 <a href="/tests"><span>▣</span>Testlar</a>
+                <a href="/attendance/overview"><span>✓</span>Davomat</a>
+                <a href="/grades/overview"><span>★</span>Baholar</a>
+                <a href="/leaderboard"><span>🏆</span>Reytinglar</a>
+                <a href="/spotlight"><span>✨</span>Hafta yulduzi</a>
                 <a href="/presentations"><span>▧</span>Taqdimotlar</a>
                 <a href="/schedule/manage"><span>◫</span>Dars jadvali</a>
                 <a href="/library/manage"><span>▥</span>Kutubxona</a>
@@ -99,6 +103,27 @@
                     {% else %}<p class="dashboard-clubs-empty">Hozircha to‘garaklar yaratilmagan.</p>{% endif %}
                 </section>
 
+                <section class="dashboard-layout lower-panels">
+                    <article class="panel quick-panel">
+                        <div class="panel-heading"><div><span class="panel-kicker">BUGUNGI DAVOMAT</span><h2>Sinf kesimida qatnashuv</h2></div><a href="/attendance/overview">Batafsil →</a></div>
+                        {% for row in dashboard_attendance %}
+                        <div style="display:grid;grid-template-columns:70px 1fr 50px;gap:12px;align-items:center;margin:13px 0"><strong>{{ row['class'].name }}</strong><div style="height:9px;background:#eaf0fb;border-radius:99px;overflow:hidden"><i style="display:block;width:{{ row.percent }}%;height:100%;background:linear-gradient(90deg,#2563eb,#06b6d4);border-radius:99px"></i></div><b>{{ row.percent }}%</b></div>
+                        {% else %}<p>Sinflar hali yaratilmagan.</p>{% endfor %}
+                    </article>
+                    <article class="panel quick-panel">
+                        <div class="panel-heading"><div><span class="panel-kicker">HAFTA YULDUZI</span><h2>Bu haftaning e’tirofi</h2></div><a href="/spotlight">Tanlash →</a></div>
+                        {% for item in dashboard_spotlights %}<div style="padding:10px 0"><strong>✨ {{ item.name }}</strong><small style="display:block;color:#7186a6">{{ 'O‘quvchi' if item.row.person_type == 'student' else 'O‘qituvchi' }} · {{ item.row.reason }}</small></div>{% else %}<p>Hafta yulduzi hali tanlanmagan.</p>{% endfor %}
+                    </article>
+                </section>
+                <section class="dashboard-layout lower-panels">
+                    <article class="panel quick-panel"><div class="panel-heading"><div><span class="panel-kicker">HAFTALIK</span><h2>O‘quvchilar reytingi</h2></div><a href="/leaderboard">To‘liq reyting →</a></div>
+                        {% for item in dashboard_students %}<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #edf2fb"><span>{{ loop.index }}. {{ item.student.first_name }} {{ item.student.last_name }}</span><b>{{ item.points }} XP</b></div>{% else %}<p>Hali haftalik ballar yo‘q.</p>{% endfor %}
+                    </article>
+                    <article class="panel quick-panel"><div class="panel-heading"><div><span class="panel-kicker">SINFLAR BELLASHUVI</span><h2>Haftalik sinf reytingi</h2></div><a href="/leaderboard">Batafsil →</a></div>
+                        {% for item in dashboard_classes %}<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #edf2fb"><span>{{ loop.index }}. {{ item['class'].name }}-sinf</span><b>{{ item.points }} ball/o‘quvchi</b></div>{% else %}<p>Sinflar yaratilgach, bellashuv shu yerda ko‘rinadi.</p>{% endfor %}
+                    </article>
+                </section>
+
                 <section class="dashboard-grid bottom-shortcuts">
                     <a href="/classes" style="text-decoration:none;"><div class="card"><div class="card-icon">🏫</div><div class="card-title">Sinflar</div><div class="card-value">{{ class_count }}</div></div></a>
                     <a href="/students" style="text-decoration:none;"><div class="card"><div class="card-icon">🎓</div><div class="card-title">O‘quvchilar</div><div class="card-value">{{ student_count }}</div></div></a>
@@ -108,6 +133,9 @@
                     <a href="/schedule/manage" style="text-decoration:none;"><div class="card"><div class="card-icon">📅</div><div class="card-title">Dars jadvali</div><div class="card-value" style="font-size:1rem;">Boshqarish</div></div></a>
                     <a href="/library/manage" style="text-decoration:none;"><div class="card"><div class="card-icon">📚</div><div class="card-title">Kutubxona</div><div class="card-value" style="font-size:1rem;">{{ book_count }} ta kitob</div></div></a>
                     <a href="/news/manage" style="text-decoration:none;"><div class="card"><div class="card-icon">📢</div><div class="card-title">Yangiliklar</div><div class="card-value" style="font-size:1rem;">{{ news_count }} ta xabar</div></div></a>
+                    <a href="/attendance/overview" style="text-decoration:none"><div class="card"><div class="card-icon">✓</div><div class="card-title">Davomat</div><div class="card-value" style="font-size:1rem">Kunlik nazorat</div></div></a>
+                    <a href="/grades/overview" style="text-decoration:none"><div class="card"><div class="card-icon">⭐</div><div class="card-title">Baholar</div><div class="card-value" style="font-size:1rem">Natijalarni ko‘rish</div></div></a>
+                    <a href="/spotlight" style="text-decoration:none"><div class="card"><div class="card-icon">✨</div><div class="card-title">Hafta yulduzi</div><div class="card-value" style="font-size:1rem">Nomzod tanlash</div></div></a>
                 </section>
             </div>
         </main>

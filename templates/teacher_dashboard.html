@@ -127,6 +127,11 @@
                 </div>
             </div>
         </div>
+        <div class="teacher-dashboard-grid" style="margin-top:24px">
+            <section class="card"><h2>✨ Hafta yulduzlari</h2>{% for item in spotlights %}<p><strong>{{ item.name }}</strong> · {{ 'O‘quvchi' if item.row.person_type == 'student' else 'O‘qituvchi' }}<br><small>{{ item.row.reason }}</small></p>{% else %}<p>Bu hafta yulduzlar tanlanmagan.</p>{% endfor %}</section>
+            <section class="card"><h2>🏆 Haftalik o‘quvchilar</h2>{% for item in weekly_students %}<p>{{ loop.index }}. {{ item.student.first_name }} {{ item.student.last_name }} <strong style="float:right">{{ item.points }} XP</strong></p>{% else %}<p>Hozircha ballar yo‘q.</p>{% endfor %}<a href="/leaderboard">Reytingni ochish →</a></section>
+            <section class="card"><h2>🏫 Sinflar bellashuvi</h2>{% for item in weekly_classes %}<p>{{ loop.index }}. {{ item['class'].name }}-sinf <strong style="float:right">{{ item.points }} ball</strong></p>{% else %}<p>Sinflar uchun ballar yig‘ilmoqda.</p>{% endfor %}</section>
+        </div>
     </div>
 
 {% endblock %}

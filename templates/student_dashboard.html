@@ -66,6 +66,12 @@
             </div>
         </div>
 
+        <div class="grid-2" style="margin:18px 0">
+            <div class="card" style="background:linear-gradient(120deg,#fff,#eff6ff)"><h3>🏆 Haftalik o‘rningiz</h3><strong style="font-size:1.8rem;color:#2563eb">{% if weekly_rank %}{{ weekly_rank }}-o‘rin{% else %}Hali reyting yo‘q{% endif %}</strong><p>Test, davomat va o‘yinlardan ball yig‘ing.</p><a href="/leaderboard">Reytingni ko‘rish →</a></div>
+            <div class="card" style="background:linear-gradient(120deg,#fff,#f5f3ff)"><h3>🎮 Bilim o‘yinlari</h3><p>Sirli quti, omad charxi, poyga va anagrammada bilimingizni sinang.</p><a class="btn-primary" style="display:inline-block;padding:10px 16px;border-radius:10px;color:#fff;text-decoration:none" href="/games">O‘yinlarni boshlash →</a></div>
+        </div>
+        {% if spotlights %}<section class="card" style="margin-bottom:20px;background:linear-gradient(110deg,#fff7ed,#fff)"><h3>✨ Hafta yulduzi</h3><div style="display:flex;gap:14px;flex-wrap:wrap">{% for item in spotlights %}<div><strong>{{ item.name }}</strong><small style="display:block;color:#7186a6">{{ 'O‘quvchi' if item.row.person_type == 'student' else 'O‘qituvchi' }} · {{ item.row.reason }}</small></div>{% endfor %}</div></section>{% endif %}
+
         <div class="grid-2">
             <div>
                 <div class="card" style="margin-bottom: 20px;">
@@ -90,6 +96,10 @@
                     {% else %}
                     <p>Hozircha natijalar yo‘q.</p>
                     {% endif %}
+                </div>
+                <div class="card" style="margin-top:20px">
+                    <h3>⭐ So‘nggi baholar</h3>
+                    {% for grade in latest_grades %}<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #edf2fb"><span>{{ grade.subject.name if grade.subject else 'Fan' }} · {{ grade.created_at.strftime('%d.%m') }}</span><strong>{{ grade.value }}/5</strong></div>{% else %}<p>Hozircha baholar kiritilmagan.</p>{% endfor %}
                 </div>
             </div>
 

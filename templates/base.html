@@ -28,6 +28,10 @@
                     <a href="/students" class="{% if request.path.startswith('/students') or request.path.startswith('/add_student') or request.path.startswith('/edit_student') %}active{% endif %}"><span>♙</span>O‘quvchilar</a>
                     <a href="/teachers" class="{% if request.path.startswith('/teachers') or request.path.startswith('/add_teacher') or request.path.startswith('/edit_teacher') or request.path.startswith('/admin/edit_teacher') %}active{% endif %}"><span>♟</span>O‘qituvchilar</a>
                     <a href="/tests" class="{% if request.path.startswith('/tests') or request.path.startswith('/create_test') or request.path.startswith('/add_question') or request.path.startswith('/test_results') %}active{% endif %}"><span>▣</span>Testlar</a>
+                    <a href="/attendance/overview" class="{% if request.path.startswith('/attendance') %}active{% endif %}"><span>✓</span>Davomat</a>
+                    <a href="/grades/overview" class="{% if request.path.startswith('/grades') %}active{% endif %}"><span>★</span>Baholar</a>
+                    <a href="/leaderboard" class="{% if request.path == '/leaderboard' %}active{% endif %}"><span>🏆</span>Reytinglar</a>
+                    <a href="/spotlight" class="{% if request.path == '/spotlight' %}active{% endif %}"><span>✨</span>Hafta yulduzi</a>
                     <a href="/presentations" class="{% if request.path.startswith('/presentations') %}active{% endif %}"><span>▧</span>Taqdimotlar</a>
                     <a href="/schedule/manage" class="{% if request.path.startswith('/schedule') %}active{% endif %}"><span>◫</span>Dars jadvali</a>
                     <a href="/library/manage" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kutubxona</a>
@@ -41,6 +45,9 @@
                     <a href="/teacher_profile" class="{% if request.path.startswith('/teacher_profile') %}active{% endif %}"><span>◉</span>Profil sozlamalari</a>
                     <a href="{{ url_for('teacher_schedule') }}" class="{% if request.path.startswith('/teacher/schedule') %}active{% endif %}"><span>◫</span>Dars jadvali</a>
                     <a href="/tests" class="{% if request.path.startswith('/tests') or request.path.startswith('/create_test') or request.path.startswith('/add_question') %}active{% endif %}"><span>▣</span>Testlar</a>
+                    <a href="/attendance" class="{% if request.path == '/attendance' %}active{% endif %}"><span>✓</span>Davomat belgilash</a>
+                    <a href="/grades" class="{% if request.path == '/grades' %}active{% endif %}"><span>★</span>Baho qo‘yish</a>
+                    <a href="/leaderboard" class="{% if request.path == '/leaderboard' %}active{% endif %}"><span>🏆</span>Reytinglar</a>
                     <a href="/clubs/manage" class="{% if request.path.startswith('/clubs') %}active{% endif %}"><span>🎯</span>To‘garaklar</a>
                     <a href="/library" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kutubxona</a>
                     <a href="/ai_chat" class="{% if request.path.startswith('/ai_chat') %}active{% endif %}"><span>✦</span>AI yordamchi</a>
@@ -51,6 +58,8 @@
                     <a href="/student_profile" class="{% if request.path.startswith('/student_profile') %}active{% endif %}"><span>◉</span>Mening profilim</a>
                     <a href="{{ url_for('view_schedule') }}" class="{% if request.path.startswith('/schedule/view') %}active{% endif %}"><span>◫</span>Dars jadvali</a>
                     <a href="/my_tests" class="{% if request.path.startswith('/my_tests') %}active{% endif %}"><span>▣</span>Testlarim</a>
+                    <a href="/leaderboard" class="{% if request.path == '/leaderboard' %}active{% endif %}"><span>🏆</span>Reytinglar</a>
+                    <a href="/games" class="{% if request.path.startswith('/games') %}active{% endif %}"><span>🎮</span>O‘quv o‘yinlari</a>
                     <a href="/presentations" class="{% if request.path.startswith('/presentations') %}active{% endif %}"><span>▧</span>Taqdimotlar</a>
                     <a href="/library" class="{% if request.path.startswith('/library') %}active{% endif %}"><span>▥</span>Kitobxona</a>
                     <a href="/news" class="{% if request.path.startswith('/news') %}active{% endif %}"><span>▰</span>Yangiliklar</a>
@@ -70,11 +79,11 @@
                 </form>
                 {% if session.get('user_role') == 'teacher' %}
                 <nav class="role-nav" aria-label="O‘qituvchi menyusi">
-                    <a href="/teacher_dashboard">Kabinet</a><a href="/teacher_profile">Profil</a><a href="{{ url_for('teacher_schedule') }}">Jadval</a><a href="/clubs/manage">To‘garaklar</a><a href="/library">Kutubxona</a><a href="/presentations">Taqdimotlar</a><a href="/chat">Chat</a><a class="role-logout" href="/logout">Chiqish ↗</a>
+                    <a href="/teacher_dashboard">Kabinet</a><a href="/teacher_profile">Profil</a><a href="{{ url_for('teacher_schedule') }}">Jadval</a><a href="/attendance">Davomat</a><a href="/grades">Baholar</a><a href="/leaderboard">Reyting</a><a href="/clubs/manage">To‘garaklar</a><a href="/library">Kutubxona</a><a href="/presentations">Taqdimotlar</a><a href="/chat">Chat</a><a class="role-logout" href="/logout">Chiqish ↗</a>
                 </nav>
                 {% elif session.get('user_role') == 'student' %}
                 <nav class="role-nav" aria-label="O‘quvchi menyusi">
-                    <a href="/student_dashboard">Kabinet</a><a href="/student_profile">Profil</a><a href="/schedule/view">Jadval</a><a href="/my_tests">Testlar</a><a href="/library">Kutubxona</a><a href="/clubs">To‘garaklar</a><a href="/chat">Chat</a><a class="role-logout" href="/logout">Chiqish ↗</a>
+                    <a href="/student_dashboard">Kabinet</a><a href="/student_profile">Profil</a><a href="/schedule/view">Jadval</a><a href="/my_tests">Testlar</a><a href="/leaderboard">Reyting</a><a href="/games">O‘yinlar</a><a href="/library">Kutubxona</a><a href="/clubs">To‘garaklar</a><a href="/chat">Chat</a><a class="role-logout" href="/logout">Chiqish ↗</a>
                 </nav>
                 {% endif %}
                 <div class="notification-wrap">
