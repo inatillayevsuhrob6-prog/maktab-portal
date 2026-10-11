@@ -18,8 +18,11 @@ import secrets
 from openai import OpenAI
 from datetime import datetime, timedelta, timezone
 
-MIN_PASSWORD_LENGTH = 12
-MAX_PASSWORD_LENGTH = 128
+MIN_PASSWORD_LENGTH = 1
+MAX_PASSWORD_LENGTH = 6
+# Keep allowing existing longer passwords at login; only newly set passwords
+# use the shorter policy requested for this deployment.
+MAX_LOGIN_PASSWORD_LENGTH = 128
 
 def create_app():
     app = Flask(__name__)
@@ -464,7 +467,7 @@ def create_app():
     def login():
         login_input = sanitize_input(request.form.get('username', '')).strip()[:50]
         password_input = request.form.get('password', '')
-        if not isinstance(password_input, str) or len(password_input) > MAX_PASSWORD_LENGTH:
+        if not isinstance(password_input, str) or len(password_input) > MAX_LOGIN_PASSWORD_LENGTH:
             flash("Login yoki parol noto‘g‘ri. Ma’lumotlarni tekshirib, qayta urinib ko‘ring.", "danger")
             return redirect(url_for('home'))
         
