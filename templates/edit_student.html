@@ -10,6 +10,7 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="input-group"><label>Ism</label><input type="text" name="first_name" value="{{ s.first_name }}" required></div>
         <div class="input-group"><label>Familiya</label><input type="text" name="last_name" value="{{ s.last_name }}" required></div>
+        <div class="input-group"><label>Yangi parol (o‘zgartirmaslik uchun bo‘sh qoldiring, kamida 12 belgi)</label><input type="password" name="password" minlength="12" maxlength="128" autocomplete="new-password"></div>
         <div class="input-group">
             <label>Sinf</label>
             <select name="class_id">

@@ -17,6 +17,9 @@ import random
 from openai import OpenAI
 from datetime import datetime, timedelta, timezone
 
+MIN_PASSWORD_LENGTH = 12
+MAX_PASSWORD_LENGTH = 128
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -50,6 +53,7 @@ def create_app():
     limiter = Limiter(
         app=app,
         key_func=get_remote_address,
+        storage_uri=os.environ.get('RATELIMIT_STORAGE_URI', 'memory://'),
         default_limits=["200 per day", "50 per hour"]
     )
     
@@ -422,6 +426,10 @@ def create_app():
             email = sanitize_input(request.form.get('email'))
             login = sanitize_input(request.form.get('login'))
             password = request.form.get('password')
+
+            if not password or len(password) < MIN_PASSWORD_LENGTH or len(password) > MAX_PASSWORD_LENGTH:
+                flash(f"Parol {MIN_PASSWORD_LENGTH}–{MAX_PASSWORD_LENGTH} belgi oralig‘ida bo‘lsin.", "danger")
+                return render_template("register.html")
             
             if School.query.filter_by(email=email).first():
                 flash("Bu email allaqachon ro'yxatdan o'tgan!", "danger")
@@ -437,17 +445,21 @@ def create_app():
                 db.session.add(new_school); db.session.commit()
                 flash("Muvaffaqiyatli ro'yxatdan o'tdingiz! Endi kirishingiz mumkin.", "success")
                 return redirect(url_for('home'))
-            except Exception as e:
+            except Exception:
                 db.session.rollback()
-                flash(f"Xatolik yuz berdi: {e}", "danger")
+                app.logger.exception("Maktab ro‘yxatdan o‘tkazilmadi")
+                flash("Ro‘yxatdan o‘tishda xatolik yuz berdi. Ma’lumotlarni tekshirib qayta urinib ko‘ring.", "danger")
                 
         return render_template("register.html")
 
     @app.route("/login", methods=["POST"])
     @limiter.limit("10 per minute")
     def login():
-        login_input = sanitize_input(request.form.get('username'))
-        password_input = request.form.get('password')
+        login_input = sanitize_input(request.form.get('username', '')).strip()[:50]
+        password_input = request.form.get('password', '')
+        if not isinstance(password_input, str) or len(password_input) > MAX_PASSWORD_LENGTH:
+            flash("Login yoki parol noto‘g‘ri. Ma’lumotlarni tekshirib, qayta urinib ko‘ring.", "danger")
+            return redirect(url_for('home'))
         
         school = School.query.filter_by(login=login_input).first()
         if school and check_password_hash(school.password_hash, password_input):
@@ -1029,12 +1041,18 @@ def create_app():
                     session['teacher_name'] = f"{teacher.first_name} {teacher.last_name}"
                     flash("Ma'lumotlar muvaffaqiyatli saqlandi!", "success")
                 elif action == 'change_password':
+                    current_password = request.form.get('current_password', '')
                     new_pass = request.form.get('new_password')
-                    if new_pass and len(new_pass) >= 6:
+                    if not check_password_hash(teacher.password_hash or '', current_password):
+                        flash("Joriy parol noto‘g‘ri.", "danger")
+                    elif new_pass and MIN_PASSWORD_LENGTH <= len(new_pass) <= MAX_PASSWORD_LENGTH:
                         teacher.password_hash = generate_password_hash(new_pass)
-                        flash("Parol muvaffaqiyatli o'zgartirildi!", "success")
+                        db.session.commit()
+                        session.clear()
+                        flash("Parol yangilandi. Yangi parol bilan qayta kiring.", "success")
+                        return redirect(url_for('home'))
                     else:
-                        flash("Parol kamida 6 ta belgidan iborat bo'lishi kerak.", "danger")
+                        flash(f"Parol {MIN_PASSWORD_LENGTH}–{MAX_PASSWORD_LENGTH} belgi oralig‘ida bo‘lishi kerak.", "danger")
                 elif action == 'change_login':
                     new_login = sanitize_input(request.form.get('new_login'))
                     existing = Teacher.query.filter_by(login=new_login).first()
@@ -1044,9 +1062,10 @@ def create_app():
                     else:
                         flash("Bu login allaqachon band.", "danger")
                 db.session.commit()
-            except Exception as e:
+            except Exception:
                 db.session.rollback()
-                flash(f"Xatolik yuz berdi: {str(e)}", "danger")
+                app.logger.exception("O‘qituvchi profilini yangilashda xatolik")
+                flash("Ma’lumotni saqlashda xatolik yuz berdi. Qayta urinib ko‘ring.", "danger")
             return redirect(url_for('teacher_profile'))
         return render_template("teacher_profile.html", teacher=teacher)
 
@@ -1077,11 +1096,28 @@ def create_app():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
         sid = session['school_id']
         if request.method == "POST":
-            fn = sanitize_input(request.form.get('first_name')); ln = sanitize_input(request.form.get('last_name'))
-            cid = request.form.get('class_id')
-            db.session.add(Student(first_name=fn, last_name=ln, school_id=sid, class_id=cid, login=f"{fn.lower()}.{ln.lower()}", password_hash=generate_password_hash("123456")))
-            try: db.session.commit()
-            except: db.session.rollback()
+            fn = sanitize_input(request.form.get('first_name', '')).strip()[:50]
+            ln = sanitize_input(request.form.get('last_name', '')).strip()[:50]
+            login = sanitize_input(request.form.get('login', '')).strip()[:50]
+            password = request.form.get('password', '')
+            cid = request.form.get('class_id', type=int)
+            classes = Class.query.filter_by(school_id=sid).all()
+            if not fn or not ln or not login or not MIN_PASSWORD_LENGTH <= len(password) <= MAX_PASSWORD_LENGTH:
+                flash(f"Ism, familiya, login kiriting va parolni {MIN_PASSWORD_LENGTH}–{MAX_PASSWORD_LENGTH} belgi oralig‘ida belgilang.", "danger")
+                return render_template("add_student.html", classes=classes)
+            if not cid or not Class.query.filter_by(id=cid, school_id=sid).first():
+                flash("Tanlangan sinf topilmadi.", "danger")
+                return render_template("add_student.html", classes=classes)
+            if Student.query.filter_by(login=login).first():
+                flash("Bu login band. Boshqa login tanlang.", "danger")
+                return render_template("add_student.html", classes=classes)
+            db.session.add(Student(first_name=fn, last_name=ln, school_id=sid, class_id=cid, login=login, password_hash=generate_password_hash(password)))
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                app.logger.exception("O‘quvchi hisobini yaratishda xatolik")
+                flash("O‘quvchi hisobini saqlab bo‘lmadi. Ma’lumotlarni tekshiring.", "danger")
             return redirect(url_for('students'))
         return render_template("add_student.html", classes=Class.query.filter_by(school_id=sid).all())
 
@@ -1104,7 +1140,10 @@ def create_app():
         if request.method == "POST":
             fn = sanitize_input(request.form.get('first_name')); ln = sanitize_input(request.form.get('last_name'))
             t_login = sanitize_input(request.form.get('login', f"{fn.lower()}.{ln.lower()}"))
-            t_pass = request.form.get('password', '123456')
+            t_pass = request.form.get('password', '')
+            if not fn or not ln or not t_login or not MIN_PASSWORD_LENGTH <= len(t_pass) <= MAX_PASSWORD_LENGTH:
+                flash(f"Ism, familiya, login kiriting va parolni {MIN_PASSWORD_LENGTH}–{MAX_PASSWORD_LENGTH} belgi oralig‘ida belgilang.", "danger")
+                return render_template("add_teacher.html", classes=Class.query.filter_by(school_id=sid).order_by(Class.name).all())
             if Teacher.query.filter_by(login=t_login).first():
                 flash("Bu login allaqachon ishlatilgan. Boshqa login tanlang.", "danger")
                 return render_template("add_teacher.html", classes=Class.query.filter_by(school_id=sid).order_by(Class.name).all())
@@ -1122,9 +1161,10 @@ def create_app():
                 lesson_classes = valid_classes or [None]
                 db.session.add_all([Schedule(day_of_week=lesson_day, start_time=start_time, end_time=end_time, room_number=room_number, school_id=sid, class_id=school_class.id if school_class else None, subject_id=subj.id, teacher_id=teacher.id) for school_class in lesson_classes])
             try: db.session.commit()
-            except Exception as error:
+            except Exception:
                 db.session.rollback()
-                flash(f"O'qituvchi qo'shishda xatolik: {error}", "danger")
+                app.logger.exception("O‘qituvchi hisobini yaratishda xatolik")
+                flash("O‘qituvchini saqlab bo‘lmadi. Ma’lumotlarni tekshirib qayta urinib ko‘ring.", "danger")
                 return render_template("add_teacher.html", classes=Class.query.filter_by(school_id=sid).order_by(Class.name).all())
             return redirect(url_for('teachers'))
         return render_template("add_teacher.html", classes=Class.query.filter_by(school_id=sid).order_by(Class.name).all())
@@ -1202,6 +1242,20 @@ def create_app():
         if 'school_id' not in session or session.get('user_role') != 'student': return redirect(url_for('home'))
         student = Student.query.filter_by(id=session['student_id'], school_id=session['school_id']).first_or_404()
         if request.method == "POST":
+            if request.form.get('action') == 'change_password':
+                current_password = request.form.get('current_password', '')
+                new_password = request.form.get('new_password', '')
+                if not check_password_hash(student.password_hash or '', current_password):
+                    flash("Joriy parol noto‘g‘ri.", "danger")
+                    return redirect(url_for('student_profile'))
+                if not MIN_PASSWORD_LENGTH <= len(new_password) <= MAX_PASSWORD_LENGTH:
+                    flash(f"Yangi parol {MIN_PASSWORD_LENGTH}–{MAX_PASSWORD_LENGTH} belgi oralig‘ida bo‘lsin.", "danger")
+                    return redirect(url_for('student_profile'))
+                student.password_hash = generate_password_hash(new_password)
+                db.session.commit()
+                session.clear()
+                flash("Parol yangilandi. Yangi parol bilan qayta kiring.", "success")
+                return redirect(url_for('home'))
             student.first_name = sanitize_input(request.form.get('first_name')) or student.first_name
             student.last_name = sanitize_input(request.form.get('last_name')) or student.last_name
             student.gender = sanitize_input(request.form.get('gender')) or student.gender
@@ -1436,10 +1490,10 @@ def create_app():
             ))
             db.session.commit()
             return redirect(url_for('manage_library'))
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            print(f"Kitob qo'shishda xato: {e}")
-            flash(f"Xatolik yuz berdi: {e}", "danger")
+            app.logger.exception("Kitob qo‘shishda xatolik")
+            flash("Kitobni saqlab bo‘lmadi. Ma’lumotlarni tekshirib qayta urinib ko‘ring.", "danger")
             return redirect(url_for('manage_library'))
 
     @app.route("/library")
@@ -1820,7 +1874,17 @@ def create_app():
         classes = Class.query.filter_by(school_id=session['school_id']).all()
         if request.method == "POST":
             old_first = s.first_name; old_last = s.last_name
-            s.first_name = sanitize_input(request.form.get('first_name')); s.last_name = sanitize_input(request.form.get('last_name')); s.class_id = request.form.get('class_id')
+            new_class_id = request.form.get('class_id', type=int)
+            if not new_class_id or not Class.query.filter_by(id=new_class_id, school_id=session['school_id']).first():
+                flash("Tanlangan sinf topilmadi.", "danger")
+                return render_template("edit_student.html", s=s, classes=classes)
+            new_password = request.form.get('password', '')
+            if new_password and not MIN_PASSWORD_LENGTH <= len(new_password) <= MAX_PASSWORD_LENGTH:
+                flash(f"Yangi parol {MIN_PASSWORD_LENGTH}–{MAX_PASSWORD_LENGTH} belgi oralig‘ida bo‘lsin.", "danger")
+                return render_template("edit_student.html", s=s, classes=classes)
+            s.first_name = sanitize_input(request.form.get('first_name')); s.last_name = sanitize_input(request.form.get('last_name')); s.class_id = new_class_id
+            if new_password:
+                s.password_hash = generate_password_hash(new_password)
             if old_first != s.first_name or old_last != s.last_name:
                 new_login = f"{s.first_name.lower()}.{s.last_name.lower()}"
                 existing = Student.query.filter_by(login=new_login).first()
@@ -1836,6 +1900,10 @@ def create_app():
         sid = session['school_id']; t = Teacher.query.filter_by(id=tid, school_id=sid).first_or_404()
         classes = Class.query.filter_by(school_id=sid).order_by(Class.name).all()
         if request.method == "POST":
+            new_pass = request.form.get('password', '')
+            if new_pass and not MIN_PASSWORD_LENGTH <= len(new_pass) <= MAX_PASSWORD_LENGTH:
+                flash(f"Yangi parol {MIN_PASSWORD_LENGTH}–{MAX_PASSWORD_LENGTH} belgi oralig‘ida bo‘lsin.", "danger")
+                return render_template("edit_teacher.html", t=t, classes=classes, assigned_class_ids=[assignment.class_id for assignment in TeacherClassAssignment.query.filter_by(teacher_id=t.id).all()])
             t.first_name = sanitize_input(request.form.get('first_name')); t.last_name = sanitize_input(request.form.get('last_name'))
             new_login = sanitize_input(request.form.get('login'))
             existing_login = Teacher.query.filter_by(login=new_login).first()
@@ -1853,7 +1921,6 @@ def create_app():
             uploaded_image = request.files.get('profile_image')
             if uploaded_image and uploaded_image.filename: t.profile_pic = save_teacher_profile_image(uploaded_image, t.id)
             else: t.profile_pic = sanitize_input(request.form.get('profile_pic')) or t.profile_pic
-            new_pass = request.form.get('password')
             if new_pass: t.password_hash = generate_password_hash(new_pass)
             db.session.commit(); return redirect(url_for('teachers'))
         assigned_class_ids = [assignment.class_id for assignment in TeacherClassAssignment.query.filter_by(teacher_id=t.id).all()]
@@ -1903,6 +1970,20 @@ def create_app():
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
         school = School.query.get_or_404(session['school_id'])
         if request.method == "POST":
+            if request.form.get('action') == 'change_password':
+                current_password = request.form.get('current_password', '')
+                new_password = request.form.get('new_password', '')
+                if not check_password_hash(school.password_hash, current_password):
+                    flash("Joriy parol noto‘g‘ri.", "danger")
+                    return redirect(url_for('admin_profile'))
+                if not MIN_PASSWORD_LENGTH <= len(new_password) <= MAX_PASSWORD_LENGTH:
+                    flash(f"Yangi parol {MIN_PASSWORD_LENGTH}–{MAX_PASSWORD_LENGTH} belgi oralig‘ida bo‘lsin.", "danger")
+                    return redirect(url_for('admin_profile'))
+                school.password_hash = generate_password_hash(new_password)
+                db.session.commit()
+                session.clear()
+                flash("Parol yangilandi. Yangi parol bilan qayta kiring.", "success")
+                return redirect(url_for('home'))
             school.name = sanitize_input(request.form.get('name')) or school.name
             school.address = sanitize_input(request.form.get('address'))
             school.phone = sanitize_input(request.form.get('phone'))

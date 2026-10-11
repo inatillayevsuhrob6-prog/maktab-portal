@@ -98,10 +98,15 @@
                 <form method="POST" action="/teacher_profile">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="hidden" name="action" value="change_password">
+
+                    <div class="input-group">
+                        <label>Joriy parol</label>
+                        <input type="password" name="current_password" autocomplete="current-password" required>
+                    </div>
                     
                     <div class="input-group">
-                        <label>Yangi Parol (min. 6 belgi)</label>
-                        <input type="password" name="new_password" placeholder="********" required minlength="6">
+                        <label>Yangi parol (kamida 12 belgi)</label>
+                        <input type="password" name="new_password" placeholder="Kamida 12 belgi" required minlength="12" maxlength="128" autocomplete="new-password">
                     </div>
                     <button type="submit" class="btn-save">🔒 Parolni Yangilash</button>
                 </form>

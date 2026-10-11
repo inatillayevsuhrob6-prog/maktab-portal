@@ -13,7 +13,7 @@
                 <div><span class="panel-kicker">STUDENT ACCOUNT</span><h1>Mening profilim</h1><p>{{ student.student_class.name }}-sinf o‘quvchisi</p></div>
             </div>
             {% with messages = get_flashed_messages(with_categories=true) %}
-                {% for category, message in messages %}<div class="profile-flash success">{{ message }}</div>{% endfor %}
+                {% for category, message in messages %}<div class="profile-flash {{ category }}">{{ message }}</div>{% endfor %}
             {% endwith %}
             <form method="POST" enctype="multipart/form-data" class="student-profile-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -23,6 +23,13 @@
                 <label>Jins<select name="gender"><option value="">Tanlanmagan</option><option value="Erkak" {% if student.gender == 'Erkak' %}selected{% endif %}>Erkak</option><option value="Ayol" {% if student.gender == 'Ayol' %}selected{% endif %}>Ayol</option></select></label>
                 <label class="full-field">Profil rasmi<input type="file" name="profile_image" accept="image/jpeg,image/png,image/gif,image/webp"></label>
                 <button type="submit" class="btn-primary full-field">Saqlash</button>
+            </form>
+            <form method="POST" class="student-profile-form" style="margin-top:24px">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="change_password">
+                <label class="full-field">Joriy parol<input type="password" name="current_password" autocomplete="current-password" required></label>
+                <label class="full-field">Yangi parol (12–128 belgi)<input type="password" name="new_password" minlength="12" maxlength="128" autocomplete="new-password" required></label>
+                <button type="submit" class="btn-primary full-field">Parolni yangilash</button>
             </form>
         </div>
     </div>

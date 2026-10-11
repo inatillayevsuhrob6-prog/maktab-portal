@@ -45,7 +45,8 @@ class DoNotFollowRedirects(HTTPRedirectHandler):
 def request(opener, url):
     req = Request(url, headers={"User-Agent": "MaktabSecuritySmokeCheck/1.0"})
     try:
-        response = opener.open(req, timeout=6)
+        # First-hit requests on shared hosting may cold-start the WSGI worker.
+        response = opener.open(req, timeout=15)
         return response.status, response.headers
     except HTTPError as exc:
         # Redirects are returned as statuses so we can verify the gate without

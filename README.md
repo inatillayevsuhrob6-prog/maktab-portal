@@ -24,6 +24,8 @@ Zamonaviy, ko‘p maktabli va xavfsiz veb-platforma. O‘quvchilar, o‘qituvchi
 ### Maxfiy sozlamalar
 Ishga tushirishdan oldin `.env` ichida `SECRET_KEY` uchun tasodifiy, maxfiy qiymat belgilang. Uni yaratish uchun `python -c "import secrets; print(secrets.token_hex(32))"` buyrug‘idan foydalaning; qiymatni GitHub'ga joylamang. HTTPS hostingda `SESSION_COOKIE_SECURE=True` bo‘lsin; faqat HTTP'dagi lokal sinov uchun uni vaqtincha `False` qiling. Ilova kirish kaliti belgilanmagan bo‘lsa ishga tushmaydi.
 
+Productionda Flask-Limiter cheklovlarini bir nechta WSGI worker o‘rtasida ulashish uchun `RATELIMIT_STORAGE_URI` ni Redis/Valkey xizmatiga sozlang. `memory://` har workerda alohida hisoblanadi va faqat lokal ishlab chiqish uchun mos.
+
 Ommaviy bosh sahifa va ro‘yxatdan o‘tish ochiq qoladi. Ilovaning ichki sahifalari login talab qiladi. Brauzerda ishlashi uchun HTML/CSS/JavaScript foydalanuvchiga yuboriladi; serverdagi Python kod va maxfiy kalitlar esa `static` papkaga qo‘yilmasligi va repozitoriy maxfiy saqlanishi kerak.
 
 ### 1. Talablarni o'rnatish
