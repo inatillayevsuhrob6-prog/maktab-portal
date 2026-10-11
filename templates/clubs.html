@@ -83,7 +83,7 @@
 {% block content %}
 <div class="container">
         <div class="header">
-            <a href="javascript:history.back()" class="back-btn">← Ortga qaytish</a>
+            <a href="/" class="back-btn" data-csp-action="historyBack">← Ortga qaytish</a>
             <div style="text-align: right;">
                 <h1 style="color:#1e293b; margin:0; font-size: 2rem;">Maktab To'garaklari</h1>
                 <p style="color:#64748b; margin:5px 0 0;">O'z qiziqishingizni kashf eting</p>
@@ -135,7 +135,7 @@
                     {% if member_state.joined %}
                         <button class="btn-join joined" disabled>✅ Siz a'zosiz</button>
                     {% else %}
-                        <button type="button" class="btn-join" onclick="openJoinModal(this, {{ c.id }}, {{ c.name|tojson|forceescape }})">A’zo bo‘lish</button>
+                        <button type="button" class="btn-join" data-csp-action="openJoinModal" data-club-id="{{ c.id }}" data-club-name="{{ c.name }}">A’zo bo‘lish</button>
                     {% endif %}
                 {% else %}
                     <div style="text-align:center; color:#94a3b8; font-size:0.9rem; margin-top:10px; font-style: italic;">
@@ -160,14 +160,14 @@
             <input type="tel" id="joinPhone" name="phone" placeholder="+998 90 123 45 67" autocomplete="tel" inputmode="tel" maxlength="24" required>
             <div class="join-error" id="joinError" role="alert"></div>
             <div class="join-dialog-actions">
-                <button type="button" class="join-cancel" onclick="closeJoinModal()">Bekor qilish</button>
+                <button type="button" class="join-cancel" data-csp-action="closeJoinModal">Bekor qilish</button>
                 <button type="submit" class="join-confirm" id="joinConfirm">A’zo bo‘lish</button>
             </div>
         </form>
     </div>
 {% endblock %}
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
         let selectedJoinButton = null;
         let selectedClubId = null;
 

@@ -233,7 +233,7 @@
                     <div class="metric-chip"><strong>+32%</strong><span>Natijalar</span></div>
                 </div>
             </div>
-            <div class="scroll-indicator" onclick="document.getElementById('features').scrollIntoView()">
+            <div class="scroll-indicator" data-csp-action="scrollFeatures">
                 <span>Pastga tushing</span>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
             </div>
@@ -333,7 +333,7 @@
                             <h3>{{ n.title }}</h3>
                             <p class="news-summary">{{ n.content[:100] }}{% if n.content|length > 100 %}...{% endif %}</p>
                             <p class="news-full">{{ n.content }}</p>
-                            {% if n.content|length > 100 %}<button type="button" class="news-more" onclick="toggleNews(this)" aria-label="To‘liq matnni ko‘rsatish">...</button>{% endif %}
+                            {% if n.content|length > 100 %}<button type="button" class="news-more" data-csp-action="toggleNews" aria-label="To‘liq matnni ko‘rsatish">...</button>{% endif %}
                         </div>
                     </div>
                     {% endfor %}
@@ -342,7 +342,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         function toggleNews(button) {
             const card = button.closest('.news-card');
             const expanded = card.classList.toggle('expanded');
@@ -350,5 +350,6 @@
             button.setAttribute('aria-label', expanded ? 'Matnni qisqartirish' : 'To‘liq matnni ko‘rsatish');
         }
     </script>
+    <script src="{{ url_for('static', filename='js/csp-actions.js') }}" defer></script>
 </body>
 </html>

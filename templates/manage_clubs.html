@@ -80,10 +80,10 @@
                     <p>Rahbar: {{ c.leader_name or ((c.teacher.first_name ~ ' ' ~ c.teacher.last_name) if c.teacher else 'Belgilanmagan') }} | Vaqt: {{ c.schedule or 'Belgilanmagan' }}</p>
                 </div>
                 <div class="club-actions">
-                    <button type="button" class="btn-members" onclick="toggleClubMembers(this, {{ c.id }})">A’zolar va telefonlar</button>
+                    <button type="button" class="btn-members" data-csp-action="toggleClubMembers" data-club-id="{{ c.id }}">A’zolar va telefonlar</button>
                     {% if current_role == 'admin' or c.teacher_id == current_teacher_id %}
                     <a href="{{ url_for('edit_club', club_id=c.id) }}" class="btn-edit">Tahrirlash</a>
-                    <form action="/clubs/delete/{{ c.id }}" method="POST" onsubmit="return confirm('To‘garakni o‘chirishni tasdiqlaysizmi?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn-delete">O'chirish</button></form>
+                    <form action="/clubs/delete/{{ c.id }}" method="POST" data-confirm="To‘garakni o‘chirishni tasdiqlaysizmi?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn-delete">O'chirish</button></form>
                     {% endif %}
                 </div>
                 <div class="club-member-panel" hidden aria-live="polite"></div>
@@ -93,7 +93,7 @@
             {% endfor %}
         </div>
     </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 async function toggleClubMembers(button, clubId) {
     const panel = button.closest('.club-item').querySelector('.club-member-panel');
     if (!panel.hidden) { panel.hidden = true; return; }

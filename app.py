@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Response
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Response, g
 from config import Config
 from extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -14,6 +14,7 @@ import bleach
 import os
 import uuid
 import random
+import secrets
 from openai import OpenAI
 from datetime import datetime, timedelta, timezone
 
@@ -347,6 +348,7 @@ def create_app():
         
     @app.before_request
     def check_session_timeout():
+        g.csp_nonce = secrets.token_urlsafe(18)
         if 'school_id' in session and 'last_activity' in session:
             now = datetime.now(timezone.utc)
             last = session.get('last_activity')
@@ -382,6 +384,7 @@ def create_app():
 
     @app.after_request
     def add_security_headers(response):
+        nonce = getattr(g, 'csp_nonce', '')
         response.headers.setdefault('X-Content-Type-Options', 'nosniff')
         response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
         response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
@@ -393,7 +396,7 @@ def create_app():
             "object-src 'none'",
             "frame-ancestors 'self'",
             "form-action 'self'",
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+            f"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
             "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
             "img-src 'self' data: blob: https:",
@@ -404,6 +407,10 @@ def create_app():
         if session.get('school_id') and request.endpoint != 'static':
             response.headers['Cache-Control'] = 'no-store'
         return response
+
+    @app.context_processor
+    def inject_csp_nonce():
+        return {'csp_nonce': getattr(g, 'csp_nonce', '')}
 
     @app.route("/")
     def home():

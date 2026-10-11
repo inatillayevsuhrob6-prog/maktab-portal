@@ -26,7 +26,7 @@
         <div class="chat-header">
             <h2>🤖 AI O'qituvchi</h2>
             <div style="display:flex; align-items:center;">
-                <button onclick="clearChat()" class="clear-btn">🗑 Tozalash</button>
+                <button data-csp-action="clearChat" class="clear-btn">🗑 Tozalash</button>
                 <a href="/dashboard" style="color:white; text-decoration:none; font-size:14px; opacity:0.9; margin-left:10px;">← Dashboard</a>
             </div>
         </div>
@@ -38,13 +38,13 @@
         <span class="typing-indicator" id="typingIndicator">AI yozmoqda...</span>
 
         <div class="chat-input-area">
-            <input type="text" id="userInput" class="chat-input" placeholder="Savolingizni yozing..." onkeypress="if(event.key==='Enter') sendMessage()">
-            <button onclick="sendMessage()" id="sendBtn" class="chat-send">Yuborish</button>
+            <input type="text" id="userInput" class="chat-input" placeholder="Savolingizni yozing..." data-enter-action="sendMessage">
+            <button data-csp-action="sendMessage" id="sendBtn" class="chat-send">Yuborish</button>
         </div>
     </div>
 {% endblock %}
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
     let isProcessing = false;
 
     async function sendMessage() {

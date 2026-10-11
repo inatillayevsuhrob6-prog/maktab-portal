@@ -147,7 +147,7 @@
     </div>
 {% endblock %}
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
         // Fayl tanlanganda nomini ko'rsatish
         document.querySelector('input[type="file"]').addEventListener('change', function(e) {
             const fileName = e.target.files[0] ? e.target.files[0].name : "📁 Rasm tanlash (JPG, PNG)";

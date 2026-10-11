@@ -10,7 +10,7 @@
 <body class="dashboard-page">
     <div class="app-shell">
         <aside class="app-sidebar" id="dashboardSidebar">
-            <button type="button" class="sidebar-close" onclick="closeDashboardSidebar()" aria-label="Menyuni yopish">&times;</button>
+            <button type="button" class="sidebar-close" data-csp-action="closeDashboardSidebar" aria-label="Menyuni yopish">&times;</button>
             <a href="/dashboard" class="sidebar-brand"><span class="brand-mark">▦</span><span>{{ school.name }}</span></a>
             <div class="sidebar-user"><span class="sidebar-user-dot"></span><span>Administrator paneli</span></div>
             <nav class="sidebar-nav">
@@ -35,21 +35,21 @@
             </nav>
             <a href="/logout" class="sidebar-logout"><span>↪</span>Chiqish</a>
         </aside>
-        <button type="button" class="sidebar-backdrop" id="dashboardSidebarBackdrop" onclick="closeDashboardSidebar()" aria-label="Menyuni yopish"></button>
+        <button type="button" class="sidebar-backdrop" id="dashboardSidebarBackdrop" data-csp-action="closeDashboardSidebar" aria-label="Menyuni yopish"></button>
 
         <main class="app-main">
             <header class="topbar">
-                <button class="menu-toggle" id="dashboardMenuToggle" onclick="toggleDashboardSidebar()" aria-label="Menyuni ochish" aria-controls="dashboardSidebar" aria-expanded="false">☰</button>
+                <button class="menu-toggle" id="dashboardMenuToggle" data-csp-action="toggleDashboardSidebar" aria-label="Menyuni ochish" aria-controls="dashboardSidebar" aria-expanded="false">☰</button>
                 <div class="dashboard-breadcrumb"><span>Boshqaruv paneli</span><strong>{{ school.name }}</strong></div>
                 <form action="/search" method="GET" class="topbar-search"><span>⌕</span><input type="text" name="q" placeholder="Qidirish..."></form>
                 <div class="notification-wrap">
-                    <button type="button" class="notification-button" onclick="toggleNotifications(event)" aria-label="Bildirishnomalar"><span>♢</span>{% if header_notification_count %}<b>{{ header_notification_count }}</b>{% endif %}</button>
+                    <button type="button" class="notification-button" data-csp-action="toggleNotifications" aria-label="Bildirishnomalar"><span>♢</span>{% if header_notification_count %}<b>{{ header_notification_count }}</b>{% endif %}</button>
                     <div class="notification-panel" id="notificationPanel">
                         <div class="notification-heading"><strong>Bildirishnomalar</strong><a href="/chat">Chatni ochish</a></div>
                         {% for item in header_notifications %}<a class="notification-item" href="/chat"><strong>{{ item.sender }}</strong><p>{{ item.body[:90] }}{% if item.body|length > 90 %}...{% endif %}</p><small>{{ item.time }}</small></a>{% else %}<div class="notification-empty">Hozircha bildirishnoma yo‘q.</div>{% endfor %}
                     </div>
                 </div>
-                <button class="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Tungi rejimni almashtirish"><span id="themeIcon">☾</span><span class="theme-label">Rejim</span></button>
+                <button class="theme-toggle" type="button" data-csp-action="toggleTheme" aria-label="Tungi rejimni almashtirish"><span id="themeIcon">☾</span><span class="theme-label">Rejim</span></button>
                 <div class="topbar-status"><span></span> Tizim faol</div>
             </header>
 
@@ -150,14 +150,14 @@
                     <span class="panel-kicker">TO‘GARAKLAR</span>
                     <h2 id="clubMembersTitle">To‘garak a’zolari</h2>
                 </div>
-                <button type="button" class="club-members-close" onclick="closeClubMembers()" aria-label="Yopish">&times;</button>
+                <button type="button" class="club-members-close" data-csp-action="closeClubMembers" aria-label="Yopish">&times;</button>
             </div>
             <div id="clubMembersContent" class="club-members-content"></div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
+    <script nonce="{{ csp_nonce }}" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script nonce="{{ csp_nonce }}">
         function toggleDashboardSidebar() {
             const sidebar = document.getElementById('dashboardSidebar');
             if (sidebar.classList.contains('open')) closeDashboardSidebar();
@@ -309,5 +309,6 @@
             }
         });
     </script>
+    <script src="{{ url_for('static', filename='js/csp-actions.js') }}" defer></script>
 </body>
 </html>

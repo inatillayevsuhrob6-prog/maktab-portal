@@ -63,7 +63,7 @@
                         <td>{% if b.file_url %}<a href="{{ b.file_url }}" target="_blank" style="color:#3498db;">Ochish</a>{% else %}-{% endif %}</td>
                         <td>
                             <a href="/edit_book/{{ b.id }}" class="btn-edit">✏️ Tahrirlash</a>
-                            <form action="/delete_book/{{ b.id }}" method="POST" onsubmit="return confirm('Kitobni o‘chirishni tasdiqlaysizmi?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn-delete"> O'chirish</button></form>
+                            <form action="/delete_book/{{ b.id }}" method="POST" data-confirm="Kitobni o‘chirishni tasdiqlaysizmi?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn-delete"> O'chirish</button></form>
                         </td>
                     </tr>
                     {% endfor %}

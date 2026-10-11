@@ -20,10 +20,10 @@
         </form>
     </section>
     <section class="spotlight-card"><h2>🌟 Shu haftadagi yulduzlar</h2>
-        {% for item in spotlights %}<article class="star-row"><span class="star-icon">✨</span><div class="star-info"><strong>{{ item.name }}</strong><small>{{ 'O‘quvchi' if item.row.person_type == 'student' else 'O‘qituvchi' }} · {{ item.row.reason }}</small></div><div class="star-actions"><a class="star-action" href="{{ url_for('spotlight_manage', edit=item.row.id) }}#spotlight-form">✏️ Tahrirlash</a><form class="star-action-form" method="post" action="{{ url_for('spotlight_delete', spotlight_id=item.row.id) }}" onsubmit="return confirm('Ushbu hafta yulduzini o‘chirmoqchimisiz?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="star-action delete" type="submit">🗑 O‘chirish</button></form></div></article>{% else %}<div class="spotlight-empty">Hali bu hafta uchun yulduz tanlanmagan.</div>{% endfor %}
+        {% for item in spotlights %}<article class="star-row"><span class="star-icon">✨</span><div class="star-info"><strong>{{ item.name }}</strong><small>{{ 'O‘quvchi' if item.row.person_type == 'student' else 'O‘qituvchi' }} · {{ item.row.reason }}</small></div><div class="star-actions"><a class="star-action" href="{{ url_for('spotlight_manage', edit=item.row.id) }}#spotlight-form">✏️ Tahrirlash</a><form class="star-action-form" method="post" action="{{ url_for('spotlight_delete', spotlight_id=item.row.id) }}" data-confirm="Ushbu hafta yulduzini o‘chirmoqchimisiz?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="star-action delete" type="submit">🗑 O‘chirish</button></form></div></article>{% else %}<div class="spotlight-empty">Hali bu hafta uchun yulduz tanlanmagan.</div>{% endfor %}
     </section>
 </main>
-<script>
+<script nonce="{{ csp_nonce }}">
 const typeSelect=document.getElementById('spotlightType');
 const personSelect=document.getElementById('spotlightPerson');
 function filterSpotlightPeople(){

@@ -12,7 +12,7 @@
     <div class="app-shell {% if session.get('user_role') != 'admin' %}role-shell{% endif %}">
         {% if session.get('user_role') == 'admin' %}
         <aside class="app-sidebar" id="appSidebar">
-            <button type="button" class="sidebar-close" onclick="closeSidebar()" aria-label="Menyuni yopish">&times;</button>
+            <button type="button" class="sidebar-close" data-csp-action="closeSidebar" aria-label="Menyuni yopish">&times;</button>
             <a href="{% if session.get('user_role') == 'admin' %}/dashboard{% elif session.get('user_role') == 'teacher' %}/teacher_dashboard{% else %}/student_dashboard{% endif %}" class="sidebar-brand">
                 <span class="brand-mark">▦</span>
                 <span>{{ session.get('school_name', 'Maktab Portal') }}</span>
@@ -71,11 +71,11 @@
             </nav>
             <a href="/logout" class="sidebar-logout"><span>↪</span>Chiqish</a>
         </aside>
-        <button type="button" class="sidebar-backdrop" id="appSidebarBackdrop" onclick="closeSidebar()" aria-label="Menyuni yopish"></button>
+        <button type="button" class="sidebar-backdrop" id="appSidebarBackdrop" data-csp-action="closeSidebar" aria-label="Menyuni yopish"></button>
         {% endif %}
         <main class="app-main">
             <header class="topbar">
-                {% if session.get('user_role') == 'admin' %}<button class="menu-toggle" id="appMenuToggle" onclick="toggleSidebar()" aria-label="Menyuni ochish" aria-controls="appSidebar" aria-expanded="false">☰</button>{% endif %}
+                {% if session.get('user_role') == 'admin' %}<button class="menu-toggle" id="appMenuToggle" data-csp-action="toggleSidebar" aria-label="Menyuni ochish" aria-controls="appSidebar" aria-expanded="false">☰</button>{% endif %}
                 <form action="/search" method="GET" class="topbar-search">
                     <span>⌕</span><input type="text" name="q" placeholder="Qidirish..." value="{{ request.args.get('q', '') }}">
                 </form>
@@ -89,13 +89,13 @@
                 </nav>
                 {% endif %}
                 <div class="notification-wrap">
-                    <button type="button" class="notification-button" onclick="toggleNotifications(event)" aria-label="Bildirishnomalar"><span class="notification-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span>{% if header_notification_count %}<b>{{ header_notification_count }}</b>{% endif %}</button>
+                    <button type="button" class="notification-button" data-csp-action="toggleNotifications" aria-label="Bildirishnomalar"><span class="notification-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span>{% if header_notification_count %}<b>{{ header_notification_count }}</b>{% endif %}</button>
                     <div class="notification-panel" id="notificationPanel">
                         <div class="notification-heading"><strong>Bildirishnomalar</strong><a href="/chat">Chatni ochish</a></div>
                         {% for item in header_notifications %}<a class="notification-item" href="/chat"><strong>{{ item.sender }}</strong><p>{{ item.body[:90] }}{% if item.body|length > 90 %}...{% endif %}</p><small>{{ item.time }}</small></a>{% else %}<div class="notification-empty">Hozircha bildirishnoma yo‘q.</div>{% endfor %}
                     </div>
                 </div>
-                <button class="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Tungi rejimni almashtirish"><span id="themeIcon">☾</span><span class="theme-label">Rejim</span></button>
+                <button class="theme-toggle" type="button" data-csp-action="toggleTheme" aria-label="Tungi rejimni almashtirish"><span id="themeIcon">☾</span><span class="theme-label">Rejim</span></button>
                 <div class="topbar-status"><span></span> Tizim faol</div>
             </header>
             <div class="content-wrapper">
@@ -111,7 +111,7 @@
         </main>
     </div>
     {% endif %}
-    <script>
+    <script nonce="{{ csp_nonce }}">
         function toggleSidebar() {
             const sidebar = document.getElementById('appSidebar');
             if (sidebar.classList.contains('open')) closeSidebar();
@@ -163,5 +163,6 @@
     </script>
     
     {% block extra_js %}{% endblock %}
+    <script src="{{ url_for('static', filename='js/csp-actions.js') }}" defer></script>
 </body>
 </html>

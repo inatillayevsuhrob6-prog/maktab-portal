@@ -79,7 +79,7 @@
                         <td>{{ item.room_number or '-' }}</td>
                         <td class="schedule-actions">
                             <a href="/schedule/edit/{{ item.id }}" class="btn-edit">✏️ Tahrirlash</a>
-                            <form action="/schedule/delete/{{ item.id }}" method="POST" onsubmit="return confirm('Bu darsni o‘chirishni xohlaysizmi?');">
+                            <form action="/schedule/delete/{{ item.id }}" method="POST" data-confirm="Bu darsni o‘chirishni xohlaysizmi?">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn-delete">🗑 O‘chirish</button>
                             </form>

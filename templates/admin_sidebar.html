@@ -16,7 +16,7 @@
     </nav>
     <a href="/logout" class="sidebar-logout"><span>↪</span>Chiqish</a>
 </aside>
-<button class="legacy-menu-toggle menu-toggle" onclick="toggleLegacySidebar()" aria-label="Menyuni ochish">☰</button>
-<script>
+<button class="legacy-menu-toggle menu-toggle" data-csp-action="toggleLegacySidebar" aria-label="Menyuni ochish">☰</button>
+<script nonce="{{ csp_nonce }}">
     function toggleLegacySidebar() { document.getElementById('legacyAdminSidebar').classList.toggle('open'); }
 </script>
