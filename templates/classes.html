@@ -53,7 +53,7 @@
             </div>
             <div class="action-btns">
                 <a href="/edit_class/{{ c.id }}" class="btn-edit">✏️ Tahrirlash</a>
-                <a href="/delete_class/{{ c.id }}" class="btn-delete" onclick="return confirm('Rostdan ham o\'chirmoqchimisiz?')">🗑 O'chirish</a>
+                <form action="/delete_class/{{ c.id }}" method="POST" onsubmit="return confirm('Sinf va uning ma’lumotlarini o‘chirishni tasdiqlaysizmi?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn-delete">🗑 O'chirish</button></form>
                 <a href="/students?class_id={{ c.id }}" style="color:#3498db; text-decoration:none; font-weight:bold; margin-left:10px;">O'quvchilarni ko'rish →</a>
             </div>
         </div>

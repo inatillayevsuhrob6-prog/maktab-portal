@@ -83,7 +83,7 @@
                     <button type="button" class="btn-members" onclick="toggleClubMembers(this, {{ c.id }})">A’zolar va telefonlar</button>
                     {% if current_role == 'admin' or c.teacher_id == current_teacher_id %}
                     <a href="{{ url_for('edit_club', club_id=c.id) }}" class="btn-edit">Tahrirlash</a>
-                    <a href="/clubs/delete/{{ c.id }}" class="btn-delete" onclick="return confirm('O\'chirilsinmi?')">O'chirish</a>
+                    <form action="/clubs/delete/{{ c.id }}" method="POST" onsubmit="return confirm('To‘garakni o‘chirishni tasdiqlaysizmi?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn-delete">O'chirish</button></form>
                     {% endif %}
                 </div>
                 <div class="club-member-panel" hidden aria-live="polite"></div>

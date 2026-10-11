@@ -22,6 +22,7 @@
 {% endblock %}
 {% block content %}
 <div class="chat-container">
+        <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
         <div class="chat-header">
             <h2>🤖 AI O'qituvchi</h2>
             <div style="display:flex; align-items:center;">
@@ -72,7 +73,7 @@
         try {
             const res = await fetch('/ask_ai_chat_stream', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': document.getElementById('csrf-token').value},
                 body: JSON.stringify({message: text})
             });
             const data = await res.json();

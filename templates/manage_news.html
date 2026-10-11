@@ -60,7 +60,7 @@
             </div>
                 <div style="display:flex; flex-direction:column; gap:5px;">
                 <a href="/edit_news/{{ n.id }}" style="background:#f39c12; color:white; padding:5px 10px; border-radius:4px; text-decoration:none; font-size:12px; text-align:center;">Tahrirlash</a>
-                <a href="/delete_news/{{ n.id }}" style="background:#e74c3c; color:white; padding:5px 10px; border-radius:4px; text-decoration:none; font-size:12px; text-align:center;" onclick="return confirm('O\'chirilsinmi?')">O'chirish</a>
+                <form action="/delete_news/{{ n.id }}" method="POST" onsubmit="return confirm('Yangilikni o‘chirishni tasdiqlaysizmi?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" style="background:#e74c3c; color:white; padding:5px 10px; border:0; border-radius:4px; font-size:12px; cursor:pointer;">O'chirish</button></form>
             </div>
         </div>
         {% endfor %}

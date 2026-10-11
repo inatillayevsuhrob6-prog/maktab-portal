@@ -42,7 +42,7 @@
                     <td>
                         <a href="/add_question/{{ t.id }}" class="btn-view">➕ Savol qo'shish</a>
                         <a href="/test_results/{{ t.id }}" class="btn-edit" style="background:#27ae60;">📊 Natijalar</a>
-                        <a href="/delete_test/{{ t.id }}" class="btn-delete" onclick="return confirm('Rostdan ham o\'chirmoqchimisiz?')">🗑 O'chirish</a>
+                        <form action="/delete_test/{{ t.id }}" method="POST" onsubmit="return confirm('Testni o‘chirishni tasdiqlaysizmi?')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn-delete">🗑 O'chirish</button></form>
                     </td>
                 </tr>
                 {% endfor %}

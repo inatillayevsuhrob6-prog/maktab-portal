@@ -20,6 +20,8 @@ from datetime import datetime, timedelta, timezone
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    if not app.config.get('SECRET_KEY') or app.config['SECRET_KEY'] == 'default-secret-key-change-in-production':
+        raise RuntimeError('Set a private SECRET_KEY environment variable before starting the application.')
     app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024
     os.makedirs(app.instance_path, exist_ok=True)
     
@@ -28,7 +30,7 @@ def create_app():
     @app.errorhandler(CSRFError)
     def handle_csrf_error(error):
         flash("Sahifa eskirgan. Jadval yangilandi, amalni qayta bajaring.", "danger")
-        return redirect(request.referrer or url_for('home'))
+        return redirect(url_for('home'))
 
     @app.errorhandler(400)
     def handle_bad_request(error):
@@ -352,6 +354,53 @@ def create_app():
         if 'school_id' in session:
             session['last_activity'] = datetime.now(timezone.utc)
 
+        # Public entry points stay public; every application page is protected by default.
+        # Uploaded presentation files are private learning materials, unlike public news images.
+        endpoint = request.endpoint
+        if endpoint is None or endpoint in {'home', 'register', 'login', 'static'}:
+            if endpoint == 'static' and request.path.startswith('/static/uploads/presentations/'):
+                if not _has_authenticated_role():
+                    return redirect(url_for('home'))
+                owned_file = Presentation.query.filter_by(
+                    school_id=session['school_id'], file_url=request.path
+                ).first()
+                if not owned_file:
+                    return '', 404
+            return None
+        if not _has_authenticated_role():
+            session.clear()
+            if endpoint == 'ask_ai_chat_stream' or request.is_json:
+                return jsonify({'error': 'Kirish talab qilinadi.'}), 401
+            return redirect(url_for('home'))
+
+    def _has_authenticated_role():
+        return bool(session.get('school_id') and session.get('user_role') in {'admin', 'teacher', 'student'})
+
+    @app.after_request
+    def add_security_headers(response):
+        response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+        response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
+        response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+        response.headers.setdefault('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+        response.headers.setdefault('Cross-Origin-Opener-Policy', 'same-origin')
+        response.headers.setdefault('Content-Security-Policy', "; ".join([
+            "default-src 'self'",
+            "base-uri 'self'",
+            "object-src 'none'",
+            "frame-ancestors 'self'",
+            "form-action 'self'",
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+            "font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+            "img-src 'self' data: blob: https:",
+            "connect-src 'self' https://api.groq.com"
+        ]))
+        # This site is served over HTTPS. HSTS tells browsers to keep using HTTPS.
+        response.headers.setdefault('Strict-Transport-Security', 'max-age=31536000')
+        if session.get('school_id') and request.endpoint != 'static':
+            response.headers['Cache-Control'] = 'no-store'
+        return response
+
     @app.route("/")
     def home():
         if 'school_id' in session:
@@ -364,6 +413,7 @@ def create_app():
         return render_template("login.html", news_list=public_news)
         
     @app.route("/register", methods=["GET", "POST"])
+    @limiter.limit("5 per hour")
     def register():
         if request.method == "POST":
             name = sanitize_input(request.form.get('school_name'))
@@ -401,12 +451,14 @@ def create_app():
         
         school = School.query.filter_by(login=login_input).first()
         if school and check_password_hash(school.password_hash, password_input):
+            session.clear()
             session.permanent = True; session['school_id'] = school.id; session['school_name'] = school.name
             session['user_role'] = 'admin'; session['last_activity'] = datetime.now(timezone.utc)
             return redirect(url_for('dashboard'))
         
         student = Student.query.filter_by(login=login_input).first()
         if student and check_password_hash(student.password_hash, password_input):
+            session.clear()
             session.permanent = True; session['school_id'] = student.school_id; session['student_id'] = student.id
             session['student_name'] = f"{student.first_name} {student.last_name}"; session['user_role'] = 'student'
             session['last_activity'] = datetime.now(timezone.utc)
@@ -414,6 +466,7 @@ def create_app():
             
         teacher = Teacher.query.filter_by(login=login_input).first()
         if teacher and check_password_hash(teacher.password_hash, password_input):
+            session.clear()
             session.permanent = True; session['school_id'] = teacher.school_id; session['teacher_id'] = teacher.id
             session['teacher_name'] = f"{teacher.first_name} {teacher.last_name}"; session['user_role'] = 'teacher'
             session['last_activity'] = datetime.now(timezone.utc)
@@ -1457,10 +1510,14 @@ def create_app():
         return render_template("ai_chat.html")
 
     @app.route("/ask_ai_chat_stream", methods=["POST"])
-    @csrf.exempt
+    @limiter.limit("10 per minute")
     def ask_ai_chat_stream():
-        if 'school_id' not in session: return jsonify({"error": "Unauthorized"}), 401
-        data = request.get_json(); user_message = data.get('message', '')
+        data = request.get_json(silent=True) or {}
+        if not isinstance(data, dict): return jsonify({"error": "So‘rov formati noto‘g‘ri."}), 400
+        user_message = data.get('message', '')
+        if not isinstance(user_message, str): return jsonify({"error": "Xabar matni noto‘g‘ri."}), 400
+        user_message = user_message.strip()
+        if len(user_message) > 2000: return jsonify({"error": "Xabar 2000 belgidan oshmasin."}), 400
         if not user_message: return jsonify({"reply": ""})
         try:
             api_key = os.environ.get('GROQ_API_KEY')
@@ -1468,11 +1525,11 @@ def create_app():
             client = OpenAI(base_url="https://api.groq.com/openai/v1", api_key=api_key)
             response = client.chat.completions.create(model="openai/gpt-oss-20b", messages=[{"role": "system", "content": "Siz maktab o'quvchilari uchun mehribon AI yordamchisiz. Qisqa va aniq javob bering."}, {"role": "user", "content": user_message}])
             reply = response.choices[0].message.content; return jsonify({"reply": reply})
-        except Exception as e:
-            print(f"Groq Xatosi: {e}"); return jsonify({"reply": f"Xatolik: {str(e)}"}), 500
+        except Exception:
+            app.logger.exception("AI yordamchi so‘rovi bajarilmadi")
+            return jsonify({"reply": "Javob olishda xatolik yuz berdi. Birozdan so‘ng qayta urinib ko‘ring."}), 500
 
     @app.route("/clear_chat", methods=["POST"])
-    @csrf.exempt
     def clear_chat():
         if 'school_id' in session: session['chat_history'] = []; session.modified = True
         return jsonify({"status": "cleared"})
@@ -1628,7 +1685,7 @@ def create_app():
             edit_end_time=edit_end_time
         )
 
-    @app.route("/clubs/delete/<int:club_id>")
+    @app.route("/clubs/delete/<int:club_id>", methods=["POST"])
     def delete_club(club_id):
         role = session.get('user_role')
         if 'school_id' not in session or role not in {'admin', 'teacher'}: return redirect(url_for('home'))
@@ -1688,7 +1745,7 @@ def create_app():
             return jsonify({"status": "success", "message": "To‘garakka muvaffaqiyatli a’zo bo‘ldingiz!"})
 
     # --- O'CHIRISH ROUTE LARI ---
-    @app.route("/delete_class/<int:cid>")
+    @app.route("/delete_class/<int:cid>", methods=["POST"])
     def delete_class(cid):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
         c = Class.query.filter_by(id=cid, school_id=session['school_id']).first_or_404()
@@ -1726,19 +1783,19 @@ def create_app():
                     app.logger.warning("Taqdimot faylini o‘chirish amalga oshmadi: %s", path)
         return redirect(url_for('teachers'))
 
-    @app.route("/delete_test/<int:test_id>")
+    @app.route("/delete_test/<int:test_id>", methods=["POST"])
     def delete_test(test_id):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
         t = Test.query.filter_by(id=test_id, school_id=session['school_id']).first_or_404()
         TestResult.query.filter_by(test_id=t.id).delete(synchronize_session=False); TestQuestion.query.filter_by(test_id=t.id).delete(synchronize_session=False)
         db.session.delete(t); db.session.commit(); return redirect(url_for('tests'))
 
-    @app.route("/delete_book/<int:bid>")
+    @app.route("/delete_book/<int:bid>", methods=["POST"])
     def delete_book(bid):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
         b = Book.query.filter_by(id=bid, school_id=session['school_id']).first_or_404(); db.session.delete(b); db.session.commit(); return redirect(url_for('manage_library'))
 
-    @app.route("/delete_news/<int:nid>")
+    @app.route("/delete_news/<int:nid>", methods=["POST"])
     def delete_news(nid):
         if 'school_id' not in session or session.get('user_role') != 'admin': return redirect(url_for('home'))
         n = News.query.filter_by(id=nid, school_id=session['school_id']).first_or_404()
@@ -1886,4 +1943,4 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
